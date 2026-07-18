@@ -52,7 +52,7 @@ Canonical product hosts:
 ## Guides
 
 - [Build AI Customer Support](https://docs.qefro.com/docs/guides/build-ai-customer-support/): Step-by-step: create a Support workspace, ingest FAQs, validate citations, embed the website widget, then optionally add WhatsApp and Business Tools.
-- [Create Employee AI](https://docs.qefro.com/docs/guides/create-employee-ai/): Stand up Employee AI on the Internal Portal: workspaces, Teams, RBAC grants, branding, and optional internal Business Tools.
+- [Create Employee AI](https://docs.qefro.com/docs/guides/create-employee-ai/): Stand up Employee AI on the Internal Portal: workspaces, Teams, RBAC grants, and branding.
 - [Connect REST APIs](https://docs.qefro.com/docs/guides/connect-rest-apis/): Create a workspace Business Tool that calls your HTTPS API — method, URL, encrypted auth, test, and execution logs.
 - [Import OpenAPI](https://docs.qefro.com/docs/guides/import-openapi/): Preview and apply an OpenAPI document into workspace integrations/tools — review operations, auth, and least privilege before enabling chat.
 - [Deploy WhatsApp AI](https://docs.qefro.com/docs/guides/deploy-whatsapp-ai/): Connect Meta Cloud API to Qefro WhatsApp webhooks on Growth+, bind a Support workspace, and validate the same grounded answers as your website widget.

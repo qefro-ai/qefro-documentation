@@ -286,7 +286,7 @@ Search and AI assistants increasingly answer “can the AI *do* things, or only 
 ```mermaid
 sequenceDiagram
   participant User
-  participant Channel as Widget / Portal / WhatsApp
+  participant Channel as Widget / WhatsApp
   participant Qefro as Qefro runtime
   participant Tool as Business Tool HTTPS API
   User->>Channel: Message
@@ -297,6 +297,8 @@ sequenceDiagram
   Qefro-->>User: Answer with action outcome
   Qefro->>Qefro: Execution log
 ```
+
+Business Actions are not executed from the Internal Portal. Employees use the portal as a knowledge assistant (RAG / document Q&amp;A). Live API actions remain on the Website Widget and WhatsApp until employee delegated authentication is available.
 
 ## Security properties (required for production)
 
@@ -1060,11 +1062,23 @@ A **Business Action** is the runtime execution of a **Business Tool** during a c
 
 Flow in production:
 
-1. User message arrives (widget WebSocket, Internal Portal chat, or WhatsApp)
+1. User message arrives (Website Widget or WhatsApp; Internal Portal is knowledge-only in V1)
 2. Assistant retrieves workspace knowledge (hybrid RAG)
-3. When appropriate, the model selects an allowed tool in that workspace
+3. When appropriate, the model selects an allowed tool in that workspace (customer channels only)
 4. Qefro authorizes the call, performs SSRF-safe HTTPS egress, and records an execution log
 5. Result is folded into the assistant reply
+
+### Channel support (V1)
+
+| Channel | Business Tool execution |
+| --- | --- |
+| Website Widget | ✓ Supported |
+| WhatsApp | ✓ Supported |
+| Internal Portal | ✗ Not supported |
+
+Internal Portal requests that would require a Business Tool receive a structured `BUSINESS_TOOLS_NOT_SUPPORTED` response. Knowledge search and RAG continue to work normally.
+
+Future Portal support may use enterprise SSO, OAuth On-Behalf-Of, identity federation, employee identity delegation, and JWT forwarding — without removing the existing channel gate.
 
 ## Why it exists
 
@@ -1162,6 +1176,20 @@ Most chatbots only answer from documents. Qefro also executes configured actions
 - **Tool** — invocable operation (method, URL template, auth)
 - **Execution log** — audit trail for tool runs (`/api/v1/tools/:id/logs`)
 - **Test** — `POST /api/v1/tools/:id/test` (rate-limited)
+
+## Business Tool Execution (channels)
+
+| Channel | Status |
+| --- | --- |
+| **Website Widget** | Supported |
+| **WhatsApp** | Supported |
+| **Internal Portal** | Not supported (V1) |
+
+**Reason:** Internal Portal Business Tool execution requires delegated employee authentication, enterprise identity integration, and user authorization models, which are planned for a future release.
+
+Knowledge search, RAG, document Q&A, AI assistance, and internal documentation remain fully supported in the Internal Portal. The Internal Portal stays an AI Knowledge Assistant in V1.
+
+Admin Console **Test Tool** continues to work for configuring connectors — that path is not a chat channel.
 
 ## Architecture
 
@@ -2122,7 +2150,7 @@ Next: [Production Deployment](/docs/guides/production-deployment) before invitin
 
 Source: https://docs.qefro.com/docs/guides/create-employee-ai/
 
-> Stand up Employee AI on the Internal Portal: workspaces, Teams, RBAC grants, branding, and optional internal Business Tools.
+> Stand up Employee AI on the Internal Portal: workspaces, Teams, RBAC grants, and branding.
 
 This guide ships **Employee AI**: authenticated organization members use the [Internal Portal](/docs/platform/internal-portal) to chat with workspaces they are granted — not the public widget.
 
@@ -2137,7 +2165,7 @@ This guide ships **Employee AI**: authenticated organization members use the [In
 
 - Owner or Admin on [app.qefro.com](https://app.qefro.com)
 - Internal documents approved for employee access
-- Decision on who may configure tools (usually Admins only)
+- Decision on who may configure tools for customer channels (usually Admins only)
 
 ## Architecture
 
@@ -2180,11 +2208,11 @@ Owners and Admins can typically access all workspaces; Members only see grants. 
 
 Optional later: [Enable Custom Domains](/docs/guides/enable-custom-domains).
 
-## Step 5 — Optional internal tools
+## Step 5 — Business Tools (customer channels only)
 
-Attach internal Business Tools only to internal workspaces. Prefer read-only first. Never attach payroll-write tools to a Customer AI workspace.
+In V1, Business Tool execution is **not** available from the Internal Portal. Configure tools for Website Widget and WhatsApp if needed; the portal stays a knowledge assistant.
 
-See [Secure Business Actions](/docs/guides/secure-business-actions).
+See [Business Tools](/docs/platform/business-tools) and [Secure Business Actions](/docs/guides/secure-business-actions).
 
 ## Workflow checklist
 
@@ -2608,6 +2636,8 @@ This guide hardens **Business Actions** so assistants can call your APIs without
 | Confused deputy | Forward end-user identity |
 
 Concepts: [AI Agent Security](/docs/concepts/ai-agent-security), [What are Business Actions?](/docs/concepts/business-actions).
+
+In Qefro V1, Business Tool execution is intentionally disabled in the Internal Portal. Runtime returns `BUSINESS_TOOLS_NOT_SUPPORTED` before authentication, validation, or HTTPS egress. Do not rely on Portal chat for live API actions until employee delegated authentication ships.
 
 ## Step 1 — Split audiences
 

@@ -104,27 +104,33 @@ export function Success({
   );
 }
 
-type RelatedTopic = {label: string; to: string};
+type RelatedTopic = {label: string; to?: string; href?: string};
 
 export function RelatedTopics({
   topics,
+  links,
 }: {
-  topics: RelatedTopic[];
+  topics?: RelatedTopic[];
+  links?: RelatedTopic[];
 }): ReactNode {
+  const items = topics ?? links ?? [];
   return (
     <nav className="qefro-related" aria-label="Related topics">
-      {topics.map((t) => (
-        <Link key={t.to} to={t.to}>
-          {t.label}
-        </Link>
-      ))}
+      {items.map((t) => {
+        const destination = t.to ?? t.href ?? '#';
+        return (
+          <Link key={destination} to={destination}>
+            {t.label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
 
 type FaqItem = {question: string; answer: ReactNode};
 
-export function FaqAccordion({items}: {items: FaqItem[]}): ReactNode {
+export function FaqAccordion({items = []}: {items?: FaqItem[]}): ReactNode {
   return (
     <div className="qefro-faq" role="list">
       {items.map((item) => (
@@ -141,10 +147,10 @@ type ComparisonRow = {capability: string; qefro: string; other: string};
 
 export function ComparisonTable({
   otherName,
-  rows,
+  rows = [],
 }: {
   otherName: string;
-  rows: ComparisonRow[];
+  rows?: ComparisonRow[];
 }): ReactNode {
   return (
     <div className="qefro-comparison">
