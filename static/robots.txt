@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
 
+# AI / agent discovery (https://llmstxt.org)
+# https://docs.qefro.com/llms.txt
+# https://docs.qefro.com/llms-full.txt
+
 Sitemap: https://docs.qefro.com/sitemap.xml

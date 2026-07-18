@@ -18,7 +18,8 @@ Open [http://localhost:3000](http://localhost:3000).
 | Command | Description |
 | --- | --- |
 | `npm run start` | Local dev server with hot reload |
-| `npm run build` | Production static build → `build/` |
+| `npm run build` | Production static build → `build/` (runs `generate:llms` first) |
+| `npm run generate:llms` | Refresh `static/llms.txt` + `static/llms-full.txt` |
 | `npm run serve` | Serve the production build locally |
 | `npm run typecheck` | TypeScript check |
 | `npm run lint:md` | Markdown lint |
@@ -60,6 +61,15 @@ Set secrets for Cloudflare:
 - `CLOUDFLARE_ACCOUNT_ID`
 
 Production URL (canonical): `https://docs.qefro.com`
+
+### AI discovery (GEO)
+
+| Endpoint | Purpose |
+| --- | --- |
+| https://docs.qefro.com/llms.txt | Curated doc map ([llmstxt.org](https://llmstxt.org)) |
+| https://docs.qefro.com/llms-full.txt | Full Markdown dump of all docs |
+
+Regenerated automatically on `npm run build` / `start`.
 
 ## Contributing
 

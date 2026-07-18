@@ -1,0 +1,3123 @@
+# Qefro Documentation (full)
+
+> Complete Markdown export of https://docs.qefro.com for AI systems. Generated from the official Docusaurus sources. Prefer individual pages linked from /llms.txt when context is limited.
+
+Generated: 2026-07-18
+
+# Getting Started
+
+# Installation
+
+Source: https://docs.qefro.com/docs/getting-started/installation/
+
+> Create a Qefro organization at app.qefro.com — cloud hosted, no local RAG stack required.
+
+**Installation** for Qefro cloud means signing up at [app.qefro.com](https://app.qefro.com), verifying email, and creating an organization (tenant). You do not install vector databases, LLM gateways, or RAG infrastructure yourself.
+
+## Introduction
+
+Qefro is a multi-tenant SaaS platform. Production hosts:
+
+| Surface | URL |
+| --- | --- |
+| Marketing | https://qefro.com |
+| Admin Console | https://app.qefro.com |
+| API | https://api.qefro.com |
+| Widget CDN | https://cdn.qefro.com/widget.js |
+| Internal Portal | `your-company.qefro.com` (or custom domain) |
+
+## Why it exists
+
+Teams need Customer AI and Employee AI without operating embedding pipelines, hybrid search, or tool-execution sandboxes.
+
+## Concepts
+
+- **Organization / tenant** — billing and isolation boundary created at signup
+- **Admin Console** — configure workspaces, knowledge, Business Tools, channels, RBAC
+- **Workspace** — isolated knowledge + tools + conversations (e.g. Customer Support, HR)
+- **Plan** — Free, Starter, Growth, Enterprise (Razorpay billing)
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Signup[app.qefro.com signup] --> Org[Organization / tenant]
+  Org --> Console[Admin Console]
+  Console --> WS[Workspaces]
+  WS --> API[api.qefro.com]
+  API --> Exp[Widget / Portal / WhatsApp]
+```
+
+## Workflow
+
+## Code examples
+
+  
+
+```bash
+# Health (no auth)
+curl -sS https://api.qefro.com/health
+
+# Ready (dependencies)
+curl -sS https://api.qefro.com/ready
+```
+
+  
+  
+
+```typescript
+const res = await fetch('https://api.qefro.com/health');
+console.log(await res.text());
+```
+
+  
+
+## Best practices
+
+- Use a real company email for ownership and billing
+- Enable MFA / strong passwords on Owner accounts before connecting production APIs
+- Prefer separate workspaces for Customer Support vs internal HR/IT
+
+## Security notes
+
+Never put long-lived Business Tool secrets or Admin Console JWTs in website JavaScript. Widget embeds use a publishable widget token; tool credentials stay encrypted server-side.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Quick Start
+
+Source: https://docs.qefro.com/docs/getting-started/quick-start/
+
+> Create a workspace, upload documents, test chat, then embed the website widget.
+
+**Quick Start** gets you from an empty organization to cited answers in the Admin Console, then optionally to a live website widget.
+
+## Introduction
+
+In Qefro, knowledge is scoped to a **workspace**. Customer AI (widget / WhatsApp) and Employee AI (Internal Portal) both bind to workspaces you configure in the Admin Console.
+
+## Why it exists
+
+Validating retrieval quality before connecting Business Tools or public channels avoids shipping an inaccurate assistant.
+
+## Concepts
+
+- **Document** — PDF, DOCX, Markdown, TXT, or crawled pages; chunked and indexed with hybrid BM25 + vector retrieval
+- **Citation** — answers include source references; the model is instructed to refuse when no relevant source exists
+- **Widget token** — publishable embed key from **Widget** in the Admin Console (rotatable)
+
+## Architecture
+
+```mermaid
+sequenceDiagram
+  participant You
+  participant Console as Admin Console
+  participant API as api.qefro.com
+  participant RAG as Knowledge Platform
+  You->>Console: Create workspace
+  You->>Console: Upload PDF / crawl site
+  Console->>API: GraphQL + POST /api/v1/documents
+  API->>RAG: Chunk, embed, index
+  You->>Console: Test chat
+  API->>RAG: Hybrid retrieve
+  RAG-->>You: Answer + citations
+```
+
+## Workflow
+
+## Code examples
+
+Website embed (values come from Admin Console → Widget):
+
+```html
+<script
+  src="https://cdn.qefro.com/widget.js"
+  data-token="YOUR_WIDGET_TOKEN"
+  data-endpoint="https://api.qefro.com"
+  data-theme="auto"
+  data-position="bottom-right"
+  data-workspace-id="YOUR_WORKSPACE_ID">
+</script>
+```
+
+## Best practices
+
+- Start with 5–20 high-quality docs, not a full drive dump
+- Keep customer-facing and employee knowledge in separate workspaces
+- Test refusal: ask something outside the corpus
+
+## Security notes
+
+Workspace knowledge is isolated. HR documents must not answer Customer Support widget questions.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Platform
+
+# AI Workspaces
+
+Source: https://docs.qefro.com/docs/platform/ai-workspaces/
+
+> Isolated AI contexts in a Qefro organization — knowledge, instructions, Business Tools, and conversations.
+
+An **AI Workspace** is a scoped AI environment inside a Qefro **organization (tenant)**. Each workspace has its own knowledge base, assistant instructions, Business Tools, and conversations. Customer AI (website widget, WhatsApp) and Employee AI (Internal Portal) bind to workspaces you configure in the Admin Console.
+
+## Introduction
+
+In the product data model:
+
+- **Organization / tenant** — top-level isolation and billing boundary (`app.qefro.com` signup)
+- **Workspace** — team/use-case boundary (Customer Support, HR, IT, …)
+- **Team (org RBAC)** — grants Members access to specific workspaces
+
+Admin Console APIs expose workspaces under `/api/v1/org/workspaces` (list/get) and GraphQL for day-to-day console operations.
+
+## Why it exists
+
+Mixing customer FAQs with internal HR policy causes inaccurate answers and privacy risk. Workspaces make isolation the default: retrieval and Business Actions stay inside the selected workspace.
+
+## Concepts
+
+| Term | Meaning in Qefro |
+| --- | --- |
+| Organization | Tenant: users, billing, branding, widget token |
+| Workspace | Isolated knowledge + tools + conversations |
+| Instructions | System guidance (tone, language, refusal) |
+| Business Tools | REST/OpenAPI connectors bound to a workspace |
+| Experience | Widget, Internal Portal, or WhatsApp → workspace |
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Org[Organization / tenant]
+  Org --> WS1[Workspace: Customer Support]
+  Org --> WS2[Workspace: HR]
+  Org --> WS3[Workspace: IT]
+  WS1 --> K1[Knowledge index]
+  WS1 --> T1[Business Tools]
+  WS1 --> C1[Conversations]
+  Widget[Website Widget] --> WS1
+  Portal[Internal Portal] --> WS2
+  WA[WhatsApp] --> WS1
+```
+
+  
+  
+  
+
+## Workflow
+
+## Code examples
+
+  
+
+```html
+<script
+  src="https://cdn.qefro.com/widget.js"
+  data-token="YOUR_WIDGET_TOKEN"
+  data-endpoint="https://api.qefro.com"
+  data-workspace-id="YOUR_WORKSPACE_ID">
+</script>
+```
+
+  
+  
+
+```bash
+curl -sS \
+  -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/workspaces
+```
+
+  
+
+## Best practices
+
+- One primary audience per workspace (customers vs employees)
+- Start narrow on knowledge quality before bulk imports
+- Cross-test: ask Support questions against HR knowledge to prove isolation
+- Assign a human owner per workspace
+
+## Security notes
+
+Do not attach privileged write Business Tools to a public Customer AI workspace without identity forwarding (`identify()`) and least-privilege scopes.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Customer AI
+
+Source: https://docs.qefro.com/docs/platform/customer-ai/
+
+> External assistants on the website widget and WhatsApp, grounded in a workspace.
+
+**Customer AI** is Qefro’s external assistant experience for end customers — primarily the **Website Widget** and **WhatsApp** (Growth+), bound to a workspace’s knowledge and Business Tools.
+
+## Introduction
+
+Configure once in the Admin Console:
+
+- Knowledge + instructions on a Customer Support workspace
+- Widget embed (`cdn.qefro.com/widget.js`) with `data-workspace-id`
+- Optional WhatsApp Cloud API webhook at `POST /api/v1/whatsapp/webhook`
+- Optional lead capture, handoff, and CRM hooks under tenant settings
+
+## Why it exists
+
+Support teams need consistent answers across website and messaging without maintaining separate bots per channel.
+
+## Concepts
+
+- **Channel** — widget or WhatsApp → same workspace knowledge plane
+- **Lead capture** — `POST /api/v1/widget/leads`
+- **Handoff** — `POST /api/v1/widget/conversations/:id/handoff` (+ tenant handoff config)
+- **Feedback** — `POST /api/v1/widget/messages/:id/feedback`
+
+## Architecture
+
+```mermaid
+flowchart LR
+  W[Website Widget] --> WS[Support Workspace]
+  WA[WhatsApp] --> WS
+  WS --> RAG[Knowledge Platform]
+  WS --> ACT[Business Actions]
+```
+
+## Workflow
+
+## Code examples
+
+See [Website Widget](/docs/platform/website-widget) for embed and `identify()` examples.
+
+## Best practices
+
+- Keep Internal HR knowledge out of the Customer Support workspace
+- Enable handoff when the assistant should escalate to humans
+- Review analytics and feedbacks weekly after launch
+
+## Security notes
+
+Widget traffic is rate-limited and message-quota enforced (`check_messages_limit_widget`). Plan conversation limits apply.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Employee AI
+
+Source: https://docs.qefro.com/docs/platform/employee-ai/
+
+> Internal assistants on the branded Internal Portal for organization members.
+
+**Employee AI** is Qefro’s internal assistant experience. Employees sign in to the **Internal Portal** (`your-company.qefro.com` or a custom domain) and chat with workspaces their **teams** grant them access to.
+
+## Introduction
+
+Unlike the public widget:
+
+- Users authenticate as org members (Owner / Admin / Member)
+- Access is RBAC + team → workspace mapping
+- Chat uses authenticated APIs (`POST /api/v1/chat`, `/api/v1/chat/stream`, WebSocket patterns for portal clients)
+- Branding comes from tenant settings (`GET /api/v1/public/tenant-branding`)
+
+## Why it exists
+
+Employees need the same knowledge platform and Business Actions with stronger identity and tighter workspace grants than anonymous website visitors.
+
+## Concepts
+
+- **Internal Portal** — employee web app
+- **Tenant slug** — `your-company.qefro.com`
+- **Team workspace grants** — Members only see authorized workspaces
+- **Document write** — Members need team write permission to upload
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Emp[Employee] --> Portal[Internal Portal]
+  Portal --> Auth[Org session / JWT]
+  Auth --> Teams[Team membership]
+  Teams --> WS[Authorized workspaces]
+  WS --> RAG[Knowledge]
+  WS --> Tools[Business Tools]
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+# Public branding for portal bootstrap
+curl -sS "https://api.qefro.com/api/v1/public/tenant-branding?slug=your-company"
+```
+
+## Best practices
+
+- Never reuse the Customer Support workspace for HR
+- Grant Members least workspace access
+- Use org audit logs for sensitive membership changes
+
+## Security notes
+
+Owners/Admins can access all workspaces. Members cannot invite users, manage billing, or see secrets.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Knowledge Platform
+
+Source: https://docs.qefro.com/docs/platform/knowledge-platform/
+
+> Document ingest, crawl, OCR, hybrid BM25+vector retrieval, citations, and workspace isolation.
+
+The **Knowledge Platform** indexes organizational content for retrieval-augmented generation (RAG). Uploads and crawls are chunked, embedded, and retrieved with **hybrid BM25 + vector** search. Answers include **citations**; the assistant is guided to refuse when no relevant source exists.
+
+## Introduction
+
+Ingest paths in the real API:
+
+- `POST /api/v1/documents` — multipart upload (quota: `check_documents_limit`)
+- `POST /api/v1/documents/text` — create from raw text
+- `POST /api/v1/documents/:id/reindex` — rebuild index for a document
+- GraphQL mutations for console workflows including **website crawl**
+- `GET /api/v1/documents/:id/view` — authorized document view
+
+Supported formats include PDF, DOCX, Markdown, TXT; OCR covers scans/images. Multilingual retrieval supports EN, AR, TA, HI and more.
+
+## Why it exists
+
+Customer AI and Employee AI must share one high-quality retrieval stack with hard **workspace isolation**.
+
+## Concepts
+
+- **Document / chunk / embedding** — indexed units
+- **Hybrid retrieval** — lexical + vector
+- **Citation** — source attribution in answers
+- **Isolation** — workspace-scoped indexes
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Upload[Upload / Crawl / OCR] --> Chunk[Chunk]
+  Chunk --> Index[Hybrid index]
+  Query[User question] --> Retrieve[Retrieve]
+  Index --> Retrieve
+  Retrieve --> Gen[Generate + cite]
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS -X POST \
+  -H "Authorization: Bearer $USER_JWT" \
+  -F "file=@policy.pdf" \
+  -F "workspace_id=$WORKSPACE_ID" \
+  https://api.qefro.com/api/v1/documents
+```
+
+## Best practices
+
+- Separate customer vs employee corpora by workspace
+- Re-test after every major document delete/replace
+- Prefer crawl allowlists over unbounded domains
+
+## Security notes
+
+Deleting a document removes associated chunks/embeddings. Confirm before destructive operations in production workspaces.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Business Actions
+
+Source: https://docs.qefro.com/docs/platform/business-actions/
+
+> Runtime AI invocation of Business Tools under authorization, SSRF controls, and execution logs.
+
+A **Business Action** is the runtime execution of a **Business Tool** during a conversation — for example looking up an order or creating a ticket in your system of record.
+
+## Introduction
+
+Flow in production:
+
+1. User message arrives (widget WebSocket, Internal Portal chat, or WhatsApp)
+2. Assistant retrieves workspace knowledge (hybrid RAG)
+3. When appropriate, the model selects an allowed tool in that workspace
+4. Qefro authorizes the call, performs SSRF-safe HTTPS egress, and records an execution log
+5. Result is folded into the assistant reply
+
+## Why it exists
+
+Answers without actions force users to leave chat and dig through portals. Actions without isolation are unsafe. Qefro combines both under workspace + RBAC boundaries.
+
+## Concepts
+
+- **Tool selection** — only tools attached to the active workspace
+- **Identity** — optional end-user forwarding via `identify()` on the widget
+- **Execution log** — `GET /api/v1/tools/:id/logs`
+- **Failure modes** — tool errors surface safely; they must not leak secrets
+
+## Architecture
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant AI as Qefro AI
+  participant Policy as AuthZ / SSRF
+  participant Tool as Customer API
+  User->>AI: "Where is order 123?"
+  AI->>AI: Retrieve knowledge
+  AI->>Policy: Authorize tool call
+  Policy->>Tool: HTTPS REST
+  Tool-->>AI: Payload
+  AI-->>User: Answer with live data
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+# Inspect recent executions
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/logs
+```
+
+## Best practices
+
+- Separate “customer-safe” tools from “admin-only” tools via workspaces
+- Prefer idempotent reads for auto-invoked actions
+- Document expected side effects for write tools
+
+## Security notes
+
+Treat every new tool like a production integration: SSRF validation, encrypted secrets, and review after OpenAPI reimport.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Business Tools
+
+Source: https://docs.qefro.com/docs/platform/business-tools/
+
+> REST connectors and OpenAPI import that power Business Actions — encrypted credentials, test, logs.
+
+**Business Tools** are workspace-scoped connectors (REST APIs and OpenAPI imports) that the assistant can invoke as **Business Actions**. Credentials are stored encrypted server-side. Qefro does not become your CRM/ERP — tools call *your* systems of record.
+
+## Introduction
+
+Admin Console → workspace → integrations/tools. REST surface (authenticated with the user’s Admin Console JWT):
+
+| Method | Path |
+| --- | --- |
+| GET/POST | `/api/v1/workspaces/:workspace_id/integrations` |
+| POST | `/api/v1/workspaces/:workspace_id/integrations/import/preview` |
+| POST | `/api/v1/workspaces/:workspace_id/integrations/import/preview/upload` |
+| POST | `/api/v1/workspaces/:workspace_id/integrations/import/apply` |
+| GET/PATCH/DELETE | `/api/v1/integrations/:id` |
+| POST | `/api/v1/integrations/:id/reimport` |
+| GET/POST | `/api/v1/workspaces/:workspace_id/tools` |
+| GET/PATCH/DELETE | `/api/v1/tools/:id` |
+| POST | `/api/v1/tools/:id/test` |
+| GET | `/api/v1/tools/:id/logs` |
+
+Plan limits (from domain `PlanDefinition.business_tools_limit`):
+
+| Plan | Business Tools |
+| --- | --- |
+| Free | 1 |
+| Starter | 5 |
+| Growth / Enterprise | Unlimited (`-1`) |
+
+## Why it exists
+
+Most chatbots only answer from documents. Qefro also executes configured actions (order status, ticket create, …) under RBAC, SSRF protections, and execution logs.
+
+## Concepts
+
+- **Integration** — connector grouping (often from OpenAPI)
+- **Tool** — invocable operation (method, URL template, auth)
+- **Execution log** — audit trail for tool runs (`/api/v1/tools/:id/logs`)
+- **Test** — `POST /api/v1/tools/:id/test` (rate-limited)
+
+## Architecture
+
+```mermaid
+flowchart TB
+  OpenAPI[OpenAPI import] --> Integration
+  REST[Manual REST tool] --> Tool
+  Integration --> Tool
+  Tool --> Secrets[Encrypted credentials]
+  Tool --> Exec[SSRF-checked HTTPS egress]
+  Exec --> Logs[Execution logs]
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+# List tools for a workspace
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/workspaces/$WORKSPACE_ID/tools
+
+# Test a tool
+curl -sS -X POST -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/test \
+  -H 'Content-Type: application/json' \
+  -d '{}'
+```
+
+## Best practices
+
+- Prefer read-only tools during pilots
+- Re-import OpenAPI after upstream API changes (`/reimport`)
+- Keep customer-facing tools separate from privileged internal tools (different workspaces)
+
+## Security notes
+
+Outbound tool URLs are SSRF-validated (HTTPS, blocked private/link-local targets, DNS pinning for webhooks). Do not disable these controls for convenience.
+
+MCP connectors are on the roadmap — not required for REST/OpenAPI today.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Internal Portal
+
+Source: https://docs.qefro.com/docs/platform/internal-portal/
+
+> Branded employee experience on your-company.qefro.com or a custom domain.
+
+The **Internal Portal** is the employee-facing web app for Employee AI. Default host: `https://{tenantSlug}.qefro.com`. Optional custom domains terminate via Cloudflare (CNAME target defaults to `org.qefro.com` in product settings).
+
+## Introduction
+
+Portal bootstrap uses public branding:
+
+- `GET /api/v1/public/tenant-branding`
+- `GET /api/v1/public/tenant-slug-available`
+
+Authenticated employees then use org chat/document APIs under their RBAC grants. Share links and branding are configured in Admin Console → Settings (Employee branding / Internal Portal).
+
+## Why it exists
+
+Employees need a first-party, branded chat experience — not a public website widget.
+
+## Concepts
+
+- **Tenant slug** — subdomain label
+- **Custom hostname** — customer DNS → Cloudflare → portal
+- **Branding** — logo/colors from tenant settings
+
+## Architecture
+
+```mermaid
+flowchart LR
+  DNS[CNAME] --> Edge[Cloudflare]
+  Edge --> Portal[Internal Portal]
+  Portal --> API[api.qefro.com]
+  API --> WS[Authorized workspaces]
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS "https://api.qefro.com/api/v1/public/tenant-slug-available?slug=acme"
+```
+
+## Best practices
+
+- Communicate the portal URL in your IT onboarding docs
+- Keep Customer Support widget traffic off employee-only workspaces
+
+## Security notes
+
+Custom domains should use HTTPS only. Remove unused hostnames promptly in Settings.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Website Widget
+
+Source: https://docs.qefro.com/docs/platform/website-widget/
+
+> Embed Customer AI with cdn.qefro.com/widget.js, workspace binding, WebSocket chat, and identify().
+
+The **Website Widget** is Qefro’s embeddable Customer AI chat. It loads from `https://cdn.qefro.com/widget.js` (or your configured CDN), authenticates with a **publishable widget token**, and streams replies over WebSocket (`/ws/chat`) with HTTP fallback (`POST /api/v1/widget/chat`).
+
+## Introduction
+
+Configure appearance and copy the embed snippet from **Admin Console → Widget**. Select a **workspace** so the live preview and embed `data-workspace-id` stay aligned.
+
+Supported surfaces in the widget implementation:
+
+- Text chat with streaming
+- Optional lead capture
+- Message feedback
+- Human handoff / ticket triggers
+- Voice STT/TTS via `/api/v1/widget/stt` and `/api/v1/widget/tts`
+- `setContext()` for page/product context
+- `identify()` for end-user identity (Business Tools)
+
+## Why it exists
+
+Customer AI must ship on your website without hosting RAG infra. The widget is the public channel; knowledge and tools stay on `api.qefro.com` under your tenant.
+
+## Concepts
+
+| Concept | Detail |
+| --- | --- |
+| Widget token | Publishable embed key; rotatable in Admin Console |
+| `data-endpoint` | Usually `https://api.qefro.com` |
+| `data-workspace-id` | Binds chat to a workspace knowledge/tools set |
+| Visitor session | Continuity cookie/header separate from `identify()` |
+| End-user identity | Host-owned JWT/session via `identify()` |
+
+## Architecture
+
+```mermaid
+sequenceDiagram
+  participant Site as Your website
+  participant CDN as cdn.qefro.com
+  participant API as api.qefro.com
+  Site->>CDN: Load widget.js
+  Site->>API: WS /ws/chat?token=WIDGET_TOKEN
+  Note over Site,API: Optional identify() → X-End-User-Token / WS fields
+  API-->>Site: Streamed assistant tokens + citations
+```
+
+## Workflow
+
+.'},
+    {title: 'Optional identify', description: 'Call widget.identify() after your app login.'},
+    {title: 'Test', description: 'Anonymous + authenticated flows; rotate token if leaked.'},
+  ]}
+/>
+
+## Code examples
+
+  
+
+```html
+<script
+  src="https://cdn.qefro.com/widget.js"
+  data-token="YOUR_WIDGET_TOKEN"
+  data-endpoint="https://api.qefro.com"
+  data-theme="auto"
+  data-position="bottom-right"
+  data-primary-color="#7c3aed"
+  data-welcome-message="Hi! How can we help?"
+  data-workspace-id="YOUR_WORKSPACE_ID">
+</script>
+```
+
+  
+  
+
+```bash
+npm install @qefro-ai/widget
+```
+
+```javascript
+const widget = new Widget({
+  token: 'YOUR_WIDGET_TOKEN',
+  endpoint: 'https://api.qefro.com',
+  theme: 'auto',
+  position: 'bottom-right',
+  workspaceId: 'YOUR_WORKSPACE_ID',
+});
+
+widget.open();
+
+// Page context — NOT identity
+widget.setContext({ page: '/checkout', productId: 'ABC123' });
+
+// Authenticated end user — for Business Tools
+widget.identify({
+  id: user.id,
+  email: user.email,
+  name: user.name,
+  auth: { mode: 'jwt', token: userJwt },
+});
+
+// Refresh JWT without restarting
+widget.setAuthToken(newJwt);
+
+// Logout
+await widget.clearIdentity();
+```
+
+  
+
+Identity transport (real widget behavior):
+
+- JWT mode → HTTP header `X-End-User-Token`, WebSocket field `endUserToken`
+- Session mode → `X-End-User-Session` / `endUserSession`
+- Profile fields (`id`, `email`, `name`, `authMode`) go in the request body — **tokens are never placed in the JSON body**
+
+## Best practices
+
+- Always set `data-workspace-id` for production embeds
+- Call `identify()` only after your own auth succeeds
+- Rotate the widget token if it leaks; update every embed
+- Use `clearIdentity()` on logout
+
+## Security notes
+
+The widget token is publishable but still site-scoped. Do not treat it as a server API key. Business Tool secrets stay encrypted in Qefro; never embed them in the page.
+
+## FAQ
+
+## Related topics
+
+---
+
+# WhatsApp
+
+Source: https://docs.qefro.com/docs/platform/whatsapp/
+
+> Customer AI over Meta Cloud API — webhook verify/incoming at /api/v1/whatsapp/webhook.
+
+**WhatsApp** connects Meta Cloud API messaging to a Qefro Customer AI workspace. Availability: **Growth+**.
+
+## Introduction
+
+API routes:
+
+- `GET /api/v1/whatsapp/webhook` — Meta verification challenge
+- `POST /api/v1/whatsapp/webhook` — inbound messages
+
+Tenant WhatsApp configuration is managed in the Admin Console (and platform admin WhatsApp config endpoints for operators). Phone numbers map into workspace-scoped assistants like other Customer AI channels.
+
+## Why it exists
+
+Customers already message businesses on WhatsApp. Reusing the same knowledge + Business Actions avoids a second bot stack.
+
+## Concepts
+
+- **Webhook verify token** — Meta subscription handshake
+- **Phone number ID** — Cloud API sender identity
+- **Workspace binding** — which knowledge/tools answer
+
+## Architecture
+
+```mermaid
+flowchart LR
+  User --> Meta[Meta Cloud API]
+  Meta --> WH["GET/POST /api/v1/whatsapp/webhook"]
+  WH --> WS[Workspace]
+  WS --> RAG[Knowledge]
+  WS --> Meta
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+# Webhook URL (configure in Meta)
+# https://api.qefro.com/api/v1/whatsapp/webhook
+```
+
+## Best practices
+
+- Use the same Customer Support workspace as the website widget when you want one brain
+- Keep write tools tightly scoped on messaging channels
+
+## Security notes
+
+Protect verify tokens and Cloud API secrets like production credentials. Rotate if exposed.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Authentication
+
+Source: https://docs.qefro.com/docs/platform/authentication/
+
+> How Admin Console users, Internal Portal members, widget tokens, and APIs authenticate to Qefro.
+
+**Authentication** in Qefro depends on the surface:
+
+| Surface | Mechanism |
+| --- | --- |
+| Admin Console / Internal Portal users | Email+password (OTP verify on signup), session JWT |
+| Website Widget | Publishable **widget token** (`Authorization: Bearer` / `?token=`) |
+| End-user identity for tools | Host JWT/session via `identify()` headers |
+| Super Admin | Separate `/api/v1/admin/auth/login` |
+| GraphQL | Same user JWT on `POST /graphql` |
+| Metrics | Optional `METRICS_AUTH_TOKEN` bearer when not public |
+
+## Introduction
+
+User auth routes live under the API (REST + GraphQL). Abuse controls rate-limit login/OTP/forgot/reset (e.g. login ~20 / 15 min per email). Sessions can be listed and revoked (`/api/v1/me/sessions`, org admin session revoke).
+
+## Why it exists
+
+Customer AI, Employee AI, and Admin Console have different trust levels. Mixing them would either over-expose tools or block legitimate embeds.
+
+## Concepts
+
+- **User JWT** — org member session for console/portal/REST
+- **Widget token** — site embed key; rotatable
+- **End-user token** — your customer’s JWT/session for Business Tools
+- **Super Admin** — platform operator, not tenant Owner
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Console[Admin Console] --> UserJWT[User JWT]
+  Portal[Internal Portal] --> UserJWT
+  UserJWT --> GQL[POST /graphql]
+  UserJWT --> REST[REST /api/v1/*]
+  Widget[Website Widget] --> WToken[Widget token]
+  WToken --> WS["/ws/chat"]
+  Widget --> Identify[identify JWT/session]
+  Identify --> Tools[Business Tool egress]
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+# Health is public
+curl -sS https://api.qefro.com/health
+
+# Authenticated REST example
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/roles
+```
+
+## Best practices
+
+- Never put User JWTs in the website widget snippet
+- Use `identify()` only for customer end users, not to impersonate org Admins
+- Review org audit logs after role changes
+
+## Security notes
+
+Super Admin credentials are platform-level. Tenant Owners cannot perform super-admin actions; Admins cannot transfer ownership or delete the Owner.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Identity Forwarding
+
+Source: https://docs.qefro.com/docs/platform/identity-forwarding/
+
+> Forward verified end-user identity into Business Tools with widget.identify().
+
+**Identity Forwarding** lets your host application tell Qefro who the website visitor is, so Business Actions can call your APIs in that user’s context. Qefro does **not** replace your auth system — you own JWT/session issuance.
+
+## Introduction
+
+Implemented in `@qefro-ai/widget` via:
+
+- `widget.identify({ id, email?, name?, auth?: { mode, token } })`
+- `widget.setAuthToken(jwt)` — refresh without restart
+- `widget.clearIdentity()` — clears local identity and notifies `POST /api/v1/widget/identity/clear`
+
+Auth modes:
+
+| Mode | Token transport |
+| --- | --- |
+| `jwt` | Header `X-End-User-Token` / WS `endUserToken` |
+| `session` | Header `X-End-User-Session` / WS `endUserSession` |
+| `none` | Profile only (id/email/name) — no bearer secret |
+
+## Why it exists
+
+Order lookup, ticket creation, and account mutations must not run as a shared service account when the end user is logged into your product.
+
+## Concepts
+
+- **Host-owned identity** — your IdP / session store
+- **Forwarded claims** — id, email, name + auth material for tool HTTP calls
+- **Visitor session** — separate continuity key; clearing identity does not wipe chat history by default
+
+## Architecture
+
+```mermaid
+sequenceDiagram
+  participant App as Your app
+  participant Widget as Qefro Widget
+  participant API as api.qefro.com
+  participant Tool as Your REST API
+  App->>Widget: identify(id, jwt)
+  Widget->>API: Chat + X-End-User-Token
+  API->>Tool: Business Tool call with forwarded identity
+  Tool-->>API: Authorized response
+  API-->>Widget: Grounded answer / action result
+```
+
+## Workflow
+
+## Code examples
+
+```javascript
+widget.identify({
+  id: user.id,
+  email: user.email,
+  name: user.name,
+  auth: {
+    mode: 'jwt',
+    token: userJwt, // from YOUR auth system
+  },
+});
+
+// Later
+widget.setAuthToken(refreshedJwt);
+await widget.clearIdentity();
+```
+
+Anonymous visitors: **do not** call `identify()`.
+
+## Best practices
+
+- Use a stable opaque user id (not email alone) as `id`
+- Keep JWT lifetimes short; refresh with `setAuthToken`
+- Scope Business Tools to least privilege when identity is present
+
+## Security notes
+
+Never put end-user tokens in `setContext()`. Context is product/page metadata; identity is a separate API (`identify`).
+
+Tokens are sent on headers / WebSocket auth fields. They are not duplicated into the public identity JSON body.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Organizations
+
+Source: https://docs.qefro.com/docs/platform/organizations/
+
+> Tenant boundary for billing, users, workspaces, and branding.
+
+An **Organization** (tenant) is the top-level Qefro account created at signup on [app.qefro.com](https://app.qefro.com). It owns members, workspaces, billing (Razorpay), widget token, branding, and channel configs.
+
+## Introduction
+
+Multi-tenant isolation is enforced in the API: every authenticated request resolves `tenant_id` from the user JWT (or widget token). Super Admin APIs (`/api/v1/admin/tenants/*`) are platform-only.
+
+## Why it exists
+
+Billing, security, and data residency expectations attach to a company boundary — not to a single chatbot.
+
+## Concepts
+
+- Tenant / organization — same boundary in product language
+- Plan — Free, Starter, Growth, Enterprise
+- Slug — `your-company.qefro.com` Internal Portal host
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Org[Organization] --> Users
+  Org --> Workspaces
+  Org --> Billing
+  Org --> Branding
+  Org --> WidgetToken[Widget token]
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/team/my-tenants
+```
+
+## Best practices
+
+- One production org per company; use a separate org for experiments when possible
+- Transfer ownership intentionally via `/api/v1/org/transfer-ownership`
+
+## Security notes
+
+Deleting or suspending a tenant is destructive. Prefer suspend (platform admin) over hard delete during incidents.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Teams
+
+Source: https://docs.qefro.com/docs/platform/teams/
+
+> Group members and grant workspace access for Employee AI.
+
+**Teams** organize Members inside an organization and grant access to workspaces. Owners/Admins manage teams; Members only see teams they belong to.
+
+## Introduction
+
+REST: `GET/POST /api/v1/org/teams`, `PUT .../members`, `PUT .../workspaces`, and per-member write flags.
+
+## Why it exists
+
+Employee AI needs scalable access control without making everyone an Admin.
+
+## Concepts
+
+- Team membership
+- Workspace grants
+- Document write permission
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Team --> Members
+  Team --> Workspaces
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/teams
+```
+
+## Best practices
+
+- Mirror real departments (Support, HR, IT)
+- Avoid putting all Members on one mega-team
+
+## Security notes
+
+Granting a team a workspace also grants its Business Tools in that workspace.
+
+## FAQ
+
+## Related topics
+
+---
+
+# RBAC
+
+Source: https://docs.qefro.com/docs/platform/rbac/
+
+> Owner, Admin, and Member roles — teams, workspace grants, and document write flags.
+
+**RBAC** in Qefro uses organization roles **Owner**, **Admin**, and **Member**, plus **Teams** that grant Members access to specific **workspaces** (and optional document write).
+
+## Introduction
+
+Canonical role definitions (from product `RoleDefinition`):
+
+### Owner
+- Manage billing and subscription
+- Transfer ownership / delete organization
+- Manage all teams, members, workspaces
+- Configure integrations and AI assistants
+- Access all workspaces
+- Cannot be removed by Admins
+
+### Admin
+- Access all workspaces; create/delete workspaces
+- Manage teams and invite members
+- Configure integrations and AI assistants
+- Change member roles (except Owner)
+- Cannot transfer ownership, change subscription owner, or delete the Owner
+
+### Member
+- Use AI + integrations only in authorized workspaces
+- View teams they belong to
+- Upload/manage documents **only** when granted team write
+- Cannot invite users, manage teams, billing, secrets, or promote roles
+
+REST (Admin Console JWT):
+
+- `/api/v1/org/roles`, `/api/v1/org/members`, `/api/v1/org/teams`, …
+- `/api/v1/org/teams/:id/workspaces`
+- `/api/v1/org/workspaces/:id/teams`
+- `/api/v1/org/audit-logs`
+- `/api/v1/team/invite`, `/api/v1/team/accept-invite`, …
+
+## Why it exists
+
+Employee AI and Admin Console need least privilege. Public Customer AI uses widget tokens instead of org roles.
+
+## Concepts
+
+- **Org role** — Owner / Admin / Member
+- **Team** — group of members
+- **Workspace grant** — which workspaces a team can use
+- **Write flag** — per team member document write
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Owner --> Admin
+  Admin --> Member
+  Member --> Team
+  Team --> Workspaces
+  Owner --> Billing
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/roles
+
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/teams
+```
+
+## Best practices
+
+- Prefer Admin over shared Owner logins
+- Keep Customer Support tools off HR teams
+- Audit role changes via `/api/v1/org/audit-logs`
+
+## Security notes
+
+Plan seat limits (`users_limit`) still apply on Free/Starter/Growth — RBAC does not bypass quotas.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Analytics
+
+Source: https://docs.qefro.com/docs/platform/analytics/
+
+> Tenant analytics, feedbacks, and conversation insights in the Admin Console.
+
+**Analytics** summarizes usage for a tenant — conversations, messages, and related signals exposed via `GET /api/v1/tenant/analytics` and feedbacks via `GET /api/v1/tenant/feedbacks`. Platform operators have additional `/api/v1/admin/analytics/*` and LLM usage endpoints.
+
+## Introduction
+
+Use analytics after launch to spot deflection, low-citation answers, and handoff volume.
+
+## Why it exists
+
+Without metrics, teams cannot tell if knowledge gaps or tool failures are driving escalations.
+
+## Concepts
+
+- Tenant analytics dashboard
+- Message feedback
+- Platform usage (super admin)
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Events[Chat / tool / feedback events] --> Store
+  Store --> TenantDash[Tenant analytics]
+  Store --> AdminDash[Platform analytics]
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/tenant/analytics
+```
+
+## Best practices
+
+- Pair analytics with citation spot-checks
+- Track tool error rates via tool logs
+
+## Security notes
+
+Analytics endpoints require authenticated tenant membership — not the public widget token.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Branding
+
+Source: https://docs.qefro.com/docs/platform/branding/
+
+> Logos, colors, and portal/widget appearance for your organization.
+
+**Branding** customizes the Internal Portal and widget chrome (primary color, theme, welcome message). Public bootstrap uses `GET /api/v1/public/tenant-branding`.
+
+## Introduction
+
+Configure in Admin Console → Settings (Employee branding / Widget appearance). Widget embeds also accept `data-primary-color`, `data-theme`, and `data-welcome-message`.
+
+## Why it exists
+
+Employees and customers should recognize your brand, not a generic chat bubble.
+
+## Concepts
+
+- Tenant branding payload
+- Widget appearance overrides
+- Portal share link
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Settings[Tenant settings] --> Portal
+  Settings --> Widget
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS "https://api.qefro.com/api/v1/public/tenant-branding?slug=acme"
+```
+
+## Best practices
+
+- Keep contrast accessible in light and dark themes
+- Align widget primary color with website CTAs
+
+## Security notes
+
+Only allow HTTPS logo URLs from trusted origins.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Custom Domains
+
+Source: https://docs.qefro.com/docs/platform/custom-domains/
+
+> Serve the Internal Portal on your hostname via Cloudflare custom hostnames.
+
+**Custom Domains** map a hostname you control to the Internal Portal. In product settings the CNAME target defaults to `org.qefro.com` (see Admin Console → Custom Domain). Your `your-company.qefro.com` subdomain continues to work.
+
+## Introduction
+
+Typical flow: add hostname → create DNS CNAME → wait for certificate → verify in console. Remove unused hostnames promptly.
+
+## Why it exists
+
+Enterprises often require `portal.company.com` instead of `company.qefro.com`.
+
+## Concepts
+
+- Custom hostname
+- CNAME target
+- TLS via Cloudflare
+
+## Architecture
+
+```mermaid
+flowchart LR
+  DNS[CNAME portal.company.com] --> CF[Cloudflare]
+  CF --> Portal[Internal Portal]
+```
+
+## Workflow
+
+## Code examples
+
+```text
+portal.example.com  CNAME  org.qefro.com
+```
+
+## Best practices
+
+- Use a dedicated subdomain (`portal.` / `ai.`)
+- Document DNS owners in your runbook
+
+## Security notes
+
+Only attach domains you control. Remove domains when contracts end.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Deployment
+
+Source: https://docs.qefro.com/docs/platform/deployment/
+
+> Qefro cloud hosts vs Enterprise private deployment options.
+
+**Deployment** for most customers is fully managed:
+
+| Component | Production host |
+| --- | --- |
+| Admin Console | https://app.qefro.com |
+| API | https://api.qefro.com |
+| Widget CDN | https://cdn.qefro.com/widget.js |
+| Internal Portal | `your-company.qefro.com` or custom domain |
+| Docs | https://docs.qefro.com / Cloudflare Pages |
+
+Private / VPC deployment is an **Enterprise** option — contact Sales.
+
+## Introduction
+
+You configure product behavior in the Admin Console; Qefro operates API, RAG, and tool-execution infrastructure.
+
+## Why it exists
+
+Teams want AI Workspaces without staffing platform SRE for LLM gateways and vector stores.
+
+## Concepts
+
+- Managed cloud tenant
+- Enterprise private deploy
+- Static docs site (this repository)
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Cloud[Qefro Cloud] --> Tenants
+  Private[Enterprise private] --> VPC
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS https://api.qefro.com/health
+curl -sS https://api.qefro.com/ready
+```
+
+## Best practices
+
+- Maintain a staging organization for experiments
+- Track widget token rotations in your release notes
+
+## Security notes
+
+SOC 2 is on the roadmap — ask Sales for the current timeline. SSO/SAML is on the Enterprise roadmap.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Guides
+
+# Build AI Customer Support
+
+Source: https://docs.qefro.com/docs/guides/build-ai-customer-support/
+
+> Ship a Support workspace with knowledge, widget, and optional tools.
+
+**Build AI Customer Support** — Ship a Support workspace with knowledge, widget, and optional tools.
+
+## Introduction
+
+Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+
+## Why it exists
+
+Guides encode the recommended path so teams avoid insecure shortcuts.
+
+## Concepts
+
+See linked platform pages for definitions used in this guide.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  A[Prerequisites] --> B[Configure]
+  B --> C[Validate]
+  C --> D[Go live]
+```
+
+Build a **Customer Support** workspace, ingest FAQs, embed the widget, then optionally add Business Tools.
+
+## Workflow
+
+## Code examples
+
+```html
+<script
+  src="https://cdn.qefro.com/widget.js"
+  data-token="YOUR_WIDGET_TOKEN"
+  data-endpoint="https://api.qefro.com"
+  data-workspace-id="YOUR_WORKSPACE_ID">
+</script>
+```
+
+## Security notes
+
+Keep HR knowledge out of this workspace.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Create Employee AI
+
+Source: https://docs.qefro.com/docs/guides/create-employee-ai/
+
+> Stand up Internal Portal with RBAC-scoped workspaces.
+
+**Create Employee AI** — Stand up Internal Portal with RBAC-scoped workspaces.
+
+## Introduction
+
+Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+
+## Why it exists
+
+Guides encode the recommended path so teams avoid insecure shortcuts.
+
+## Concepts
+
+See linked platform pages for definitions used in this guide.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  A[Prerequisites] --> B[Configure]
+  B --> C[Validate]
+  C --> D[Go live]
+```
+
+Create internal workspaces (HR/IT), configure teams, and share `your-company.qefro.com`.
+
+## Workflow
+
+## Security notes
+
+Members only see granted workspaces; Owners/Admins see all.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Connect REST APIs
+
+Source: https://docs.qefro.com/docs/guides/connect-rest-apis/
+
+> Create workspace Business Tools that call your HTTPS APIs.
+
+**Connect REST APIs** — Create workspace Business Tools that call your HTTPS APIs.
+
+## Introduction
+
+Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+
+## Why it exists
+
+Guides encode the recommended path so teams avoid insecure shortcuts.
+
+## Concepts
+
+See linked platform pages for definitions used in this guide.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  A[Prerequisites] --> B[Configure]
+  B --> C[Validate]
+  C --> D[Go live]
+```
+
+In Admin Console, open a workspace → create a REST Business Tool (method, URL template, encrypted auth). Test via `POST /api/v1/tools/:id/test`.
+
+## Workflow
+
+## Security notes
+
+URLs are SSRF-checked. Private IPs and link-local targets are blocked.
+
+## Related topics
+
+---
+
+# Import OpenAPI
+
+Source: https://docs.qefro.com/docs/guides/import-openapi/
+
+> Preview and apply OpenAPI into integrations/tools.
+
+**Import OpenAPI** — Preview and apply OpenAPI into integrations/tools.
+
+## Introduction
+
+Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+
+## Why it exists
+
+Guides encode the recommended path so teams avoid insecure shortcuts.
+
+## Concepts
+
+See linked platform pages for definitions used in this guide.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  A[Prerequisites] --> B[Configure]
+  B --> C[Validate]
+  C --> D[Go live]
+```
+
+Use:
+
+1. `POST /api/v1/workspaces/:id/integrations/import/preview` (URL)
+2. or `.../preview/upload` (file)
+3. `POST .../import/apply`
+4. Later `POST /api/v1/integrations/:id/reimport`
+
+## Workflow
+
+## Related topics
+
+---
+
+# Deploy WhatsApp AI
+
+Source: https://docs.qefro.com/docs/guides/deploy-whatsapp-ai/
+
+> Connect Meta Cloud API to /api/v1/whatsapp/webhook on Growth+.
+
+**Deploy WhatsApp AI** — Connect Meta Cloud API to /api/v1/whatsapp/webhook on Growth+.
+
+## Introduction
+
+Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+
+## Why it exists
+
+Guides encode the recommended path so teams avoid insecure shortcuts.
+
+## Concepts
+
+See linked platform pages for definitions used in this guide.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  A[Prerequisites] --> B[Configure]
+  B --> C[Validate]
+  C --> D[Go live]
+```
+
+## Workflow
+
+```text
+https://api.qefro.com/api/v1/whatsapp/webhook
+```
+
+## Related topics
+
+---
+
+# Deploy Website Widget
+
+Source: https://docs.qefro.com/docs/guides/deploy-website-widget/
+
+> Embed cdn.qefro.com/widget.js with token and workspace id.
+
+**Deploy Website Widget** — Embed cdn.qefro.com/widget.js with token and workspace id.
+
+## Introduction
+
+Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+
+## Why it exists
+
+Guides encode the recommended path so teams avoid insecure shortcuts.
+
+## Concepts
+
+See linked platform pages for definitions used in this guide.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  A[Prerequisites] --> B[Configure]
+  B --> C[Validate]
+  C --> D[Go live]
+```
+
+## Workflow
+
+```html
+<script
+  src="https://cdn.qefro.com/widget.js"
+  data-token="YOUR_WIDGET_TOKEN"
+  data-endpoint="https://api.qefro.com"
+  data-workspace-id="YOUR_WORKSPACE_ID">
+</script>
+```
+
+## Related topics
+
+---
+
+# Configure RBAC
+
+Source: https://docs.qefro.com/docs/guides/configure-rbac/
+
+> Owners, Admins, Members, teams, and workspace grants.
+
+**Configure RBAC** — Owners, Admins, Members, teams, and workspace grants.
+
+## Introduction
+
+Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+
+## Why it exists
+
+Guides encode the recommended path so teams avoid insecure shortcuts.
+
+## Concepts
+
+See linked platform pages for definitions used in this guide.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  A[Prerequisites] --> B[Configure]
+  B --> C[Validate]
+  C --> D[Go live]
+```
+
+## Workflow
+
+## Related topics
+
+---
+
+# Secure Business Actions
+
+Source: https://docs.qefro.com/docs/guides/secure-business-actions/
+
+> Least privilege tools, encrypted secrets, identify(), SSRF, logs.
+
+**Secure Business Actions** — Least privilege tools, encrypted secrets, identify(), SSRF, logs.
+
+## Introduction
+
+Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+
+## Why it exists
+
+Guides encode the recommended path so teams avoid insecure shortcuts.
+
+## Concepts
+
+See linked platform pages for definitions used in this guide.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  A[Prerequisites] --> B[Configure]
+  B --> C[Validate]
+  C --> D[Go live]
+```
+
+## Workflow
+
+## Security notes
+
+Outbound calls are SSRF-validated. Do not weaken DNS pinning for convenience.
+
+## Related topics
+
+---
+
+# Enable Custom Domains
+
+Source: https://docs.qefro.com/docs/guides/enable-custom-domains/
+
+> CNAME your portal hostname to Cloudflare (org.qefro.com target).
+
+**Enable Custom Domains** — CNAME your portal hostname to Cloudflare (org.qefro.com target).
+
+## Introduction
+
+Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+
+## Why it exists
+
+Guides encode the recommended path so teams avoid insecure shortcuts.
+
+## Concepts
+
+See linked platform pages for definitions used in this guide.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  A[Prerequisites] --> B[Configure]
+  B --> C[Validate]
+  C --> D[Go live]
+```
+
+## Workflow
+
+## Related topics
+
+---
+
+# Production Deployment
+
+Source: https://docs.qefro.com/docs/guides/production-deployment/
+
+> Checklist before inviting real customers and employees.
+
+**Production Deployment** — Checklist before inviting real customers and employees.
+
+## Introduction
+
+Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+
+## Why it exists
+
+Guides encode the recommended path so teams avoid insecure shortcuts.
+
+## Concepts
+
+See linked platform pages for definitions used in this guide.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  A[Prerequisites] --> B[Configure]
+  B --> C[Validate]
+  C --> D[Go live]
+```
+
+## Workflow
+
+```bash
+curl -sS https://api.qefro.com/health
+curl -sS https://api.qefro.com/ready
+```
+
+## Related topics
+
+---
+
+# API
+
+# Authentication
+
+Source: https://docs.qefro.com/docs/api/authentication/
+
+> Authenticate to api.qefro.com with user JWTs, widget tokens, or admin credentials.
+
+**API authentication** uses HTTPS to `https://api.qefro.com`.
+
+| Client | Credential |
+| --- | --- |
+| Admin Console / portal / most REST | `Authorization: Bearer <user_jwt>` |
+| Website Widget | Widget token on WS query/`Authorization` |
+| End-user for tools | `X-End-User-Token` or `X-End-User-Session` |
+| Super Admin | Token from `POST /api/v1/admin/auth/login` |
+| GraphQL | User JWT on `POST /graphql` |
+
+## Introduction
+
+Signup/login/OTP also available via GraphQL and REST auth handlers with Redis-backed abuse rate limits.
+
+## Why it exists
+
+Different surfaces need different trust levels without sharing Owner JWTs to browsers.
+
+## Concepts
+
+- User JWT / session jti (revocable)
+- Widget token (rotatable publishable key)
+- Forwarded end-user identity
+
+## Architecture
+
+```mermaid
+sequenceDiagram
+  participant Client
+  participant API
+  Client->>API: Authorization Bearer
+  API->>API: Resolve tenant + role
+  API-->>Client: JSON / stream
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  -H "Content-Type: application/json" \
+  https://api.qefro.com/api/v1/billing/plans
+```
+
+```typescript
+await fetch('https://api.qefro.com/graphql', {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${userJwt}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ query: '{ __typename }' }),
+});
+```
+
+## Best practices
+
+- Store JWTs in memory/httpOnly patterns appropriate to your client
+- Rotate widget tokens after incidents
+
+## Security notes
+
+Never commit JWTs or widget tokens to git. Prefer environment injection in CI.
+
+## FAQ
+
+## Related topics
+
+---
+
+# REST APIs
+
+Source: https://docs.qefro.com/docs/api/rest-apis/
+
+> Versioned REST surface on api.qefro.com — uploads, billing, tools, widget, org RBAC, WhatsApp.
+
+**REST APIs** complement GraphQL. Important groups:
+
+### Health
+- `GET /health`, `GET /ready`
+
+### Widget
+- `POST /api/v1/widget/chat`, settings, leads, feedback, handoff, identity/clear, STT/TTS
+- `GET /widget.js`, `GET /ws/chat`
+
+### Documents
+- `POST /api/v1/documents`, `/documents/text`, `POST /documents/:id/reindex`
+
+### Chat (authenticated users)
+- `POST /api/v1/chat`, `/chat/stream`
+- Conversations CRUD under `/api/v1/conversations/*`
+
+### Billing (Razorpay)
+- `GET /api/v1/billing/plans`
+- `POST /api/v1/billing/checkout`, `/confirm`, `/cancel`
+- `GET /api/v1/billing/subscription`, `/payments`
+- `POST /api/v1/billing/webhook`
+
+### Business Tools
+- `/api/v1/workspaces/:id/integrations|tools` …
+- `/api/v1/tools/:id/test|logs`
+
+### Organization RBAC
+- `/api/v1/org/*`, `/api/v1/team/*`
+
+### WhatsApp
+- `GET|POST /api/v1/whatsapp/webhook`
+
+### Public
+- `/api/v1/public/tenant-branding`, `tenant-slug-available`
+- `/chat/:tenant_slug`
+
+## Introduction
+
+OpenAPI export can be added under `static/openapi/` as the contract freezes; this page lists the live route groups from the Rust API.
+
+## Why it exists
+
+Multipart uploads, webhooks, and streaming chat are awkward in pure GraphQL — REST covers them.
+
+## Concepts
+
+- `/api/v1` version prefix
+- Tenant scoping via auth
+- Quota middleware on messages/documents
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Clients --> REST
+  Clients --> GQL[GraphQL /graphql]
+  REST --> Services[Domain services]
+  GQL --> Services
+```
+
+## Workflow
+
+## Code examples
+
+## Best practices
+
+- Prefer idempotent clients on billing confirm
+- Always send `workspace_id` where required
+
+## Security notes
+
+Webhook routes verify signatures / Meta challenges before mutating state.
+
+## FAQ
+
+## Related topics
+
+---
+
+# SDKs
+
+Source: https://docs.qefro.com/docs/api/sdks/
+
+> Official widget package and HTTP examples for server integrations.
+
+**SDKs** today center on the embeddable widget:
+
+- npm: `@qefro-ai/widget`
+- CDN: `https://cdn.qefro.com/widget.js`
+
+Server integrations use ordinary HTTPS clients against `api.qefro.com` (REST + GraphQL).
+
+## Introduction
+
+The widget exposes `open`, `setContext`, `identify`, `setAuthToken`, and `clearIdentity`.
+
+## Why it exists
+
+Most customers embed chat in a website; npm/CDN coverage matters more than a dozen language SDKs.
+
+## Concepts
+
+- Widget SDK
+- REST/GraphQL via fetch/curl
+
+## Architecture
+
+```mermaid
+flowchart LR
+  NPM["@qefro-ai/widget"] --> API
+  CDN[widget.js] --> API
+  Server[Your backend] --> API
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+npm install @qefro-ai/widget
+```
+
+```javascript
+const widget = new Widget({
+  token: process.env.QEFRO_WIDGET_TOKEN,
+  endpoint: 'https://api.qefro.com',
+});
+```
+
+## Best practices
+
+- Pin widget CDN versions in enterprise change control if you mirror the script
+- Keep server secrets off the client
+
+## Security notes
+
+Do not ship Owner JWTs inside frontend bundles.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Examples
+
+Source: https://docs.qefro.com/docs/api/examples/
+
+> cURL, TypeScript, and Python examples against production hosts.
+
+**Examples** for common calls.
+
+## Health
+
+```bash
+curl -sS https://api.qefro.com/health
+```
+
+## List plans
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/billing/plans
+```
+
+## Upload a document
+
+```bash
+curl -sS -X POST -H "Authorization: Bearer $USER_JWT" \
+  -F "file=@faq.pdf" -F "workspace_id=$WORKSPACE_ID" \
+  https://api.qefro.com/api/v1/documents
+```
+
+## TypeScript widget identify
+
+```typescript
+widget.identify({
+  id: user.id,
+  email: user.email,
+  auth: { mode: 'jwt', token: userJwt },
+});
+```
+
+## Python plans
+
+```python
+import os, urllib.request
+req = urllib.request.Request(
+    "https://api.qefro.com/api/v1/billing/plans",
+    headers={"Authorization": f"Bearer {os.environ['QEFRO_TOKEN']}"},
+)
+print(urllib.request.urlopen(req).read().decode())
+```
+
+## Related topics
+
+---
+
+# Rate Limits
+
+Source: https://docs.qefro.com/docs/api/rate-limits/
+
+> Abuse controls and runtime rate limits in the Qefro API.
+
+**Rate limits** protect auth and runtime surfaces:
+
+| Area | Behavior (implementation) |
+| --- | --- |
+| Login / OTP / forgot / reset | Per-email Redis limits (e.g. login ~20/15m) |
+| Widget HTTP | `rate_limit_middleware` on widget routes |
+| WebSocket | ~30 messages / 60s style checks |
+| Tool test | Limited per tenant (e.g. 60 window) |
+| Plan quotas | Messages/documents/users/business tools |
+
+Exceeding limits returns a rate-limited API error.
+
+## Introduction
+
+Quotas (`messages_limit`, `documents_limit`, …) are plan-level and enforced in middleware (`check_messages_limit_*`, `check_documents_limit`).
+
+## Why it exists
+
+Public widget endpoints and auth forms are internet-facing.
+
+## Concepts
+
+- Abuse rate limit
+- Plan quota
+- Tool test throttle
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Req --> Middleware
+  Middleware --> Redis[(Redis counters)]
+  Middleware --> Handler
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+# Expect 429-style errors when limited — reduce chat spam in tests
+```
+
+## Best practices
+
+- Cache plan list responses
+- Don’t hammer `/tools/:id/test` in CI loops
+
+## Security notes
+
+Auth rate limits intentionally avoid account enumeration (constant responses on some flows).
+
+## FAQ
+
+## Related topics
+
+---
+
+# Error Codes
+
+Source: https://docs.qefro.com/docs/api/error-codes/
+
+> API error shape and common failure modes.
+
+**Error responses** typically include a machine-readable `code` and human `message` (see API `ApiError` JSON). Common situations:
+
+| Situation | What to check |
+| --- | --- |
+| 401 | Missing/expired user JWT or widget token |
+| 403 | RBAC — Member lacking workspace/team grant |
+| 404 | Wrong id / tenant scoping |
+| 429 | Rate limit or plan quota |
+| 400 | Validation / bad signature (billing, WhatsApp) |
+
+## Introduction
+
+GraphQL errors follow GraphQL conventions; REST uses HTTP status + JSON body.
+
+## Why it exists
+
+Clients need stable codes for retries vs user-visible failures.
+
+## Concepts
+
+- `code` string
+- HTTP status
+- Validation errors
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Handler --> ApiError --> JSON
+```
+
+## Workflow
+
+## Code examples
+
+```json
+{
+  "code": "FORBIDDEN",
+  "message": "Insufficient permissions"
+}
+```
+
+## Best practices
+
+- Log `request` correlation ids when present
+- Map 429 to exponential backoff
+
+## Security notes
+
+Do not echo raw upstream tool errors containing secrets to end users.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Webhooks
+
+Source: https://docs.qefro.com/docs/api/webhooks/
+
+> Razorpay billing webhooks and WhatsApp Meta webhooks.
+
+**Webhooks** Qefro consumes:
+
+### Billing (Razorpay)
+- `POST /api/v1/billing/webhook`
+- Verifies Razorpay signature
+- Handles events including `payment.captured`, `payment.failed`, subscription lifecycle events
+- Failed payments stored with `error_code` / `error_reason` / `error_description`
+- Activation is idempotent on `payment_id` and order-level capture
+
+### WhatsApp (Meta)
+- `GET /api/v1/whatsapp/webhook` — verification
+- `POST /api/v1/whatsapp/webhook` — inbound messages
+
+## Introduction
+
+Configure Razorpay to send events to `https://api.qefro.com/api/v1/billing/webhook` and enable `payment.failed` for support visibility.
+
+## Why it exists
+
+Async payment and messaging systems must notify Qefro without polling.
+
+## Concepts
+
+- Signature verification
+- Idempotent processing
+- Acknowledge-even-on-unknown (where safe)
+
+## Architecture
+
+```mermaid
+sequenceDiagram
+  participant R as Razorpay/Meta
+  participant WH as Qefro webhook
+  participant DB as Postgres
+  R->>WH: POST signed payload
+  WH->>WH: Verify
+  WH->>DB: Upsert state
+  WH-->>R: 200
+```
+
+## Workflow
+
+## Code examples
+
+```text
+https://api.qefro.com/api/v1/billing/webhook
+https://api.qefro.com/api/v1/whatsapp/webhook
+```
+
+## Best practices
+
+- Keep webhook secrets only in server env
+- Treat duplicate deliveries as normal (idempotency)
+
+## Security notes
+
+Reject unsigned payloads. Do not expose webhook URLs that skip verification.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Security
+
+# Security Overview
+
+Source: https://docs.qefro.com/docs/security/overview/
+
+> Tenant isolation, encrypted secrets, SSRF, identity forwarding, audit logs.
+
+**Security Overview** — Tenant isolation, encrypted secrets, SSRF, identity forwarding, audit logs.
+
+## Introduction
+
+Qefro security controls in the running product:
+
+- Multi-tenant isolation by `tenant_id`
+- Workspace isolation for knowledge/tools/conversations
+- Encrypted Business Tool secrets
+- SSRF / DNS-pinned egress for tools and handoff webhooks
+- End-user identity forwarding via `identify()`
+- Org audit logs (`/api/v1/org/audit-logs`) and tool execution logs
+- Auth abuse rate limits
+- Razorpay webhook signature verification
+
+SOC 2 and SSO/SAML are on the roadmap — contact Sales for timelines.
+
+## Why it exists
+
+Security documentation must reflect implemented controls, not aspirational marketing.
+
+## Concepts
+
+See [Security Overview](/docs/security/overview) for the control list.
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Tenant --> Workspace
+  Workspace --> Secrets
+  Workspace --> AuthZ
+  AuthZ --> Logs
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/audit-logs
+```
+
+## Best practices
+
+- Separate staging and production organizations when feasible
+- Review OpenAPI imports for overly broad operations
+
+## Security notes
+
+Contact Sales for Enterprise compliance questionnaires and DPA process.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Tenant Isolation
+
+Source: https://docs.qefro.com/docs/security/tenant-isolation/
+
+> How organizations and workspaces isolate data.
+
+**Tenant Isolation** — How organizations and workspaces isolate data.
+
+## Introduction
+
+Every request resolves a tenant. Workspaces further isolate knowledge and tools. Cross-tenant access requires platform Super Admin capabilities — not tenant Admin roles.
+
+## Why it exists
+
+Security documentation must reflect implemented controls, not aspirational marketing.
+
+## Concepts
+
+See [Security Overview](/docs/security/overview) for the control list.
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Tenant --> Workspace
+  Workspace --> Secrets
+  Workspace --> AuthZ
+  AuthZ --> Logs
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/audit-logs
+```
+
+## Best practices
+
+- Separate staging and production organizations when feasible
+- Review OpenAPI imports for overly broad operations
+
+## Security notes
+
+Contact Sales for Enterprise compliance questionnaires and DPA process.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Secrets
+
+Source: https://docs.qefro.com/docs/security/secrets/
+
+> Encrypted credentials for Business Tools and channel configs.
+
+**Secrets** — Encrypted credentials for Business Tools and channel configs.
+
+## Introduction
+
+Business Tool credentials are stored encrypted server-side. Widget tokens are publishable embed keys (rotate if leaked). Never place tool secrets in widget.js snippets.
+
+## Why it exists
+
+Security documentation must reflect implemented controls, not aspirational marketing.
+
+## Concepts
+
+See [Security Overview](/docs/security/overview) for the control list.
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Tenant --> Workspace
+  Workspace --> Secrets
+  Workspace --> AuthZ
+  AuthZ --> Logs
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/audit-logs
+```
+
+## Best practices
+
+- Separate staging and production organizations when feasible
+- Review OpenAPI imports for overly broad operations
+
+## Security notes
+
+Contact Sales for Enterprise compliance questionnaires and DPA process.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Audit Logs
+
+Source: https://docs.qefro.com/docs/security/audit-logs/
+
+> Organization audit trail and tool execution logs.
+
+**Audit Logs** — Organization audit trail and tool execution logs.
+
+## Introduction
+
+Org audit: `GET /api/v1/org/audit-logs`. Tool executions: `GET /api/v1/tools/:id/logs`.
+
+## Why it exists
+
+Security documentation must reflect implemented controls, not aspirational marketing.
+
+## Concepts
+
+See [Security Overview](/docs/security/overview) for the control list.
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Tenant --> Workspace
+  Workspace --> Secrets
+  Workspace --> AuthZ
+  AuthZ --> Logs
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/audit-logs
+```
+
+## Best practices
+
+- Separate staging and production organizations when feasible
+- Review OpenAPI imports for overly broad operations
+
+## Security notes
+
+Contact Sales for Enterprise compliance questionnaires and DPA process.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Compliance
+
+Source: https://docs.qefro.com/docs/security/compliance/
+
+> Roadmap items: SOC 2, SSO/SAML, Enterprise private deploy.
+
+**Compliance** — Roadmap items: SOC 2, SSO/SAML, Enterprise private deploy.
+
+## Introduction
+
+Current public posture: strong isolation + encryption + auditability on the cloud product. Formal SOC 2 certification and SSO/SAML are roadmap items — email support@qefro.com / Sales for timelines. Enterprise private deployment is available as a custom engagement.
+
+## Why it exists
+
+Security documentation must reflect implemented controls, not aspirational marketing.
+
+## Concepts
+
+See [Security Overview](/docs/security/overview) for the control list.
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Tenant --> Workspace
+  Workspace --> Secrets
+  Workspace --> AuthZ
+  AuthZ --> Logs
+```
+
+## Workflow
+
+## Code examples
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/audit-logs
+```
+
+## Best practices
+
+- Separate staging and production organizations when feasible
+- Review OpenAPI imports for overly broad operations
+
+## Security notes
+
+Contact Sales for Enterprise compliance questionnaires and DPA process.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Compare
+
+# Chatbase vs Qefro
+
+Source: https://docs.qefro.com/docs/compare/chatbase-vs-qefro/
+
+> Factual comparison of Chatbase and Qefro for AI workspaces and customer/employee AI.
+
+**Chatbase vs Qefro** compares chatbot builders focused on website Q&A with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+
+## Introduction
+
+This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+
+## Capability matrix
+
+## Why it exists
+
+Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+
+## Concepts
+
+- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
+- **Chatbase**: Chatbot builders focused on website Q&A
+- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
+
+## Architecture
+
+Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
+
+```mermaid
+flowchart LR
+  subgraph Qefro
+    WS[AI Workspaces]
+    CA[Customer AI]
+    EA[Employee AI]
+    BA[Business Actions]
+  end
+  Other[Chatbase]
+```
+
+## Workflow
+
+## Code examples
+
+```json
+{
+  "evaluation_criteria": [
+    "workspace_isolation",
+    "employee_portal",
+    "business_actions",
+    "whatsapp",
+    "rbac",
+    "citations"
+  ]
+}
+```
+
+## Best practices
+
+- Compare against your required channels and identity model
+- Prefer read-only tool scopes during pilots
+- Document gaps honestly for stakeholders
+
+## Security notes
+
+Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Intercom vs Qefro
+
+Source: https://docs.qefro.com/docs/compare/intercom-vs-qefro/
+
+> Factual comparison of Intercom and Qefro for AI workspaces and customer/employee AI.
+
+**Intercom vs Qefro** compares Customer messaging and support suites with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+
+## Introduction
+
+This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+
+## Why it exists
+
+Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+
+## Concepts
+
+- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
+- **Intercom**: Customer messaging and support suites
+- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
+
+## Architecture
+
+Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
+
+```mermaid
+flowchart LR
+  subgraph Qefro
+    WS[AI Workspaces]
+    CA[Customer AI]
+    EA[Employee AI]
+    BA[Business Actions]
+  end
+  Other[Intercom]
+```
+
+## Workflow
+
+## Code examples
+
+```json
+{
+  "evaluation_criteria": [
+    "workspace_isolation",
+    "employee_portal",
+    "business_actions",
+    "whatsapp",
+    "rbac",
+    "citations"
+  ]
+}
+```
+
+## Best practices
+
+- Compare against your required channels and identity model
+- Prefer read-only tool scopes during pilots
+- Document gaps honestly for stakeholders
+
+## Security notes
+
+Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Zendesk vs Qefro
+
+Source: https://docs.qefro.com/docs/compare/zendesk-vs-qefro/
+
+> Factual comparison of Zendesk and Qefro for AI workspaces and customer/employee AI.
+
+**Zendesk vs Qefro** compares Ticketing-centric customer service platforms with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+
+## Introduction
+
+This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+
+## Why it exists
+
+Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+
+## Concepts
+
+- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
+- **Zendesk**: Ticketing-centric customer service platforms
+- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
+
+## Architecture
+
+Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
+
+```mermaid
+flowchart LR
+  subgraph Qefro
+    WS[AI Workspaces]
+    CA[Customer AI]
+    EA[Employee AI]
+    BA[Business Actions]
+  end
+  Other[Zendesk]
+```
+
+## Workflow
+
+## Code examples
+
+```json
+{
+  "evaluation_criteria": [
+    "workspace_isolation",
+    "employee_portal",
+    "business_actions",
+    "whatsapp",
+    "rbac",
+    "citations"
+  ]
+}
+```
+
+## Best practices
+
+- Compare against your required channels and identity model
+- Prefer read-only tool scopes during pilots
+- Document gaps honestly for stakeholders
+
+## Security notes
+
+Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Freshworks vs Qefro
+
+Source: https://docs.qefro.com/docs/compare/freshworks-vs-qefro/
+
+> Factual comparison of Freshworks and Qefro for AI workspaces and customer/employee AI.
+
+**Freshworks vs Qefro** compares CRM/support suites with AI assistants with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+
+## Introduction
+
+This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+
+## Why it exists
+
+Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+
+## Concepts
+
+- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
+- **Freshworks**: CRM/support suites with AI assistants
+- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
+
+## Architecture
+
+Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
+
+```mermaid
+flowchart LR
+  subgraph Qefro
+    WS[AI Workspaces]
+    CA[Customer AI]
+    EA[Employee AI]
+    BA[Business Actions]
+  end
+  Other[Freshworks]
+```
+
+## Workflow
+
+## Code examples
+
+```json
+{
+  "evaluation_criteria": [
+    "workspace_isolation",
+    "employee_portal",
+    "business_actions",
+    "whatsapp",
+    "rbac",
+    "citations"
+  ]
+}
+```
+
+## Best practices
+
+- Compare against your required channels and identity model
+- Prefer read-only tool scopes during pilots
+- Document gaps honestly for stakeholders
+
+## Security notes
+
+Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+
+## FAQ
+
+## Related topics
+
+---
+
+# CustomGPT vs Qefro
+
+Source: https://docs.qefro.com/docs/compare/customgpt-vs-qefro/
+
+> Factual comparison of CustomGPT and Qefro for AI workspaces and customer/employee AI.
+
+**CustomGPT vs Qefro** compares Custom GPT / knowledge chatbot products with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+
+## Introduction
+
+This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+
+## Why it exists
+
+Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+
+## Concepts
+
+- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
+- **CustomGPT**: Custom GPT / knowledge chatbot products
+- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
+
+## Architecture
+
+Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
+
+```mermaid
+flowchart LR
+  subgraph Qefro
+    WS[AI Workspaces]
+    CA[Customer AI]
+    EA[Employee AI]
+    BA[Business Actions]
+  end
+  Other[CustomGPT]
+```
+
+## Workflow
+
+## Code examples
+
+```json
+{
+  "evaluation_criteria": [
+    "workspace_isolation",
+    "employee_portal",
+    "business_actions",
+    "whatsapp",
+    "rbac",
+    "citations"
+  ]
+}
+```
+
+## Best practices
+
+- Compare against your required channels and identity model
+- Prefer read-only tool scopes during pilots
+- Document gaps honestly for stakeholders
+
+## Security notes
+
+Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Copilot Studio vs Qefro
+
+Source: https://docs.qefro.com/docs/compare/copilot-studio-vs-qefro/
+
+> Factual comparison of Copilot Studio and Qefro for AI workspaces and customer/employee AI.
+
+**Copilot Studio vs Qefro** compares Microsoft low-code copilots with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+
+## Introduction
+
+This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+
+## Why it exists
+
+Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+
+## Concepts
+
+- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
+- **Copilot Studio**: Microsoft low-code copilots
+- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
+
+## Architecture
+
+Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
+
+```mermaid
+flowchart LR
+  subgraph Qefro
+    WS[AI Workspaces]
+    CA[Customer AI]
+    EA[Employee AI]
+    BA[Business Actions]
+  end
+  Other[Copilot Studio]
+```
+
+## Workflow
+
+## Code examples
+
+```json
+{
+  "evaluation_criteria": [
+    "workspace_isolation",
+    "employee_portal",
+    "business_actions",
+    "whatsapp",
+    "rbac",
+    "citations"
+  ]
+}
+```
+
+## Best practices
+
+- Compare against your required channels and identity model
+- Prefer read-only tool scopes during pilots
+- Document gaps honestly for stakeholders
+
+## Security notes
+
+Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Reference
+
+# FAQ
+
+Source: https://docs.qefro.com/docs/faq/
+
+> Frequently asked questions about the real Qefro product.
+
+**FAQ** for the Qefro AI Workspace Platform as implemented on app.qefro.com / api.qefro.com.
+
+## Product
+
+## Plans
+
+## Related topics
+
+---
+
+# Glossary
+
+Source: https://docs.qefro.com/docs/glossary/
+
+> Canonical Qefro terminology aligned with the product.
+
+| Term | Definition |
+| --- | --- |
+| Organization / Tenant | Top-level account boundary for billing and isolation |
+| AI Workspace | Isolated knowledge + tools + conversations |
+| Customer AI | Website widget and/or WhatsApp assistants |
+| Employee AI | Internal Portal assistants for org members |
+| Knowledge Platform | Ingest + hybrid retrieval + citations |
+| Business Tool | REST/OpenAPI connector with encrypted credentials |
+| Business Action | Runtime invocation of a Business Tool |
+| Identity Forwarding | identify() end-user JWT/session into tool calls |
+| Widget token | Publishable embed key for cdn.qefro.com/widget.js |
+| Internal Portal | your-company.qefro.com employee experience |
+| Owner / Admin / Member | Organization RBAC roles |
+| Team | Grants Members access to workspaces |
+
+## Related topics
+
+---
+
+# Release Notes
+
+Source: https://docs.qefro.com/docs/release-notes/
+
+> Documentation and platform notes.
+
+## 2026-07 — Docs aligned to production implementation
+
+- Rewrote docs against real hosts: app.qefro.com, api.qefro.com, cdn.qefro.com
+- Documented widget identify() transport headers and Business Tools REST routes
+- Documented Razorpay webhooks including payment.failed and order-level idempotency
+- Documented Owner/Admin/Member RBAC and org team APIs
+
+## Related topics
+
+---

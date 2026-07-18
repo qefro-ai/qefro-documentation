@@ -5,6 +5,9 @@
   "description": "Official documentation for Qefro — AI Workspace Platform",
   "scripts": {
     "docusaurus": "docusaurus",
+    "generate:llms": "node scripts/generate-llms.mjs",
+    "prestart": "npm run generate:llms",
+    "prebuild": "npm run generate:llms",
     "start": "docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
