@@ -53,6 +53,20 @@ Most chatbots only answer from documents. Qefro also executes configured actions
 - **Execution log** — audit trail for tool runs (`/api/v1/tools/:id/logs`)
 - **Test** — `POST /api/v1/tools/:id/test` (rate-limited)
 
+## Business Tool Execution (channels)
+
+| Channel | Status |
+| --- | --- |
+| **Website Widget** | Supported |
+| **WhatsApp** | Supported |
+| **Internal Portal** | Not supported (V1) |
+
+**Reason:** Internal Portal Business Tool execution requires delegated employee authentication, enterprise identity integration, and user authorization models, which are planned for a future release.
+
+Knowledge search, RAG, document Q&A, AI assistance, and internal documentation remain fully supported in the Internal Portal. The Internal Portal stays an AI Knowledge Assistant in V1.
+
+Admin Console **Test Tool** continues to work for configuring connectors — that path is not a chat channel.
+
 ## Architecture
 
 ```mermaid
@@ -116,6 +130,11 @@ MCP connectors are on the roadmap — not required for REST/OpenAPI today.
 
 <FaqAccordion
   items={[
+    {
+      question: 'Can employees run Business Tools from the Internal Portal?',
+      answer:
+        'Not in V1. Business Tool execution is supported on the Website Widget and WhatsApp only. The Internal Portal remains a knowledge / RAG assistant until employee delegated authentication ships.',
+    },
     {
       question: 'What is the difference between Business Tools and Business Actions?',
       answer:

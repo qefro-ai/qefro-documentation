@@ -1,6 +1,6 @@
 ---
 title: "Create Employee AI"
-description: "Stand up Employee AI on the Internal Portal: workspaces, Teams, RBAC grants, branding, and optional internal Business Tools."
+description: "Stand up Employee AI on the Internal Portal: workspaces, Teams, RBAC grants, and branding."
 sidebar_label: "Create Employee AI"
 ---
 
@@ -27,7 +27,7 @@ This guide ships **Employee AI**: authenticated organization members use the [In
 
 - Owner or Admin on [app.qefro.com](https://app.qefro.com)
 - Internal documents approved for employee access
-- Decision on who may configure tools (usually Admins only)
+- Decision on who may configure tools for customer channels (usually Admins only)
 
 ## Architecture
 
@@ -70,11 +70,11 @@ Owners and Admins can typically access all workspaces; Members only see grants. 
 
 Optional later: [Enable Custom Domains](/docs/guides/enable-custom-domains).
 
-## Step 5 — Optional internal tools
+## Step 5 — Business Tools (customer channels only)
 
-Attach internal Business Tools only to internal workspaces. Prefer read-only first. Never attach payroll-write tools to a Customer AI workspace.
+In V1, Business Tool execution is **not** available from the Internal Portal. Configure tools for Website Widget and WhatsApp if needed; the portal stays a knowledge assistant.
 
-See [Secure Business Actions](/docs/guides/secure-business-actions).
+See [Business Tools](/docs/platform/business-tools) and [Secure Business Actions](/docs/guides/secure-business-actions).
 
 ## Workflow checklist
 
@@ -85,7 +85,7 @@ See [Secure Business Actions](/docs/guides/secure-business-actions).
     {title: 'Ingest internal docs', description: 'Cite-test with employees.'},
     {title: 'Teams + grants', description: 'Members only see allowed workspaces.'},
     {title: 'Brand portal', description: 'Logo, colors, hostname.'},
-    {title: 'Optional tools', description: 'Internal APIs only; least privilege.'},
+    {title: 'Knowledge Q&A', description: 'Portal is RAG-only for Business Actions in V1.'},
   ]}
 />
 

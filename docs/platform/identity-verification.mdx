@@ -101,4 +101,5 @@ Authentication ≠ authorization. After the auth-level gate, existing tool preco
   {question: 'Do Business Actions need WhatsApp-specific code?', answer: 'No. Declare required_auth_level only; channel adapters build VerifiedIdentity.'},
   {question: 'What if there is no phone mapping email?', answer: 'Strong Email OTP cannot start; the user is told the account is not linked.'},
   {question: 'Does VerifiedPhone unlock all tools?', answer: 'It satisfies allow_from_chat / identity gates, but tools with required_auth_level=strong still need OTP or JWT.'},
+  {question: 'Can the Internal Portal execute Business Tools?', answer: 'Not in V1. The channel gate blocks Portal before auth and HTTPS. Widget and WhatsApp remain supported; Portal stays knowledge-only until employee delegated auth ships.'},
 ]} />

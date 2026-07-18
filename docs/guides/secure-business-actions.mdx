@@ -36,6 +36,10 @@ This guide hardens **Business Actions** so assistants can call your APIs without
 
 Concepts: [AI Agent Security](/docs/concepts/ai-agent-security), [What are Business Actions?](/docs/concepts/business-actions).
 
+<Warning>
+In Qefro V1, Business Tool execution is intentionally disabled in the Internal Portal. Runtime returns `BUSINESS_TOOLS_NOT_SUPPORTED` before authentication, validation, or HTTPS egress. Do not rely on Portal chat for live API actions until employee delegated authentication ships.
+</Warning>
+
 ## Step 1 — Split audiences
 
 Customer tools on Support workspace. Internal tools on Employee workspaces. Never mix.

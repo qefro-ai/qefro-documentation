@@ -50,7 +50,7 @@ Search and AI assistants increasingly answer “can the AI *do* things, or only 
 ```mermaid
 sequenceDiagram
   participant User
-  participant Channel as Widget / Portal / WhatsApp
+  participant Channel as Widget / WhatsApp
   participant Qefro as Qefro runtime
   participant Tool as Business Tool HTTPS API
   User->>Channel: Message
@@ -61,6 +61,10 @@ sequenceDiagram
   Qefro-->>User: Answer with action outcome
   Qefro->>Qefro: Execution log
 ```
+
+<InfoBox title="Internal Portal (V1)">
+  Business Actions are not executed from the Internal Portal. Employees use the portal as a knowledge assistant (RAG / document Q&amp;A). Live API actions remain on the Website Widget and WhatsApp until employee delegated authentication is available.
+</InfoBox>
 
 ## Security properties (required for production)
 
