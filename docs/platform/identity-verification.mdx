@@ -1,6 +1,6 @@
 ---
 title: "Identity Verification"
-description: "Channel-agnostic authentication levels for Business Actions — Anonymous, VerifiedPhone, Strong — with Email OTP challenges and verified sessions."
+description: "Channel-aware authentication for Business Actions — public, verified_channel, and organization_challenge."
 sidebar_label: "Identity Verification"
 ---
 
@@ -14,38 +14,71 @@ import {
 
 # Identity Verification
 
-**Identity Verification** lets Business Actions declare a minimum authentication level. The runtime enforces that level before any outbound API call — Business Actions never contain WhatsApp-, widget-, or portal-specific auth logic.
+**Identity Verification** lets Business Actions declare how much trust they need. The runtime uses **channel-provided identity first** and only starts an organization challenge when you explicitly require it.
 
-## Authentication levels
+Business Actions never contain WhatsApp-, widget-, or portal-specific auth logic — adapters build a shared [`ChannelIdentity`](/docs/platform/identity-verification) / `VerifiedIdentity`.
 
-| Level | Meaning | Typical sources |
+## Authentication requirements
+
+| Requirement | Meaning | When to use |
 | --- | --- | --- |
-| `anonymous` | Public visitor | Widget without `identify()` |
-| `verified_phone` | Phone ownership established | WhatsApp Meta-verified sender |
-| `strong` | Strong end-user proof | Host JWT/`identify()`, portal login, Email OTP session |
+| `public` | No identity required | FAQs, hours, pricing, general support |
+| `verified_channel` | Trust already provided by the channel | Order status on WhatsApp; “my orders” on a logged-in website |
+| `organization_challenge` | Extra org-defined verification | Invoices, medical records, bank changes, account deletion |
 
-Higher levels satisfy lower requirements (`strong` ⊇ `verified_phone` ⊇ `anonymous`).
-
-## Business Action policy
-
-Set on each tool:
+Configure on each tool:
 
 ```json
-{ "required_auth_level": "strong" }
+{ "required_auth_level": "verified_channel" }
 ```
 
-Values: `anonymous` (default), `verified_phone`, `strong`.
+Default: `public`. Legacy values `anonymous` / `verified_phone` / `strong` still parse for compatibility.
 
-When the caller’s level is insufficient, the runtime returns an **auth challenge** (structured like a precondition failure) and does **not** call your API.
+## Design philosophy
 
-## WhatsApp flow (invoices example)
+- Do **not** force OTP or login unless the organization sets `organization_challenge`.
+- WhatsApp Meta-verified phone **is** verified channel identity — no OTP for `verified_channel`.
+- Website Widget JWT / session from `identify()` **is** verified channel identity — no OTP for `verified_channel`.
+- Qefro orchestrates organization challenges; your systems remain the authority for access to your APIs (see [Identity Forwarding](/docs/platform/identity-forwarding)).
 
-<WorkflowCard title="Strong action on WhatsApp" steps={[
-  {title: 'User messages', description: 'Show my invoices from a Meta-verified phone → VerifiedPhone.'},
-  {title: 'Policy check', description: 'Invoice tool requires strong → challenge.'},
+## Channel identity
+
+| Channel | Verified when | Identity type |
+| --- | --- | --- |
+| WhatsApp | Meta-verified phone present | `phone_number` |
+| Website Widget | Host JWT or session via `identify()` | `jwt` / `session` |
+| Internal Portal | Employee login (tools blocked in V1) | — |
+
+If a tool requires `verified_channel` and the channel has no verified identity, the runtime returns **`CHANNEL_IDENTITY_REQUIRED`** (widget: ask the customer to sign in on your site). **No Email OTP** is started.
+
+## Organization challenge
+
+Only when:
+
+```json
+{ "required_auth_level": "organization_challenge" }
+```
+
+Runtime returns **`ORGANIZATION_CHALLENGE_REQUIRED`**. In v1 the orchestrated method is **Email OTP** (hashed, single-use, 20-minute verified session). Future methods: SMS OTP, magic link, OAuth, customer portal login.
+
+Existing challenge context skips a repeat challenge until the session expires.
+
+## WhatsApp — order status (verified channel)
+
+<WorkflowCard title="verified_channel on WhatsApp" steps={[
+  {title: 'User messages', description: 'Where is my order? Meta-verified phone → verified_channel.'},
+  {title: 'Policy check', description: 'Tool requires verified_channel → Allow immediately.'},
+  {title: 'Execute', description: 'Business Tool runs with X-Qefro-* headers. No OTP.'},
+]} />
+
+## WhatsApp — download invoice (organization challenge)
+
+<WorkflowCard title="organization_challenge on WhatsApp" steps={[
+  {title: 'User messages', description: 'Download my invoice (phone already verified).'},
+  {title: 'Policy check', description: 'Tool requires organization_challenge → challenge.'},
   {title: 'Email OTP', description: 'Runtime looks up phone→email mapping, emails a 6-digit code.'},
-  {title: 'User replies', description: 'User sends the code in WhatsApp; session upgraded to Strong (20 min).'},
-  {title: 'Retry', description: 'User asks again; invoices tool executes with X-Qefro-* headers.'},
+  {title: 'User replies', description: 'User sends the code; session upgraded for 20 minutes.'},
+  {title: 'Retry', description: 'Invoice tool executes; later asks in the same session skip OTP.'},
 ]} />
 
 ## Phone mappings
@@ -56,13 +89,13 @@ Local table (Admin API):
 - `GET /api/v1/workspaces/:id/phone-mappings`
 - `DELETE /api/v1/workspaces/:id/phone-mappings/:id`
 
-Email is required for Strong Email OTP on WhatsApp.
+Email is required to start Email OTP for `organization_challenge` on WhatsApp.
 
 ## Widget endpoints
 
-- `POST /api/v1/widget/identity/challenge` — start Email OTP (`{ email, conversation_id? }`)
+- `POST /api/v1/widget/identity/challenge` — start Email OTP (`{ email, conversation_id? }`) — used for **organization_challenge**
 - `POST /api/v1/widget/identity/verify` — confirm (`{ challenge_id, code }`)
-- Existing `identify()` JWT/session already counts as **Strong**
+- `identify()` JWT/session counts as **`verified_channel`** (not organization challenge)
 
 ## Identity forwarding
 
@@ -72,20 +105,20 @@ Outbound Business Tool requests receive:
 | --- | --- |
 | `X-Qefro-User-ID` | customer / user id |
 | `X-Qefro-Organization` | tenant UUID |
-| `X-Qefro-Authentication-Level` | `verified_phone` / `strong` |
+| `X-Qefro-Authentication-Level` | `public` / `verified_channel` / `organization_challenge` |
 | `X-Qefro-Channel` | `whatsapp` / `widget` / `portal` |
 | `X-Qefro-Phone` | E.164 when known |
 
-Plus existing `END_USER_IDENTITY` Bearer / session forwarding when configured.
+Plus existing `END_USER_IDENTITY` Bearer / session forwarding when configured. Tokens are never sent to the LLM.
 
 ## Security notes
 
 <Warning>
-OTPs are stored hashed (HMAC), single-use, rate-limited, and never written to audit logs. Verified sessions live in Redis for 20 minutes.
+OTPs are stored hashed (HMAC), single-use, rate-limited, and never written to audit logs. Verified sessions live in Redis for 20 minutes. Never trust client-asserted identity without channel validation.
 </Warning>
 
 <InfoBox>
-Authentication ≠ authorization. After the auth-level gate, existing tool preconditions (`require_authenticated`, permissions, variables) and workspace RBAC still apply.
+Authentication ≠ authorization. After the auth gate, tool preconditions (`require_authenticated`, permissions, variables) and workspace RBAC still apply. Internal Portal Business Tool execution remains blocked in V1.
 </InfoBox>
 
 ## Related
@@ -98,8 +131,9 @@ Authentication ≠ authorization. After the auth-level gate, existing tool preco
 ]} />
 
 <FaqAccordion items={[
-  {question: 'Do Business Actions need WhatsApp-specific code?', answer: 'No. Declare required_auth_level only; channel adapters build VerifiedIdentity.'},
-  {question: 'What if there is no phone mapping email?', answer: 'Strong Email OTP cannot start; the user is told the account is not linked.'},
-  {question: 'Does VerifiedPhone unlock all tools?', answer: 'It satisfies allow_from_chat / identity gates, but tools with required_auth_level=strong still need OTP or JWT.'},
-  {question: 'Can the Internal Portal execute Business Tools?', answer: 'Not in V1. The channel gate blocks Portal before auth and HTTPS. Widget and WhatsApp remain supported; Portal stays knowledge-only until employee delegated auth ships.'},
+  {question: 'Do Business Actions need WhatsApp-specific code?', answer: 'No. Declare required_auth_level only; channel adapters build VerifiedIdentity / ChannelIdentity.'},
+  {question: 'Does WhatsApp trigger OTP for order status?', answer: 'Not if the tool is verified_channel. Meta-verified phone is enough. OTP only runs for organization_challenge.'},
+  {question: 'What if there is no phone mapping email?', answer: 'organization_challenge Email OTP cannot start; the user is told the account is not linked.'},
+  {question: 'Does verified_channel unlock organization_challenge tools?', answer: 'No. Those tools need a completed organization challenge session (Email OTP in v1) or equivalent.'},
+  {question: 'Can the Internal Portal execute Business Tools?', answer: 'Not in V1. The channel gate blocks Portal before auth and HTTPS.'},
 ]} />
