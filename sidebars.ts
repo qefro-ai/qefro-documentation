@@ -41,6 +41,7 @@ const sidebars: SidebarsConfig = {
         'platform/knowledge-platform',
         'platform/business-actions',
         'platform/business-tools',
+        'platform/identity-verification',
         'platform/internal-portal',
         'platform/website-widget',
         'platform/whatsapp',

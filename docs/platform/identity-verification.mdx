@@ -1,0 +1,104 @@
+---
+title: "Identity Verification"
+description: "Channel-agnostic authentication levels for Business Actions — Anonymous, VerifiedPhone, Strong — with Email OTP challenges and verified sessions."
+sidebar_label: "Identity Verification"
+---
+
+import {
+  InfoBox,
+  Warning,
+  RelatedTopics,
+  FaqAccordion,
+  WorkflowCard,
+} from '@site/src/components';
+
+# Identity Verification
+
+**Identity Verification** lets Business Actions declare a minimum authentication level. The runtime enforces that level before any outbound API call — Business Actions never contain WhatsApp-, widget-, or portal-specific auth logic.
+
+## Authentication levels
+
+| Level | Meaning | Typical sources |
+| --- | --- | --- |
+| `anonymous` | Public visitor | Widget without `identify()` |
+| `verified_phone` | Phone ownership established | WhatsApp Meta-verified sender |
+| `strong` | Strong end-user proof | Host JWT/`identify()`, portal login, Email OTP session |
+
+Higher levels satisfy lower requirements (`strong` ⊇ `verified_phone` ⊇ `anonymous`).
+
+## Business Action policy
+
+Set on each tool:
+
+```json
+{ "required_auth_level": "strong" }
+```
+
+Values: `anonymous` (default), `verified_phone`, `strong`.
+
+When the caller’s level is insufficient, the runtime returns an **auth challenge** (structured like a precondition failure) and does **not** call your API.
+
+## WhatsApp flow (invoices example)
+
+<WorkflowCard title="Strong action on WhatsApp" steps={[
+  {title: 'User messages', description: 'Show my invoices from a Meta-verified phone → VerifiedPhone.'},
+  {title: 'Policy check', description: 'Invoice tool requires strong → challenge.'},
+  {title: 'Email OTP', description: 'Runtime looks up phone→email mapping, emails a 6-digit code.'},
+  {title: 'User replies', description: 'User sends the code in WhatsApp; session upgraded to Strong (20 min).'},
+  {title: 'Retry', description: 'User asks again; invoices tool executes with X-Qefro-* headers.'},
+]} />
+
+## Phone mappings
+
+Local table (Admin API):
+
+- `PUT /api/v1/workspaces/:id/phone-mappings` — upsert `{ phone, customer_id?, email?, display_name? }`
+- `GET /api/v1/workspaces/:id/phone-mappings`
+- `DELETE /api/v1/workspaces/:id/phone-mappings/:id`
+
+Email is required for Strong Email OTP on WhatsApp.
+
+## Widget endpoints
+
+- `POST /api/v1/widget/identity/challenge` — start Email OTP (`{ email, conversation_id? }`)
+- `POST /api/v1/widget/identity/verify` — confirm (`{ challenge_id, code }`)
+- Existing `identify()` JWT/session already counts as **Strong**
+
+## Identity forwarding
+
+Outbound Business Tool requests receive:
+
+| Header | Example |
+| --- | --- |
+| `X-Qefro-User-ID` | customer / user id |
+| `X-Qefro-Organization` | tenant UUID |
+| `X-Qefro-Authentication-Level` | `verified_phone` / `strong` |
+| `X-Qefro-Channel` | `whatsapp` / `widget` / `portal` |
+| `X-Qefro-Phone` | E.164 when known |
+
+Plus existing `END_USER_IDENTITY` Bearer / session forwarding when configured.
+
+## Security notes
+
+<Warning>
+OTPs are stored hashed (HMAC), single-use, rate-limited, and never written to audit logs. Verified sessions live in Redis for 20 minutes.
+</Warning>
+
+<InfoBox>
+Authentication ≠ authorization. After the auth-level gate, existing tool preconditions (`require_authenticated`, permissions, variables) and workspace RBAC still apply.
+</InfoBox>
+
+## Related
+
+<RelatedTopics links={[
+  {label: 'Business Tools', href: '/docs/platform/business-tools'},
+  {label: 'Business Actions', href: '/docs/platform/business-actions'},
+  {label: 'WhatsApp', href: '/docs/platform/whatsapp'},
+  {label: 'Identity Forwarding', href: '/docs/platform/identity-forwarding'},
+]} />
+
+<FaqAccordion items={[
+  {question: 'Do Business Actions need WhatsApp-specific code?', answer: 'No. Declare required_auth_level only; channel adapters build VerifiedIdentity.'},
+  {question: 'What if there is no phone mapping email?', answer: 'Strong Email OTP cannot start; the user is told the account is not linked.'},
+  {question: 'Does VerifiedPhone unlock all tools?', answer: 'It satisfies allow_from_chat / identity gates, but tools with required_auth_level=strong still need OTP or JWT.'},
+]} />
