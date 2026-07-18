@@ -1,0 +1,10 @@
+{
+  "label": "Concepts",
+  "position": 1,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "GEO Concepts",
+    "description": "Definition-led pages for AI search: AI Workspaces, Hybrid RAG, Business Actions, agent security, and multi-tenant architecture."
+  }
+}

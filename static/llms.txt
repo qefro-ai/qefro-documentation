@@ -12,6 +12,17 @@ Canonical product hosts:
 - Widget CDN: https://cdn.qefro.com
 - Marketing: https://qefro.com
 
+## Concepts (GEO)
+
+- [What is an AI Workspace?](https://docs.qefro.com/docs/concepts/what-is-an-ai-workspace/): An AI Workspace is an isolated AI environment with its own knowledge, instructions, tools, and conversations — the core unit of Qefro.
+- [AI Workspace vs AI Chatbot](https://docs.qefro.com/docs/concepts/ai-workspace-vs-ai-chatbot/): How AI Workspaces differ from traditional AI chatbots — isolation, tools, employee portals, and multi-tenant architecture.
+- [Customer AI vs Employee AI](https://docs.qefro.com/docs/concepts/customer-ai-vs-employee-ai/): Customer AI serves external users on website and WhatsApp; Employee AI serves organization members on the Internal Portal with RBAC.
+- [Business Actions](https://docs.qefro.com/docs/concepts/business-actions/): Business Actions are runtime AI invocations of Business Tools — authorized HTTPS calls with SSRF controls, identity forwarding, and execution logs.
+- [AI Knowledge Platform](https://docs.qefro.com/docs/concepts/ai-knowledge-platform/): An AI Knowledge Platform ingests documents, crawls, and OCR into workspace-isolated indexes for citation-backed RAG — the memory layer of Customer AI and Employee AI.
+- [Hybrid RAG](https://docs.qefro.com/docs/concepts/hybrid-rag/): Hybrid RAG combines lexical (BM25-style) and vector retrieval so AI assistants find exact terms and semantic matches — then ground answers with citations.
+- [AI Agent Security](https://docs.qefro.com/docs/concepts/ai-agent-security/): AI agent security covers tenant isolation, tool authorization, SSRF controls, encrypted secrets, identity forwarding, and audit logs for assistants that retrieve knowledge and take Business Actions.
+- [Multi-tenant AI Architecture](https://docs.qefro.com/docs/concepts/multi-tenant-ai-architecture/): Multi-tenant AI architecture isolates organizations (tenants) and AI Workspaces so knowledge, tools, conversations, and billing never cross customer boundaries.
+
 ## Getting Started
 
 - [Installation](https://docs.qefro.com/docs/getting-started/installation/): Create a Qefro organization at app.qefro.com — cloud hosted, no local RAG stack required.

@@ -19,6 +19,19 @@ const SITE = 'https://docs.qefro.com';
 /** @type {{heading: string, ids: string[]}[]} */
 const SECTIONS = [
   {
+    heading: 'Concepts (GEO)',
+    ids: [
+      'concepts/what-is-an-ai-workspace',
+      'concepts/ai-workspace-vs-ai-chatbot',
+      'concepts/customer-ai-vs-employee-ai',
+      'concepts/business-actions',
+      'concepts/ai-knowledge-platform',
+      'concepts/hybrid-rag',
+      'concepts/ai-agent-security',
+      'concepts/multi-tenant-ai-architecture',
+    ],
+  },
+  {
     heading: 'Getting Started',
     ids: ['getting-started/installation', 'getting-started/quick-start'],
   },

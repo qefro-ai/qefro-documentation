@@ -69,6 +69,7 @@ const features = [
 ];
 
 const categories = [
+  {label: 'Concepts', to: '/docs/concepts/what-is-an-ai-workspace'},
   {label: 'Getting Started', to: '/docs/getting-started/installation'},
   {label: 'Platform', to: '/docs/platform/ai-workspaces'},
   {label: 'Guides', to: '/docs/guides/build-ai-customer-support'},
@@ -77,6 +78,45 @@ const categories = [
   {label: 'Compare', to: '/docs/compare/chatbase-vs-qefro'},
   {label: 'Glossary', to: '/docs/glossary'},
   {label: 'Blog', to: '/blog'},
+];
+
+const concepts = [
+  {
+    title: 'What is an AI Workspace?',
+    description:
+      'The isolation unit for knowledge, tools, and conversations inside an organization.',
+    href: '/docs/concepts/what-is-an-ai-workspace',
+  },
+  {
+    title: 'AI Workspace vs AI Chatbot',
+    description:
+      'When a chatbot is enough — and when you need workspaces, RBAC, and actions.',
+    href: '/docs/concepts/ai-workspace-vs-ai-chatbot',
+  },
+  {
+    title: 'Customer AI vs Employee AI',
+    description:
+      'External channels versus Internal Portal with Teams and workspace grants.',
+    href: '/docs/concepts/customer-ai-vs-employee-ai',
+  },
+  {
+    title: 'Business Actions',
+    description:
+      'Authorized, logged tool calls from assistants into your APIs.',
+    href: '/docs/concepts/business-actions',
+  },
+  {
+    title: 'Hybrid RAG',
+    description:
+      'Lexical + vector retrieval for identifiers and paraphrase queries.',
+    href: '/docs/concepts/hybrid-rag',
+  },
+  {
+    title: 'Multi-tenant AI Architecture',
+    description:
+      'How organizations and workspaces keep customer data from mixing.',
+    href: '/docs/concepts/multi-tenant-ai-architecture',
+  },
 ];
 
 const guides = [
@@ -110,6 +150,11 @@ function HomepageHeader(): ReactNode {
             className="button button--primary button--lg"
             to="/docs/getting-started/quick-start">
             Get Started
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs/concepts/what-is-an-ai-workspace">
+            Concepts
           </Link>
           <Link
             className="button button--secondary button--lg"
@@ -157,6 +202,22 @@ export default function Home(): ReactNode {
 
         <section className="qefro-section qefro-section--alt">
           <div className="qefro-section__inner">
+            <h2>Concepts for AI search</h2>
+            <p className="qefro-section__lead">
+              Definition-led pages for GEO: what an AI Workspace is, how it
+              differs from a chatbot, Hybrid RAG, Business Actions, and
+              multi-tenant architecture.
+            </p>
+            <FeatureCardGrid>
+              {concepts.map((c) => (
+                <FeatureCard key={c.title} {...c} />
+              ))}
+            </FeatureCardGrid>
+          </div>
+        </section>
+
+        <section className="qefro-section">
+          <div className="qefro-section__inner">
             <h2>Platform Overview</h2>
             <p className="qefro-section__lead">
               One Admin Console. Shared knowledge and permissions. Multiple
@@ -183,7 +244,7 @@ export default function Home(): ReactNode {
           </div>
         </section>
 
-        <section className="qefro-section">
+        <section className="qefro-section qefro-section--alt">
           <div className="qefro-section__inner">
             <h2>Core Features</h2>
             <p className="qefro-section__lead">
@@ -198,7 +259,7 @@ export default function Home(): ReactNode {
           </div>
         </section>
 
-        <section className="qefro-section qefro-section--alt">
+        <section className="qefro-section">
           <div className="qefro-section__inner">
             <h2>Architecture</h2>
             <p className="qefro-section__lead">
@@ -214,14 +275,16 @@ export default function Home(): ReactNode {
             </pre>
             <p>
               See{' '}
-              <Link to="/docs/platform/ai-workspaces">AI Workspaces</Link> and{' '}
-              <Link to="/docs/security/tenant-isolation">Tenant Isolation</Link>{' '}
-              for detailed diagrams.
+              <Link to="/docs/concepts/multi-tenant-ai-architecture">
+                Multi-tenant AI Architecture
+              </Link>
+              , <Link to="/docs/platform/ai-workspaces">AI Workspaces</Link>, and{' '}
+              <Link to="/docs/security/tenant-isolation">Tenant Isolation</Link>.
             </p>
           </div>
         </section>
 
-        <section className="qefro-section">
+        <section className="qefro-section qefro-section--alt">
           <div className="qefro-section__inner">
             <h2>Popular Guides</h2>
             <p className="qefro-section__lead">
@@ -238,7 +301,7 @@ export default function Home(): ReactNode {
           </div>
         </section>
 
-        <section className="qefro-section qefro-section--alt">
+        <section className="qefro-section">
           <div className="qefro-section__inner">
             <h2>Documentation Categories</h2>
             <p className="qefro-section__lead">
@@ -255,7 +318,7 @@ export default function Home(): ReactNode {
           </div>
         </section>
 
-        <section className="qefro-section">
+        <section className="qefro-section qefro-section--alt">
           <div className="qefro-section__inner">
             <h2>Latest Blog Posts</h2>
             <p className="qefro-section__lead">

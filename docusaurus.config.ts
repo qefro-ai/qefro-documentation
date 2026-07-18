@@ -136,6 +136,12 @@ const config: Config = {
           label: 'Documentation',
         },
         {
+          type: 'doc',
+          docId: 'concepts/what-is-an-ai-workspace',
+          position: 'left',
+          label: 'Concepts',
+        },
+        {
           type: 'docSidebar',
           sidebarId: 'guidesSidebar',
           position: 'left',
@@ -175,6 +181,7 @@ const config: Config = {
         {
           title: 'Documentation',
           items: [
+            {label: 'Concepts', to: '/docs/concepts/what-is-an-ai-workspace'},
             {label: 'Getting Started', to: '/docs/getting-started/installation'},
             {label: 'Platform', to: '/docs/platform/ai-workspaces'},
             {label: 'Guides', to: '/docs/guides/build-ai-customer-support'},
@@ -190,6 +197,7 @@ const config: Config = {
             {label: 'Pricing', href: 'https://qefro.com/pricing'},
             {label: 'Security', to: '/docs/security/overview'},
             {label: 'Compare', to: '/docs/compare/chatbase-vs-qefro'},
+            {label: 'Hybrid RAG', to: '/docs/concepts/hybrid-rag'},
           ],
         },
         {

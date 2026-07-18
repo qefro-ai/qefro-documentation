@@ -8,6 +8,21 @@ const sidebars: SidebarsConfig = {
   docsSidebar: [
     {
       type: 'category',
+      label: 'Concepts',
+      collapsed: false,
+      items: [
+        'concepts/what-is-an-ai-workspace',
+        'concepts/ai-workspace-vs-ai-chatbot',
+        'concepts/customer-ai-vs-employee-ai',
+        'concepts/business-actions',
+        'concepts/ai-knowledge-platform',
+        'concepts/hybrid-rag',
+        'concepts/ai-agent-security',
+        'concepts/multi-tenant-ai-architecture',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Getting Started',
       collapsed: false,
       items: [
@@ -18,7 +33,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Platform',
-      collapsed: false,
+      collapsed: true,
       items: [
         'platform/ai-workspaces',
         'platform/customer-ai',

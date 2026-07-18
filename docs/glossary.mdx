@@ -9,13 +9,14 @@ import { RelatedTopics } from '@site/src/components';
 
 | Term | Definition |
 | --- | --- |
-| Organization / Tenant | Top-level account boundary for billing and isolation |
-| AI Workspace | Isolated knowledge + tools + conversations |
-| Customer AI | Website widget and/or WhatsApp assistants |
-| Employee AI | Internal Portal assistants for org members |
-| Knowledge Platform | Ingest + hybrid retrieval + citations |
+| Organization / Tenant | Top-level account boundary for billing and isolation — see [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture) |
+| AI Workspace | Isolated knowledge + tools + conversations — see [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
+| Customer AI | Website widget and/or WhatsApp assistants — see [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) |
+| Employee AI | Internal Portal assistants for org members — see [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) |
+| Knowledge Platform | Ingest + hybrid retrieval + citations — see [AI Knowledge Platform](/docs/concepts/ai-knowledge-platform) |
+| Hybrid RAG | Lexical + vector retrieval for grounded answers — see [Hybrid RAG](/docs/concepts/hybrid-rag) |
 | Business Tool | REST/OpenAPI connector with encrypted credentials |
-| Business Action | Runtime invocation of a Business Tool |
+| Business Action | Runtime invocation of a Business Tool — see [Business Actions](/docs/concepts/business-actions) |
 | Identity Forwarding | identify() end-user JWT/session into tool calls |
 | Widget token | Publishable embed key for cdn.qefro.com/widget.js |
 | Internal Portal | your-company.qefro.com employee experience |
@@ -25,8 +26,10 @@ import { RelatedTopics } from '@site/src/components';
 ## Related topics
 
 <RelatedTopics topics={[
-  {label: 'AI Workspaces', to: '/docs/platform/ai-workspaces'},
-  {label: 'Business Tools', to: '/docs/platform/business-tools'},
+  {label: 'What is an AI Workspace?', to: '/docs/concepts/what-is-an-ai-workspace'},
+  {label: 'AI Workspace vs AI Chatbot', to: '/docs/concepts/ai-workspace-vs-ai-chatbot'},
+  {label: 'AI Agent Security', to: '/docs/concepts/ai-agent-security'},
+  {label: 'AI Workspaces (platform)', to: '/docs/platform/ai-workspaces'},
   {label: 'FAQ', to: '/docs/faq'},
 ]} />
 

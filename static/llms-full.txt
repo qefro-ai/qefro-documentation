@@ -4,6 +4,626 @@
 
 Generated: 2026-07-18
 
+# Concepts (GEO)
+
+# What is an AI Workspace?
+
+Source: https://docs.qefro.com/docs/concepts/what-is-an-ai-workspace/
+
+> An AI Workspace is an isolated AI environment with its own knowledge, instructions, tools, and conversations — the core unit of Qefro.
+
+An **AI Workspace** is a scoped AI environment inside an organization. It owns its own **knowledge base**, **assistant instructions**, **Business Tools**, and **conversations**. Unlike a single shared chatbot, workspaces keep Support, HR, IT, and other teams from mixing policies, tools, and chat history.
+
+In [Qefro](https://qefro.com), every Customer AI and Employee AI experience binds to one or more workspaces you configure in the [Admin Console](https://app.qefro.com).
+
+## Short definition (citation-ready)
+
+> An AI Workspace is an isolated context for retrieval-augmented assistants and tool calls: documents, instructions, connectors, and conversations stay inside that workspace unless you deliberately share them.
+
+## Why AI Workspaces exist
+
+Organizations rarely need “one bot for everything.” They need:
+
+| Need | Workspace answer |
+| --- | --- |
+| Different audiences | Customer Support vs Internal HR |
+| Different knowledge | Public FAQs vs confidential policy |
+| Different tools | Order lookup vs payroll APIs |
+| Different permissions | Widget visitors vs authenticated employees |
+
+Without workspaces, a single chatbot index becomes a privacy and accuracy risk: internal docs leak into customer answers, or tools meant for staff become callable from a public widget.
+
+## Core components
+
+| Component | Role |
+| --- | --- |
+| **Knowledge** | Uploaded files, crawled sites, OCR — indexed for hybrid RAG |
+| **Instructions** | Tone, language, refusal rules, product voice |
+| **Business Tools** | REST / OpenAPI connectors with encrypted credentials |
+| **Business Actions** | Runtime tool invocations during a conversation |
+| **Conversations** | Channel-bound chat history for that workspace |
+| **Channels** | Website widget, WhatsApp, Internal Portal |
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Org[Organization / tenant]
+  Org --> WS1[Workspace: Customer Support]
+  Org --> WS2[Workspace: HR]
+  Org --> WS3[Workspace: IT]
+  WS1 --> K1[Knowledge + hybrid RAG]
+  WS1 --> T1[Business Tools]
+  WS1 --> C1[Conversations]
+  Widget[Website Widget] --> WS1
+  WA[WhatsApp] --> WS1
+  Portal[Internal Portal] --> WS2
+  Portal --> WS3
+```
+
+  
+  
+  
+
+## AI Workspace vs related ideas
+
+| Concept | How it differs from an AI Workspace |
+| --- | --- |
+| **AI chatbot** | Often one bot + one knowledge dump; weak multi-team isolation |
+| **Custom GPT / project** | Usually personal or single-team; not a multi-tenant org platform |
+| **Helpdesk ticket bot** | Focused on tickets; may lack employee portal + general RAG workspaces |
+| **Agent framework** | Code-first orchestration; Qefro workspaces are productized with Admin Console + channels |
+
+See also: [AI Workspace vs AI Chatbot](/docs/concepts/ai-workspace-vs-ai-chatbot).
+
+## How Qefro implements AI Workspaces
+
+1. Sign up at [app.qefro.com](https://app.qefro.com) and create an **organization** (tenant).
+2. Create workspaces for each use case (Support, HR, IT, …).
+3. Ingest knowledge (`POST /api/v1/documents`) and configure instructions.
+4. Attach [Business Tools](/docs/platform/business-tools) when the assistant must call APIs.
+5. Bind channels: [website widget](/docs/platform/website-widget), [WhatsApp](/docs/platform/whatsapp), or [Internal Portal](/docs/platform/internal-portal).
+
+Admin Console APIs expose workspaces under `/api/v1/org/workspaces`. Day-to-day console operations also use GraphQL on `api.qefro.com`.
+
+## Workflow
+
+## Best practices
+
+- One primary audience per workspace (do not mix public FAQs with confidential HR).
+- Prefer citations and refusals over guessing when knowledge is thin.
+- Scope Business Tools to the minimum HTTP methods and paths required.
+- Use Teams so Members only access granted Employee AI workspaces.
+- Monitor analytics, feedbacks, and tool execution logs before expanding channels.
+
+## Common misconceptions
+
+| Myth | Reality |
+| --- | --- |
+| “An AI Workspace is just a chatbot skin.” | Workspaces isolate knowledge, tools, and conversations — not only UI. |
+| “One workspace for the whole company is fine.” | Cross-team mixing increases leakage and wrong-tool risk. |
+| “RAG alone is enough.” | Production assistants also need authz, SSRF controls, and identity forwarding for actions. |
+
+## FAQ
+
+For Admin Console workflows, APIs, and channel binding details, see the platform page [AI Workspaces](/docs/platform/ai-workspaces).
+
+## Related topics
+
+---
+
+# AI Workspace vs AI Chatbot
+
+Source: https://docs.qefro.com/docs/concepts/ai-workspace-vs-ai-chatbot/
+
+> How AI Workspaces differ from traditional AI chatbots — isolation, tools, employee portals, and multi-tenant architecture.
+
+**AI Workspace vs AI Chatbot** is the difference between a **scoped operating unit for assistants and actions** and a **conversational UI over one knowledge dump**. Chatbots answer questions. AI Workspaces organize knowledge, permissions, tools, and channels so customer and employee AI can run safely inside a company.
+
+## Short definition (citation-ready)
+
+> An AI chatbot is typically a conversational interface with a knowledge source. An AI Workspace is an isolated product unit — knowledge, instructions, tools, conversations, and channel bindings — designed for multi-team, multi-tenant use.
+
+## Capability comparison
+
+## When a chatbot is enough
+
+Choose a simple chatbot when:
+
+- One public FAQ site is the only surface
+- No employee portal or internal tools are required
+- No multi-team isolation or RBAC is needed
+- You will not call privileged APIs from the assistant
+
+## When you need an AI Workspace
+
+Choose an AI Workspace platform when:
+
+- Support, HR, and IT must not share one index
+- Employees need a branded portal with workspace grants
+- Assistants must call systems of record safely ([Business Actions](/docs/concepts/business-actions))
+- You need hybrid RAG, citations, and audit-friendly tool logs
+- You operate multi-tenant SaaS-style isolation ([Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture))
+
+## Architecture contrast
+
+```mermaid
+flowchart LR
+  subgraph Chatbot["Typical chatbot"]
+    B[Bot] --> KB[One knowledge dump]
+    B --> UI[Chat UI]
+  end
+  subgraph Workspace["AI Workspace platform"]
+    Org[Organization]
+    Org --> WS[Workspaces]
+    WS --> K[Knowledge / hybrid RAG]
+    WS --> T[Business Tools]
+    WS --> Ch[Channels]
+  end
+```
+
+## How Qefro positions this
+
+Qefro is an **AI Workspace Platform**, not a single-bot builder:
+
+- [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace)
+- [Customer AI](/docs/platform/customer-ai) on widget + WhatsApp
+- [Employee AI](/docs/platform/employee-ai) on Internal Portal
+- [Business Actions](/docs/concepts/business-actions) via Business Tools
+
+Vendor comparisons (Chatbase, Intercom, Zendesk, …) live under [Compare](/docs/compare/chatbase-vs-qefro).
+
+## Evaluation workflow
+
+## FAQ
+
+Marketing one-liners blur these terms. When evaluating vendors, ask: What is the isolation unit? Who can call which tools? Is there an employee portal with RBAC?
+
+## Related topics
+
+---
+
+# Customer AI vs Employee AI
+
+Source: https://docs.qefro.com/docs/concepts/customer-ai-vs-employee-ai/
+
+> Customer AI serves external users on website and WhatsApp; Employee AI serves organization members on the Internal Portal with RBAC.
+
+**Customer AI** and **Employee AI** are the two audience modes of an AI Workspace Platform. Both can use the same underlying workspace technology (knowledge, tools, conversations), but they differ in **who** is talking, **where** the UI lives, and **what** identity and permissions apply.
+
+## Short definition (citation-ready)
+
+> Customer AI assists external users (visitors, shoppers, ticket askers) on public channels. Employee AI assists authenticated organization members on an internal portal with role- and workspace-scoped access.
+
+## Side-by-side
+
+| Dimension | Customer AI | Employee AI |
+| --- | --- | --- |
+| **Audience** | External customers / visitors | Organization members |
+| **Primary surfaces** | Website widget, WhatsApp | Internal Portal (`*.qefro.com` or custom domain) |
+| **Auth** | Widget token; optional `identify()` for end users | Email/password session JWT; Teams + workspace grants |
+| **Knowledge** | Usually public or customer-safe docs | Often internal policies, runbooks, HR/IT |
+| **Tools** | Order status, ticket create — careful scopes | Internal systems with stricter RBAC |
+| **Risk if mixed** | Leaking internal docs to the public | Exposing customer tools without need |
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Org[Organization]
+  Org --> CWS[Customer Support workspace]
+  Org --> HWS[HR / IT workspaces]
+  CWS --> Widget[Website Widget]
+  CWS --> WA[WhatsApp]
+  HWS --> Portal[Internal Portal]
+  Member[Authenticated member] --> Portal
+  Visitor[Site visitor / WhatsApp user] --> Widget
+  Visitor --> WA
+```
+
+## Customer AI in Qefro
+
+- Product page: [Customer AI](/docs/platform/customer-ai)
+- Channels: [Website Widget](/docs/platform/website-widget) (`cdn.qefro.com/widget.js`), [WhatsApp](/docs/platform/whatsapp)
+- Optional identity: [Identity Forwarding](/docs/platform/identity-forwarding) via `identify()` so Business Tools receive a verified end-user token
+
+## Employee AI in Qefro
+
+- Product page: [Employee AI](/docs/platform/employee-ai)
+- Surface: [Internal Portal](/docs/platform/internal-portal)
+- Access: [RBAC](/docs/platform/rbac) — Owner / Admin / Member; Members only see granted workspaces
+- Branding & domains: [Branding](/docs/platform/branding), [Custom Domains](/docs/platform/custom-domains)
+
+## Should they share a workspace?
+
+| Approach | Use when |
+| --- | --- |
+| **Separate workspaces (recommended)** | Knowledge sensitivity differs (public FAQ vs internal HR) |
+| **Shared workspace** | Rare — only when the corpus is intentionally identical and tools are safe for both audiences |
+
+Use a Customer Support workspace for widget/WhatsApp and separate HR/IT workspaces for the Internal Portal. Shared indexes are a common source of accidental disclosure.
+
+## Workflow
+
+## FAQ
+
+## Related topics
+
+---
+
+# Business Actions
+
+Source: https://docs.qefro.com/docs/concepts/business-actions/
+
+> Business Actions are runtime AI invocations of Business Tools — authorized HTTPS calls with SSRF controls, identity forwarding, and execution logs.
+
+A **Business Action** is what happens when an assistant **calls a Business Tool** during a conversation — for example looking up an order, creating a ticket, or reading account status from your system of record. Answers alone are not enough for many support and employee workflows; actions close the loop.
+
+## Short definition (citation-ready)
+
+> A Business Action is an authorized, logged runtime invocation of a configured Business Tool (REST/OpenAPI connector) during an AI conversation, subject to workspace scope, SSRF controls, and optional end-user identity forwarding.
+
+## Business Actions vs Business Tools
+
+| Term | Meaning |
+| --- | --- |
+| **Business Tool** | The connector definition: URL, method, auth credentials, schema |
+| **Business Action** | One execution of that tool at conversation time |
+
+Configure tools once; the model selects and runs actions when the dialog requires them.
+
+## Why they matter for GEO and buyers
+
+Search and AI assistants increasingly answer “can the AI *do* things, or only chat?” Business Actions are the product concept for:
+
+- Order / shipment lookups
+- Ticket or lead creation
+- Internal runbook automation for Employee AI
+- Any HTTPS API your organization already trusts
+
+## Architecture
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant Channel as Widget / Portal / WhatsApp
+  participant Qefro as Qefro runtime
+  participant Tool as Business Tool HTTPS API
+  User->>Channel: Message
+  Channel->>Qefro: Chat + workspace context
+  Qefro->>Qefro: RAG + tool selection
+  Qefro->>Tool: Authorized HTTPS (SSRF-safe)
+  Tool-->>Qefro: Result
+  Qefro-->>User: Answer with action outcome
+  Qefro->>Qefro: Execution log
+```
+
+## Security properties (required for production)
+
+| Control | Purpose |
+| --- | --- |
+| **Workspace binding** | Tools only exist inside a workspace |
+| **Encrypted secrets** | Credentials stored encrypted at rest |
+| **SSRF protections** | Block unsafe destinations / schemes |
+| **Identity forwarding** | Optional end-user JWT/session to your API |
+| **Execution logs** | Audit what was called and when |
+| **Least privilege** | Prefer read-only methods in pilots |
+
+Deep dive: [AI Agent Security](/docs/concepts/ai-agent-security) and [Secure Business Actions](/docs/guides/secure-business-actions).
+
+## How Qefro implements Business Actions
+
+1. Create a [Business Tool](/docs/platform/business-tools) under a workspace (REST or [OpenAPI import](/docs/guides/import-openapi)).
+2. Store credentials in the Admin Console (encrypted).
+3. Test the tool before enabling it for the assistant.
+4. On Customer AI, use [`identify()`](/docs/platform/identity-forwarding) when your API needs the end user.
+5. Review tool execution logs after pilot traffic.
+
+Platform reference: [Business Actions](/docs/platform/business-actions).
+
+## Workflow
+
+## Best practices
+
+- Separate customer-facing tools from internal-only tools via workspaces.
+- Never put long-lived admin secrets in the browser; use server-side tool credentials + optional end-user forwarding.
+- Document idempotency for any write action the model can trigger.
+- Fail closed: if authz fails, the assistant should explain limits — not invent success.
+
+Treat every Business Action as production API traffic. Rate limits, auth failures, and PII in responses are your responsibility to design for.
+
+## FAQ
+
+## Related topics
+
+---
+
+# AI Knowledge Platform
+
+Source: https://docs.qefro.com/docs/concepts/ai-knowledge-platform/
+
+> An AI Knowledge Platform ingests documents, crawls, and OCR into workspace-isolated indexes for citation-backed RAG — the memory layer of Customer AI and Employee AI.
+
+An **AI Knowledge Platform** is the system that turns your documents and sites into **retrievable, citable memory** for assistants. In Qefro it is workspace-scoped: each [AI Workspace](/docs/concepts/what-is-an-ai-workspace) has its own index so Support FAQs never silently merge with HR policy.
+
+## Short definition (citation-ready)
+
+> An AI Knowledge Platform ingests files and web content, chunks and indexes them (often with hybrid lexical + vector retrieval), and returns grounded passages so assistants can answer with citations inside an isolation boundary such as a workspace.
+
+## What it includes
+
+| Capability | Role |
+| --- | --- |
+| **Ingest** | Uploads, crawl jobs, OCR for scans/images |
+| **Index** | Chunking, embeddings, lexical indexes |
+| **Retrieve** | Hybrid search at question time ([Hybrid RAG](/docs/concepts/hybrid-rag)) |
+| **Cite** | Point answers back to source passages |
+| **Isolate** | Per-workspace corpora inside a tenant |
+| **Govern** | Delete/re-ingest, access via RBAC on Employee AI |
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Docs[Documents / crawl / OCR] --> Ingest[Ingest pipeline]
+  Ingest --> Index[Workspace index]
+  Q[User question] --> Retrieve[Hybrid retrieval]
+  Index --> Retrieve
+  Retrieve --> LLM[Grounded generation]
+  LLM --> Answer[Answer + citations]
+```
+
+  
+  
+  
+
+## Knowledge Platform vs “upload a PDF to a chatbot”
+
+| Chatbot upload | AI Knowledge Platform |
+| --- | --- |
+| Convenient for demos | Built for ongoing ingest and re-index |
+| Often one shared pile | Workspace (and tenant) isolation |
+| Citations optional | Citations as a product expectation |
+| Weak ops story | APIs, jobs, delete/replace, monitoring |
+
+## How Qefro implements it
+
+- Product page: [Knowledge Platform](/docs/platform/knowledge-platform)
+- Upload / manage via Admin Console and `POST /api/v1/documents` on `api.qefro.com`
+- Retrieval powers Customer AI (widget, WhatsApp) and Employee AI (Internal Portal)
+- Isolation ties to [Organizations](/docs/platform/organizations) and workspaces
+
+## Workflow
+
+## Best practices
+
+- Separate corpora by audience ([Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai)).
+- Prefer fewer high-quality sources over noisy crawl-everything.
+- Verify OCR quality for scans before relying on answers.
+- Treat deletion and retention as security requirements, not afterthoughts.
+
+## FAQ
+
+For implementation detail (APIs, crawl, OCR), see [Knowledge Platform](/docs/platform/knowledge-platform). For retrieval mechanics, see [Hybrid RAG](/docs/concepts/hybrid-rag).
+
+## Related topics
+
+---
+
+# Hybrid RAG
+
+Source: https://docs.qefro.com/docs/concepts/hybrid-rag/
+
+> Hybrid RAG combines lexical (BM25-style) and vector retrieval so AI assistants find exact terms and semantic matches — then ground answers with citations.
+
+**Hybrid RAG** (Retrieval-Augmented Generation) mixes **lexical search** (exact tokens, SKUs, error codes, policy IDs) with **vector / semantic search** (paraphrases and conceptual similarity). The merged results ground the model so answers stay tied to your documents instead of free-form guessing.
+
+## Short definition (citation-ready)
+
+> Hybrid RAG retrieves supporting passages using both keyword-oriented and embedding-oriented search, fuses ranked results, and passes them to a language model to generate an answer — ideally with citations back to sources.
+
+## Why hybrid beats “vectors only”
+
+| Query type | Vectors alone | Lexical alone | Hybrid |
+| --- | --- | --- | --- |
+| “What is your refund policy?” | Strong | Medium | Strong |
+| “Error E-4421 meaning” | Weak/medium | Strong | Strong |
+| “SKU A12-900 warranty” | Weak | Strong | Strong |
+| “How do I change billing email?” | Strong | Medium | Strong |
+
+Enterprise corpora are full of **identifiers**. Pure semantic search misses them; pure keyword search misses paraphrase. Hybrid covers both.
+
+## Architecture
+
+```mermaid
+flowchart TB
+  Q[User question] --> L[Lexical retriever]
+  Q --> V[Vector retriever]
+  L --> F[Fusion / re-rank]
+  V --> F
+  F --> CTX[Top passages]
+  CTX --> LLM[Grounded generation]
+  LLM --> A[Answer + citations]
+```
+
+## Hybrid RAG inside an AI Knowledge Platform
+
+Hybrid RAG is the **retrieval engine**. An [AI Knowledge Platform](/docs/concepts/ai-knowledge-platform) wraps it with ingest, workspace isolation, OCR, and ops. In Qefro:
+
+- Indexes are **per workspace** inside a tenant
+- Customer AI and Employee AI both consume hybrid retrieval
+- Citations help operators verify groundedness
+
+Platform detail: [Knowledge Platform](/docs/platform/knowledge-platform).
+
+## Quality loop
+
+## Best practices
+
+- Keep chunk sizes appropriate for your docs (too large → noisy; too small → broken identifiers).
+- Re-index after major policy edits; do not rely on chat memory.
+- Separate customer-safe and internal corpora ([Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai)).
+- Pair RAG with [Business Actions](/docs/concepts/business-actions) only when live data is required — docs for policy, APIs for state.
+
+## FAQ
+
+For security of retrieval boundaries (tenant/workspace isolation), see [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture) and [Tenant Isolation](/docs/security/tenant-isolation).
+
+## Related topics
+
+---
+
+# AI Agent Security
+
+Source: https://docs.qefro.com/docs/concepts/ai-agent-security/
+
+> AI agent security covers tenant isolation, tool authorization, SSRF controls, encrypted secrets, identity forwarding, and audit logs for assistants that retrieve knowledge and take Business Actions.
+
+**AI Agent Security** is the set of controls that keep assistants safe when they not only **read knowledge** but also **take actions**. Chat-only bots mainly risk bad answers. Agents that call APIs risk unauthorized data access, SSRF, secret leakage, and unaudited writes.
+
+## Short definition (citation-ready)
+
+> AI agent security is the practice of constraining retrieval and tool use with isolation boundaries, least-privilege credentials, network egress controls, identity propagation, and auditable execution — so assistants cannot become privileged backdoors.
+
+## Threat model (practical)
+
+| Risk | Example | Mitigations |
+| --- | --- | --- |
+| **Cross-tenant leakage** | Org A retrieves Org B docs | Tenant isolation, workspace indexes |
+| **Cross-workspace leakage** | Customer widget reads HR PDFs | Separate workspaces; channel binding |
+| **Over-privileged tools** | Public chat triggers refund API | Least privilege; separate tools; RBAC |
+| **SSRF** | Tool URL points at cloud metadata | Allowlists, scheme/host checks |
+| **Secret exposure** | API keys in browser or prompts | Encrypted server-side secrets |
+| **Confused deputy** | Tool runs as admin, not end user | Identity forwarding (`identify()`) |
+| **Unaudited actions** | Nobody knows what the bot changed | Execution + audit logs |
+
+## Control layers
+
+```mermaid
+flowchart TB
+  subgraph Isolation
+    T[Tenant boundary]
+    W[Workspace boundary]
+  end
+  subgraph AuthZ
+    R[RBAC / Teams]
+    I[End-user identity forwarding]
+  end
+  subgraph Egress
+    S[Encrypted secrets]
+    N[SSRF-safe HTTPS]
+  end
+  subgraph Prove
+    L[Tool execution logs]
+    A[Audit trails]
+  end
+  User --> Isolation --> AuthZ --> Egress --> Prove
+```
+
+## How Qefro approaches agent security
+
+| Area | Qefro capability |
+| --- | --- |
+| Tenant isolation | Organization boundary on `api.qefro.com` |
+| Workspace isolation | Per-workspace knowledge and tools |
+| Employee access | Owner / Admin / Member + Teams |
+| Tools | Business Tools with encrypted credentials |
+| Actions | Logged Business Actions, SSRF-aware egress |
+| Customer identity | Widget `identify()` → tool headers |
+| Docs | [Security overview](/docs/security/overview), [Tenant isolation](/docs/security/tenant-isolation), [Secrets](/docs/security/secrets), [Audit logs](/docs/security/audit-logs) |
+
+Concept siblings: [Business Actions](/docs/concepts/business-actions), [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture).
+
+## Hardening workflow
+
+## Best practices
+
+- Treat the model as **untrusted input** to your tool layer — validate arguments server-side.
+- Prefer idempotent writes and human approval for irreversible actions.
+- Do not paste production secrets into prompts, tickets, or browser JS.
+- Run a red-team script of prompt-injection attempts against tool-enabled workspaces.
+
+Prompt injection is not solved by “better wording” alone. Assume hostile content in uploaded docs and user messages when tools are enabled.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Multi-tenant AI Architecture
+
+Source: https://docs.qefro.com/docs/concepts/multi-tenant-ai-architecture/
+
+> Multi-tenant AI architecture isolates organizations (tenants) and AI Workspaces so knowledge, tools, conversations, and billing never cross customer boundaries.
+
+**Multi-tenant AI architecture** is how a SaaS AI platform serves many organizations from one control plane without mixing their data, tools, or conversations. In Qefro the top boundary is the **organization (tenant)**; inside it, **AI Workspaces** isolate teams and use cases.
+
+## Short definition (citation-ready)
+
+> Multi-tenant AI architecture enforces hard isolation between customer organizations — and usually softer isolation between workspaces inside an organization — across knowledge indexes, tool credentials, conversations, and administrative APIs.
+
+## Why it matters
+
+Without tenancy:
+
+- Customer A’s documents could appear in Customer B’s answers
+- Tool credentials could be invoked across orgs
+- Analytics and billing would be unreliable
+- Enterprise buyers cannot pass security review
+
+Tenancy is therefore both a **security** and a **product** requirement for AI Workspace platforms.
+
+## Layered model
+
+| Layer | Qefro unit | Isolates |
+| --- | --- | --- |
+| **Platform** | Qefro cloud (`api.qefro.com`, `app.qefro.com`) | Shared infra, per-tenant logical isolation |
+| **Tenant** | Organization | Users, billing, branding, widget token |
+| **Workspace** | AI Workspace | Knowledge, tools, conversations |
+| **Access** | Teams + RBAC | Which members see which Employee AI workspaces |
+| **Channel** | Widget / WhatsApp / Portal | How external or internal users attach |
+
+```mermaid
+flowchart TB
+  Platform[Qefro platform]
+  Platform --> OrgA[Org A tenant]
+  Platform --> OrgB[Org B tenant]
+  OrgA --> WSA1[Workspace Support]
+  OrgA --> WSA2[Workspace HR]
+  OrgB --> WSB1[Workspace Support]
+  WSA1 -.->|no shared index| WSB1
+```
+
+  
+  
+  
+
+## Request path (conceptual)
+
+1. Authenticate (user JWT, widget token, or channel webhook).
+2. Resolve **tenant** from the credential / host.
+3. Resolve **workspace** from channel binding or portal selection.
+4. Retrieve only from that workspace’s knowledge index.
+5. Allow only that workspace’s Business Tools.
+6. Emit logs attributed to tenant + workspace (+ actor when known).
+
+Security deep dive: [Tenant Isolation](/docs/security/tenant-isolation).
+
+## Single-tenant / enterprise variants
+
+Some enterprises require private deployment. Conceptually the isolation model stays the same; the difference is **where** the control/data planes run. See [Deployment](/docs/platform/deployment) and [Production Deployment](/docs/guides/production-deployment).
+
+## Design workflow
+
+## FAQ
+
+Product entry points: [Organizations](/docs/platform/organizations), [AI Workspaces](/docs/platform/ai-workspaces), [Security Overview](/docs/security/overview).
+
+## Related topics
+
+---
+
 # Getting Started
 
 # Installation
@@ -3088,13 +3708,14 @@ Source: https://docs.qefro.com/docs/glossary/
 
 | Term | Definition |
 | --- | --- |
-| Organization / Tenant | Top-level account boundary for billing and isolation |
-| AI Workspace | Isolated knowledge + tools + conversations |
-| Customer AI | Website widget and/or WhatsApp assistants |
-| Employee AI | Internal Portal assistants for org members |
-| Knowledge Platform | Ingest + hybrid retrieval + citations |
+| Organization / Tenant | Top-level account boundary for billing and isolation — see [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture) |
+| AI Workspace | Isolated knowledge + tools + conversations — see [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
+| Customer AI | Website widget and/or WhatsApp assistants — see [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) |
+| Employee AI | Internal Portal assistants for org members — see [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) |
+| Knowledge Platform | Ingest + hybrid retrieval + citations — see [AI Knowledge Platform](/docs/concepts/ai-knowledge-platform) |
+| Hybrid RAG | Lexical + vector retrieval for grounded answers — see [Hybrid RAG](/docs/concepts/hybrid-rag) |
 | Business Tool | REST/OpenAPI connector with encrypted credentials |
-| Business Action | Runtime invocation of a Business Tool |
+| Business Action | Runtime invocation of a Business Tool — see [Business Actions](/docs/concepts/business-actions) |
 | Identity Forwarding | identify() end-user JWT/session into tool calls |
 | Widget token | Publishable embed key for cdn.qefro.com/widget.js |
 | Internal Portal | your-company.qefro.com employee experience |
