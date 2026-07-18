@@ -1,0 +1,23 @@
+{
+  "name": "Qefro Docs",
+  "short_name": "Qefro Docs",
+  "description": "Official documentation for the Qefro AI Workspace Platform.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/img/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/qefro-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

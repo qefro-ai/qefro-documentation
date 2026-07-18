@@ -17,7 +17,7 @@ Canonical product hosts:
 - [What is an AI Workspace?](https://docs.qefro.com/docs/concepts/what-is-an-ai-workspace/): An AI Workspace is an isolated AI environment with its own knowledge, instructions, tools, and conversations — the core unit of Qefro.
 - [AI Workspace vs AI Chatbot](https://docs.qefro.com/docs/concepts/ai-workspace-vs-ai-chatbot/): How AI Workspaces differ from traditional AI chatbots — isolation, tools, employee portals, and multi-tenant architecture.
 - [Customer AI vs Employee AI](https://docs.qefro.com/docs/concepts/customer-ai-vs-employee-ai/): Customer AI serves external users on website and WhatsApp; Employee AI serves organization members on the Internal Portal with RBAC.
-- [Business Actions](https://docs.qefro.com/docs/concepts/business-actions/): Business Actions are runtime AI invocations of Business Tools — authorized HTTPS calls with SSRF controls, identity forwarding, and execution logs.
+- [What are Business Actions?](https://docs.qefro.com/docs/concepts/business-actions/): Business Actions are runtime AI invocations of Business Tools — authorized HTTPS calls with SSRF controls, identity forwarding, and execution logs.
 - [AI Knowledge Platform](https://docs.qefro.com/docs/concepts/ai-knowledge-platform/): An AI Knowledge Platform ingests documents, crawls, and OCR into workspace-isolated indexes for citation-backed RAG — the memory layer of Customer AI and Employee AI.
 - [Hybrid RAG](https://docs.qefro.com/docs/concepts/hybrid-rag/): Hybrid RAG combines lexical (BM25-style) and vector retrieval so AI assistants find exact terms and semantic matches — then ground answers with citations.
 - [AI Agent Security](https://docs.qefro.com/docs/concepts/ai-agent-security/): AI agent security covers tenant isolation, tool authorization, SSRF controls, encrypted secrets, identity forwarding, and audit logs for assistants that retrieve knowledge and take Business Actions.
@@ -39,7 +39,7 @@ Canonical product hosts:
 - [Internal Portal](https://docs.qefro.com/docs/platform/internal-portal/): Branded employee experience on your-company.qefro.com or a custom domain.
 - [Website Widget](https://docs.qefro.com/docs/platform/website-widget/): Embed Customer AI with cdn.qefro.com/widget.js, workspace binding, WebSocket chat, and identify().
 - [WhatsApp](https://docs.qefro.com/docs/platform/whatsapp/): Customer AI over Meta Cloud API — webhook verify/incoming at /api/v1/whatsapp/webhook.
-- [Authentication](https://docs.qefro.com/docs/platform/authentication/): How Admin Console users, Internal Portal members, widget tokens, and APIs authenticate to Qefro.
+- [Platform Authentication](https://docs.qefro.com/docs/platform/authentication/): How Admin Console users, Internal Portal members, widget tokens, and APIs authenticate to Qefro.
 - [Identity Forwarding](https://docs.qefro.com/docs/platform/identity-forwarding/): Forward verified end-user identity into Business Tools with widget.identify().
 - [Organizations](https://docs.qefro.com/docs/platform/organizations/): Tenant boundary for billing, users, workspaces, and branding.
 - [Teams](https://docs.qefro.com/docs/platform/teams/): Group members and grant workspace access for Employee AI.
@@ -64,7 +64,7 @@ Canonical product hosts:
 
 ## API
 
-- [Authentication](https://docs.qefro.com/docs/api/authentication/): Authenticate to api.qefro.com with user JWTs, widget tokens, or admin credentials.
+- [API Authentication](https://docs.qefro.com/docs/api/authentication/): Authenticate to api.qefro.com with user JWTs, widget tokens, or admin credentials.
 - [REST APIs](https://docs.qefro.com/docs/api/rest-apis/): Versioned REST surface on api.qefro.com — uploads, billing, tools, widget, org RBAC, WhatsApp.
 - [SDKs](https://docs.qefro.com/docs/api/sdks/): Official widget package and HTTP examples for server integrations.
 - [Examples](https://docs.qefro.com/docs/api/examples/): cURL, TypeScript, and Python examples against production hosts.
@@ -91,8 +91,8 @@ Canonical product hosts:
 
 ## Reference
 
-- [FAQ](https://docs.qefro.com/docs/faq/): Frequently asked questions about the real Qefro product.
-- [Glossary](https://docs.qefro.com/docs/glossary/): Canonical Qefro terminology aligned with the product.
+- [FAQ](https://docs.qefro.com/docs/faq/): Frequently asked questions about the Qefro AI Workspace Platform — workspaces, Customer AI, Employee AI, Business Actions, and RBAC.
+- [Glossary](https://docs.qefro.com/docs/glossary/): Canonical Qefro terminology aligned with the product, with links to detailed documentation.
 - [Release Notes](https://docs.qefro.com/docs/release-notes/): Documentation and platform notes.
 
 ## Optional

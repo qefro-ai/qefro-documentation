@@ -62,6 +62,8 @@ Set secrets for Cloudflare:
 
 Production URL (canonical): `https://docs.qefro.com`
 
+Cloudflare Pages is the production deploy path (`.github/workflows/ci.yml`). The GitHub Pages workflow is **manual-only** fallback and is not required for launch.
+
 ### AI discovery (GEO)
 
 | Endpoint | Purpose |

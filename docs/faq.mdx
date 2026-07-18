@@ -1,8 +1,9 @@
 ---
 title: FAQ
-description: Frequently asked questions about the real Qefro product.
+description: Frequently asked questions about the Qefro AI Workspace Platform — workspaces, Customer AI, Employee AI, Business Actions, and RBAC.
 ---
 
+import Link from '@docusaurus/Link';
 import { FaqAccordion, RelatedTopics } from '@site/src/components';
 
 # FAQ
@@ -13,6 +14,13 @@ import { FaqAccordion, RelatedTopics } from '@site/src/components';
 
 <FaqAccordion items={[
   {question: 'What is Qefro?', answer: 'An AI Workspace Platform: configure once in the Admin Console, deploy Customer AI (website widget + WhatsApp) and Employee AI (Internal Portal) with shared knowledge, RBAC, and Business Actions.'},
+  {question: 'What is an AI Workspace?', answer: <>A scoped AI environment with its own knowledge, instructions, Business Tools, and conversations. See <Link to="/docs/concepts/what-is-an-ai-workspace">What is an AI Workspace?</Link>.</>},
+  {question: 'What is Customer AI?', answer: <>External assistants on the website widget and WhatsApp. See <Link to="/docs/concepts/customer-ai-vs-employee-ai">Customer AI vs Employee AI</Link>.</>},
+  {question: 'What is Employee AI?', answer: <>Internal assistants on the branded Internal Portal for organization members with RBAC. See <Link to="/docs/platform/employee-ai">Employee AI</Link>.</>},
+  {question: 'What is the Internal Portal?', answer: <>The employee experience hosted on <code>your-company.qefro.com</code> or a custom domain. See <Link to="/docs/platform/internal-portal">Internal Portal</Link>.</>},
+  {question: 'What are Business Actions?', answer: <>Runtime, authorized calls to Business Tools (your APIs) during a conversation. See <Link to="/docs/concepts/business-actions">What are Business Actions?</Link>.</>},
+  {question: 'How do Business Actions call APIs?', answer: <>Configure a Business Tool (REST or OpenAPI), then the assistant invokes it under workspace scope with SSRF controls and logs. See <Link to="/docs/guides/connect-rest-apis">Connect REST APIs</Link>.</>},
+  {question: 'How does RBAC work?', answer: <>Owner, Admin, and Member roles; Teams grant Members access to specific workspaces. See <Link to="/docs/platform/rbac">RBAC</Link>.</>},
   {question: 'Do I host the vector DB?', answer: 'Not on Qefro cloud — RAG infrastructure is managed for you.'},
   {question: 'Does Qefro replace my CRM?', answer: 'No. Business Tools call your systems of record.'},
   {question: 'What is identify()?', answer: 'Widget API to forward your end-user JWT/session into Business Tool calls.'},
@@ -28,8 +36,8 @@ import { FaqAccordion, RelatedTopics } from '@site/src/components';
 ## Related topics
 
 <RelatedTopics topics={[
+  {label: 'Concepts', to: '/docs/concepts/what-is-an-ai-workspace'},
   {label: 'Glossary', to: '/docs/glossary'},
   {label: 'Security', to: '/docs/security/overview'},
   {label: 'Pricing', to: 'https://qefro.com/pricing'},
 ]} />
-

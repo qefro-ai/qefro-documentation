@@ -126,9 +126,9 @@ type FaqItem = {question: string; answer: ReactNode};
 
 export function FaqAccordion({items}: {items: FaqItem[]}): ReactNode {
   return (
-    <div className="qefro-faq">
+    <div className="qefro-faq" role="list">
       {items.map((item) => (
-        <details key={item.question}>
+        <details key={item.question} role="listitem">
           <summary>{item.question}</summary>
           <div style={{marginTop: '0.75rem'}}>{item.answer}</div>
         </details>
@@ -149,17 +149,20 @@ export function ComparisonTable({
   return (
     <div className="qefro-comparison">
       <table>
+        <caption className="qefro-sr-only">
+          Capability comparison between Qefro and {otherName}
+        </caption>
         <thead>
           <tr>
-            <th>Capability</th>
-            <th>Qefro</th>
-            <th>{otherName}</th>
+            <th scope="col">Capability</th>
+            <th scope="col">Qefro</th>
+            <th scope="col">{otherName}</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => (
             <tr key={row.capability}>
-              <td>{row.capability}</td>
+              <th scope="row">{row.capability}</th>
               <td>{row.qefro}</td>
               <td>{row.other}</td>
             </tr>

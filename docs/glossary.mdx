@@ -1,6 +1,6 @@
 ---
 title: Glossary
-description: Canonical Qefro terminology aligned with the product.
+description: Canonical Qefro terminology aligned with the product, with links to detailed documentation.
 ---
 
 import { RelatedTopics } from '@site/src/components';
@@ -9,27 +9,27 @@ import { RelatedTopics } from '@site/src/components';
 
 | Term | Definition |
 | --- | --- |
-| Organization / Tenant | Top-level account boundary for billing and isolation — see [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture) |
-| AI Workspace | Isolated knowledge + tools + conversations — see [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
-| Customer AI | Website widget and/or WhatsApp assistants — see [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) |
-| Employee AI | Internal Portal assistants for org members — see [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) |
-| Knowledge Platform | Ingest + hybrid retrieval + citations — see [AI Knowledge Platform](/docs/concepts/ai-knowledge-platform) |
-| Hybrid RAG | Lexical + vector retrieval for grounded answers — see [Hybrid RAG](/docs/concepts/hybrid-rag) |
-| Business Tool | REST/OpenAPI connector with encrypted credentials |
-| Business Action | Runtime invocation of a Business Tool — see [Business Actions](/docs/concepts/business-actions) |
-| Identity Forwarding | identify() end-user JWT/session into tool calls |
-| Widget token | Publishable embed key for cdn.qefro.com/widget.js |
-| Internal Portal | your-company.qefro.com employee experience |
-| Owner / Admin / Member | Organization RBAC roles |
-| Team | Grants Members access to workspaces |
+| Organization / Tenant | Top-level account boundary for billing and isolation — [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture), [Organizations](/docs/platform/organizations) |
+| AI Workspace | Isolated knowledge + tools + conversations — [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
+| Customer AI | Website widget and/or WhatsApp assistants — [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai), [Customer AI](/docs/platform/customer-ai) |
+| Employee AI | Internal Portal assistants for org members — [Employee AI](/docs/platform/employee-ai) |
+| Internal Portal | `your-company.qefro.com` employee experience — [Internal Portal](/docs/platform/internal-portal) |
+| Knowledge Platform | Ingest + hybrid retrieval + citations — [AI Knowledge Platform](/docs/concepts/ai-knowledge-platform) |
+| Hybrid RAG | Lexical + vector retrieval for grounded answers — [Hybrid RAG](/docs/concepts/hybrid-rag) |
+| Business Tool | REST/OpenAPI connector with encrypted credentials — [Business Tools](/docs/platform/business-tools) |
+| Business Action | Runtime invocation of a Business Tool — [What are Business Actions?](/docs/concepts/business-actions) |
+| Identity Forwarding | `identify()` end-user JWT/session into tool calls — [Identity Forwarding](/docs/platform/identity-forwarding) |
+| Widget token | Publishable embed key for `cdn.qefro.com/widget.js` — [Website Widget](/docs/platform/website-widget) |
+| Owner / Admin / Member | Organization RBAC roles — [RBAC](/docs/platform/rbac) |
+| Team | Grants Members access to workspaces — [Teams](/docs/platform/teams) |
+| Custom domain | Your hostname for the Internal Portal — [Custom Domains](/docs/platform/custom-domains) |
+| AI Agent Security | Controls for retrieval + tool calling — [AI Agent Security](/docs/concepts/ai-agent-security) |
 
 ## Related topics
 
 <RelatedTopics topics={[
   {label: 'What is an AI Workspace?', to: '/docs/concepts/what-is-an-ai-workspace'},
   {label: 'AI Workspace vs AI Chatbot', to: '/docs/concepts/ai-workspace-vs-ai-chatbot'},
-  {label: 'AI Agent Security', to: '/docs/concepts/ai-agent-security'},
-  {label: 'AI Workspaces (platform)', to: '/docs/platform/ai-workspaces'},
   {label: 'FAQ', to: '/docs/faq'},
+  {label: 'Security Overview', to: '/docs/security/overview'},
 ]} />
-

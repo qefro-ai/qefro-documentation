@@ -1,9 +1,9 @@
 name: Deploy GitHub Pages
 
+# Cloudflare Pages (ci.yml) is the production host for docs.qefro.com.
+# Keep this workflow manual-only so a missing GitHub Pages setting does not fail every push.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 permissions:
   contents: read

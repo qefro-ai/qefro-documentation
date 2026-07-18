@@ -1,6 +1,7 @@
 ---
 slug: securing-business-actions
 title: Securing Business Actions in production
+description: Least privilege, encrypted secrets, identity forwarding, and execution logs for AI assistants that call your APIs.
 authors: [abu]
 tags: [security, engineering]
 ---
@@ -9,4 +10,4 @@ tags: [security, engineering]
 
 <!-- truncate -->
 
-See the guide [Secure Business Actions](/docs/guides/secure-business-actions) and [Identity Forwarding](/docs/platform/identity-forwarding).
+See [What are Business Actions?](/docs/concepts/business-actions), [AI Agent Security](/docs/concepts/ai-agent-security), the guide [Secure Business Actions](/docs/guides/secure-business-actions), and [Identity Forwarding](/docs/platform/identity-forwarding).

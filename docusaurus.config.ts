@@ -20,7 +20,7 @@ const config: Config = {
   markdown: {
     mermaid: true,
     hooks: {
-      onBrokenMarkdownLinks: 'warn',
+      onBrokenMarkdownLinks: 'throw',
     },
   },
 
@@ -204,10 +204,10 @@ const config: Config = {
           title: 'Company',
           items: [
             {label: 'Blog', to: '/blog'},
-            {label: 'Status', href: 'https://status.qefro.com'},
             {label: 'Privacy', href: 'https://qefro.com/privacy'},
             {label: 'Terms', href: 'https://qefro.com/terms'},
             {label: 'Contact', href: 'https://qefro.com/contact'},
+            {label: 'Support', href: 'mailto:support@qefro.com'},
           ],
         },
         {
@@ -217,6 +217,7 @@ const config: Config = {
             {label: 'REST APIs', to: '/docs/api/rest-apis'},
             {label: 'Webhooks', to: '/docs/api/webhooks'},
             {label: 'SDKs', to: '/docs/api/sdks'},
+            {label: 'llms.txt', href: 'https://docs.qefro.com/llms.txt'},
           ],
         },
       ],
@@ -321,12 +322,33 @@ const config: Config = {
         '@type': 'WebSite',
         name: 'Qefro Docs',
         url: siteUrl,
+        publisher: {
+          '@type': 'Organization',
+          name: 'Qefro',
+          url: 'https://qefro.com',
+        },
         potentialAction: {
           '@type': 'SearchAction',
           target: `${siteUrl}/search?q={search_term_string}`,
           'query-input': 'required name=search_term_string',
         },
       }),
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'manifest',
+        href: '/site.webmanifest',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'alternate',
+        type: 'text/plain',
+        href: '/llms.txt',
+        title: 'LLM-friendly documentation index',
+      },
     },
   ],
 };

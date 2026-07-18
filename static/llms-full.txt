@@ -251,7 +251,7 @@ Use a Customer Support workspace for widget/WhatsApp and separate HR/IT workspac
 
 ---
 
-# Business Actions
+# What are Business Actions?
 
 Source: https://docs.qefro.com/docs/concepts/business-actions/
 
@@ -1490,7 +1490,7 @@ Protect verify tokens and Cloud API secrets like production credentials. Rotate 
 
 ---
 
-# Authentication
+# Platform Authentication
 
 Source: https://docs.qefro.com/docs/platform/authentication/
 
@@ -2497,7 +2497,7 @@ curl -sS https://api.qefro.com/ready
 
 # API
 
-# Authentication
+# API Authentication
 
 Source: https://docs.qefro.com/docs/api/authentication/
 
@@ -3688,11 +3688,23 @@ Do not migrate production secrets into a pilot until DPA/security review is comp
 
 Source: https://docs.qefro.com/docs/faq/
 
-> Frequently asked questions about the real Qefro product.
+> Frequently asked questions about the Qefro AI Workspace Platform — workspaces, Customer AI, Employee AI, Business Actions, and RBAC.
 
 **FAQ** for the Qefro AI Workspace Platform as implemented on app.qefro.com / api.qefro.com.
 
 ## Product
+
+A scoped AI environment with its own knowledge, instructions, Business Tools, and conversations. See What is an AI Workspace?.</>},
+  {question: 'What is Customer AI?', answer: <>External assistants on the website widget and WhatsApp. See Customer AI vs Employee AI.</>},
+  {question: 'What is Employee AI?', answer: <>Internal assistants on the branded Internal Portal for organization members with RBAC. See Employee AI.</>},
+  {question: 'What is the Internal Portal?', answer: <>The employee experience hosted on <code>your-company.qefro.com</code> or a custom domain. See Internal Portal.</>},
+  {question: 'What are Business Actions?', answer: <>Runtime, authorized calls to Business Tools (your APIs) during a conversation. See What are Business Actions?.</>},
+  {question: 'How do Business Actions call APIs?', answer: <>Configure a Business Tool (REST or OpenAPI), then the assistant invokes it under workspace scope with SSRF controls and logs. See Connect REST APIs.</>},
+  {question: 'How does RBAC work?', answer: <>Owner, Admin, and Member roles; Teams grant Members access to specific workspaces. See RBAC.</>},
+  {question: 'Do I host the vector DB?', answer: 'Not on Qefro cloud — RAG infrastructure is managed for you.'},
+  {question: 'Does Qefro replace my CRM?', answer: 'No. Business Tools call your systems of record.'},
+  {question: 'What is identify()?', answer: 'Widget API to forward your end-user JWT/session into Business Tool calls.'},
+]} />
 
 ## Plans
 
@@ -3704,23 +3716,25 @@ Source: https://docs.qefro.com/docs/faq/
 
 Source: https://docs.qefro.com/docs/glossary/
 
-> Canonical Qefro terminology aligned with the product.
+> Canonical Qefro terminology aligned with the product, with links to detailed documentation.
 
 | Term | Definition |
 | --- | --- |
-| Organization / Tenant | Top-level account boundary for billing and isolation — see [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture) |
-| AI Workspace | Isolated knowledge + tools + conversations — see [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
-| Customer AI | Website widget and/or WhatsApp assistants — see [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) |
-| Employee AI | Internal Portal assistants for org members — see [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) |
-| Knowledge Platform | Ingest + hybrid retrieval + citations — see [AI Knowledge Platform](/docs/concepts/ai-knowledge-platform) |
-| Hybrid RAG | Lexical + vector retrieval for grounded answers — see [Hybrid RAG](/docs/concepts/hybrid-rag) |
-| Business Tool | REST/OpenAPI connector with encrypted credentials |
-| Business Action | Runtime invocation of a Business Tool — see [Business Actions](/docs/concepts/business-actions) |
-| Identity Forwarding | identify() end-user JWT/session into tool calls |
-| Widget token | Publishable embed key for cdn.qefro.com/widget.js |
-| Internal Portal | your-company.qefro.com employee experience |
-| Owner / Admin / Member | Organization RBAC roles |
-| Team | Grants Members access to workspaces |
+| Organization / Tenant | Top-level account boundary for billing and isolation — [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture), [Organizations](/docs/platform/organizations) |
+| AI Workspace | Isolated knowledge + tools + conversations — [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
+| Customer AI | Website widget and/or WhatsApp assistants — [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai), [Customer AI](/docs/platform/customer-ai) |
+| Employee AI | Internal Portal assistants for org members — [Employee AI](/docs/platform/employee-ai) |
+| Internal Portal | `your-company.qefro.com` employee experience — [Internal Portal](/docs/platform/internal-portal) |
+| Knowledge Platform | Ingest + hybrid retrieval + citations — [AI Knowledge Platform](/docs/concepts/ai-knowledge-platform) |
+| Hybrid RAG | Lexical + vector retrieval for grounded answers — [Hybrid RAG](/docs/concepts/hybrid-rag) |
+| Business Tool | REST/OpenAPI connector with encrypted credentials — [Business Tools](/docs/platform/business-tools) |
+| Business Action | Runtime invocation of a Business Tool — [What are Business Actions?](/docs/concepts/business-actions) |
+| Identity Forwarding | `identify()` end-user JWT/session into tool calls — [Identity Forwarding](/docs/platform/identity-forwarding) |
+| Widget token | Publishable embed key for `cdn.qefro.com/widget.js` — [Website Widget](/docs/platform/website-widget) |
+| Owner / Admin / Member | Organization RBAC roles — [RBAC](/docs/platform/rbac) |
+| Team | Grants Members access to workspaces — [Teams](/docs/platform/teams) |
+| Custom domain | Your hostname for the Internal Portal — [Custom Domains](/docs/platform/custom-domains) |
+| AI Agent Security | Controls for retrieval + tool calling — [AI Agent Security](/docs/concepts/ai-agent-security) |
 
 ## Related topics
 
