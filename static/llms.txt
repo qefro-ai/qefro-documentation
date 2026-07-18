@@ -74,20 +74,20 @@ Canonical product hosts:
 
 ## Security
 
-- [Security Overview](https://docs.qefro.com/docs/security/overview/): Tenant isolation, encrypted secrets, SSRF, identity forwarding, audit logs.
-- [Tenant Isolation](https://docs.qefro.com/docs/security/tenant-isolation/): How organizations and workspaces isolate data.
-- [Secrets](https://docs.qefro.com/docs/security/secrets/): Encrypted credentials for Business Tools and channel configs.
-- [Audit Logs](https://docs.qefro.com/docs/security/audit-logs/): Organization audit trail and tool execution logs.
-- [Compliance](https://docs.qefro.com/docs/security/compliance/): Roadmap items: SOC 2, SSO/SAML, Enterprise private deploy.
+- [Security Overview](https://docs.qefro.com/docs/security/overview/): How Qefro protects tenants: isolation, RBAC, encrypted secrets, SSRF-aware tool egress, identity forwarding, audit logs, and honest compliance status.
+- [Tenant Isolation](https://docs.qefro.com/docs/security/tenant-isolation/): How Qefro isolates organizations (tenants) and AI Workspaces so knowledge, tools, conversations, and billing never cross customer boundaries.
+- [Secrets](https://docs.qefro.com/docs/security/secrets/): How Qefro stores Business Tool credentials and related secrets — encrypted at rest, never in browser JS or prompts.
+- [Audit Logs](https://docs.qefro.com/docs/security/audit-logs/): Organization audit logs and Business Tool execution logs — how to investigate configuration changes and AI-initiated API calls.
+- [Compliance](https://docs.qefro.com/docs/security/compliance/): Honest compliance posture for Qefro — what is implemented today, what is on the roadmap, and how to run vendor security reviews.
 
 ## Compare
 
-- [Chatbase vs Qefro](https://docs.qefro.com/docs/compare/chatbase-vs-qefro/): Factual comparison of Chatbase and Qefro for AI workspaces and customer/employee AI.
-- [Intercom vs Qefro](https://docs.qefro.com/docs/compare/intercom-vs-qefro/): Factual comparison of Intercom and Qefro for AI workspaces and customer/employee AI.
-- [Zendesk vs Qefro](https://docs.qefro.com/docs/compare/zendesk-vs-qefro/): Factual comparison of Zendesk and Qefro for AI workspaces and customer/employee AI.
-- [Freshworks vs Qefro](https://docs.qefro.com/docs/compare/freshworks-vs-qefro/): Factual comparison of Freshworks and Qefro for AI workspaces and customer/employee AI.
-- [CustomGPT vs Qefro](https://docs.qefro.com/docs/compare/customgpt-vs-qefro/): Factual comparison of CustomGPT and Qefro for AI workspaces and customer/employee AI.
-- [Copilot Studio vs Qefro](https://docs.qefro.com/docs/compare/copilot-studio-vs-qefro/): Factual comparison of Copilot Studio and Qefro for AI workspaces and customer/employee AI.
+- [Chatbase vs Qefro](https://docs.qefro.com/docs/compare/chatbase-vs-qefro/): Educational comparison of Chatbase-style website chatbots and Qefro AI Workspaces for Customer AI, Employee AI, and Business Actions.
+- [Intercom vs Qefro](https://docs.qefro.com/docs/compare/intercom-vs-qefro/): Educational comparison of Intercom-style customer messaging suites and Qefro AI Workspaces for Customer AI, Employee AI, and Business Actions.
+- [Zendesk vs Qefro](https://docs.qefro.com/docs/compare/zendesk-vs-qefro/): Educational comparison of Zendesk-style helpdesks and Qefro AI Workspaces for grounded Customer AI, Employee AI, and Business Actions.
+- [Freshworks vs Qefro](https://docs.qefro.com/docs/compare/freshworks-vs-qefro/): Educational comparison of Freshworks-style CRM/support suites and Qefro AI Workspaces for Customer AI, Employee AI, and Business Actions.
+- [CustomGPT vs Qefro](https://docs.qefro.com/docs/compare/customgpt-vs-qefro/): Educational comparison of CustomGPT-style custom bot builders and Qefro AI Workspaces for multi-team Customer AI, Employee AI, and Business Actions.
+- [Copilot Studio vs Qefro](https://docs.qefro.com/docs/compare/copilot-studio-vs-qefro/): Educational comparison of Microsoft Copilot Studio-style enterprise copilots and Qefro AI Workspaces for Customer AI, Employee AI, and Business Actions.
 
 ## Reference
 

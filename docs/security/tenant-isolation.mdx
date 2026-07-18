@@ -1,6 +1,6 @@
 ---
 title: "Tenant Isolation"
-description: "How organizations and workspaces isolate data."
+description: "How Qefro isolates organizations (tenants) and AI Workspaces so knowledge, tools, conversations, and billing never cross customer boundaries."
 sidebar_label: "Tenant Isolation"
 ---
 
@@ -14,68 +14,116 @@ import {
 
 # Tenant Isolation
 
-**Tenant Isolation** — How organizations and workspaces isolate data.
+**Tenant isolation** is the guarantee that one Qefro organization cannot read another organization’s knowledge, tools, conversations, members, or billing data. Inside a tenant, **workspaces** provide a second isolation layer for teams and audiences.
 
-## Introduction
+## Short definition (citation-ready)
 
-Every request resolves a tenant. Workspaces further isolate knowledge and tools. Cross-tenant access requires platform Super Admin capabilities — not tenant Admin roles.
+> In Qefro, every authenticated API request resolves an organization (tenant). Knowledge indexes, Business Tools, conversations, and Admin Console configuration are scoped to that tenant — and further to AI Workspaces within it.
 
-## Why it exists
+## Two boundaries
 
-Security documentation must reflect implemented controls, not aspirational marketing.
+| Boundary | Unit | Isolates |
+| --- | --- | --- |
+| **Tenant** | Organization created at signup | Customers from each other |
+| **Workspace** | AI Workspace (Support, HR, IT, …) | Teams / audiences inside a customer |
 
-## Concepts
-
-See [Security Overview](/docs/security/overview) for the control list.
+Concept deep dive: [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture).
 
 ## Architecture
 
 ```mermaid
 flowchart TB
-  Tenant --> Workspace
-  Workspace --> Secrets
-  Workspace --> AuthZ
-  AuthZ --> Logs
+  Platform[Qefro platform]
+  Platform --> OrgA[Org A tenant]
+  Platform --> OrgB[Org B tenant]
+  OrgA --> WSA1[Workspace Support]
+  OrgA --> WSA2[Workspace HR]
+  OrgB --> WSB1[Workspace Support]
+  WSA1 -.->|no shared index| WSB1
+  WidgetA[Widget token A] --> OrgA
+  WidgetB[Widget token B] --> OrgB
 ```
 
-## Workflow
+## How requests are scoped
 
-<WorkflowCard title="Security review" steps={[
-  {title: 'Map data', description: 'Knowledge + tool payloads.'},
-  {title: 'Least privilege', description: 'RBAC + tool scopes.'},
-  {title: 'Verify isolation', description: 'Cross-workspace tests.'},
-  {title: 'Audit', description: 'Org + tool logs.'},
-]} />
+1. Authenticate (user JWT, widget token, or channel webhook).
+2. Resolve **tenant** from the credential / host.
+3. Resolve **workspace** from channel binding or portal selection.
+4. Retrieve only from that workspace’s knowledge index.
+5. Allow only that workspace’s Business Tools.
+6. Attribute logs to tenant + workspace (+ actor when known).
 
-## Code examples
+Cross-tenant access requires platform Super Admin capabilities — not a tenant Admin role.
 
-```bash
-curl -sS -H "Authorization: Bearer $USER_JWT" \
-  https://api.qefro.com/api/v1/org/audit-logs
-```
+## What stays inside the tenant
+
+- Members, Teams, RBAC grants
+- Workspaces and their documents
+- Business Tool definitions and encrypted secrets
+- Conversations and feedbacks
+- Branding, custom domains, billing
+
+## Workspace isolation still matters
+
+Tenant isolation does **not** mean one shared index for the whole company is safe. A public Customer AI channel bound to a workspace that also holds HR PDFs is still a disclosure risk — inside the same tenant.
+
+See [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) and [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace).
+
+## Verification workflow
+
+<WorkflowCard
+  title="Prove isolation before go-live"
+  steps={[
+    {title: 'Create two workspaces', description: 'Support (customer-safe) and HR (internal).'},
+    {title: 'Ingest different corpora', description: 'Put a unique canary phrase only in HR.'},
+    {title: 'Bind the widget to Support', description: 'Ask for the HR canary via the widget.'},
+    {title: 'Expect refusal / miss', description: 'If the widget cites HR, isolation or binding is wrong.'},
+    {title: 'Repeat for tools', description: 'Ensure privileged tools are not attached to the public workspace.'},
+  ]}
+/>
 
 ## Best practices
 
-- Separate staging and production organizations when feasible
-- Review OpenAPI imports for overly broad operations
+- One legal entity / billing customer → one organization
+- Never share Admin Console logins across customers “for convenience”
+- Use separate staging and production organizations when feasible
+- Custom portal domains still map to a single tenant — treat hostname setup as a security change
 
-## Security notes
-
-<InfoBox>
-Contact Sales for Enterprise compliance questionnaires and DPA process.
-</InfoBox>
+<Warning>
+Widget tokens are publishable by design (they ship in browser HTML). They authenticate the *channel*, not an end user. Pair with workspace binding and `identify()` for user-scoped tools.
+</Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {question: 'Is Qefro SOC 2 certified today?', answer: 'SOC 2 is on the roadmap; ask Sales for the current timeline.'},
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Is a workspace a tenant?',
+      answer:
+        'No. The organization is the tenant. Workspaces are sub-scopes for knowledge and tools inside that tenant.',
+    },
+    {
+      question: 'Can two organizations share knowledge?',
+      answer:
+        'Not by default. Sharing requires deliberate export/import of content into each org.',
+    },
+    {
+      question: 'Does Hybrid RAG search across tenants?',
+      answer:
+        'No. Retrieval runs inside the resolved workspace index for the authenticated tenant.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Security Overview', to: '/docs/security/overview'},
-  {label: 'RBAC', to: '/docs/platform/rbac'},
-  {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'Multi-tenant AI Architecture', to: '/docs/concepts/multi-tenant-ai-architecture'},
+    {label: 'Organizations', to: '/docs/platform/organizations'},
+    {label: 'AI Workspaces', to: '/docs/platform/ai-workspaces'},
+    {label: 'RBAC', to: '/docs/platform/rbac'},
+    {label: 'Compliance', to: '/docs/security/compliance'},
+  ]}
+/>

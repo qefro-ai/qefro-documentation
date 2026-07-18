@@ -1,6 +1,6 @@
 ---
 title: "Compliance"
-description: "Roadmap items: SOC 2, SSO/SAML, Enterprise private deploy."
+description: "Honest compliance posture for Qefro — what is implemented today, what is on the roadmap, and how to run vendor security reviews."
 sidebar_label: "Compliance"
 ---
 
@@ -14,68 +14,107 @@ import {
 
 # Compliance
 
-**Compliance** — Roadmap items: SOC 2, SSO/SAML, Enterprise private deploy.
+**Compliance** for Qefro buyers usually means answering questionnaires (security, privacy, AI), signing a DPA where required, and mapping product controls to frameworks. This page stays factual: shipped controls versus roadmap items.
 
-## Introduction
+## Short definition (citation-ready)
 
-Current public posture: strong isolation + encryption + auditability on the cloud product. Formal SOC 2 certification and SSO/SAML are roadmap items — email support@qefro.com / Sales for timelines. Enterprise private deployment is available as a custom engagement.
+> Qefro provides multi-tenant SaaS controls (isolation, encryption of tool secrets, logging, webhook verification) suitable as inputs to customer compliance programs. Formal certifications such as SOC 2 Type II are tracked on a roadmap — confirm current status with Sales.
 
-## Why it exists
+## Use Qefro controls in your program
 
-Security documentation must reflect implemented controls, not aspirational marketing.
+| Your need | Map to Qefro |
+| --- | --- |
+| Customer data segregation | [Tenant Isolation](/docs/security/tenant-isolation) |
+| Least privilege for staff AI | [RBAC](/docs/platform/rbac), [Employee AI](/docs/platform/employee-ai) |
+| AI tool risk | [AI Agent Security](/docs/concepts/ai-agent-security), [Secrets](/docs/security/secrets) |
+| Evidence of admin/tool activity | [Audit Logs](/docs/security/audit-logs) |
+| Subprocessor / hosting questions | Contact Sales for current list |
+| Privacy policy / terms | [Privacy](https://qefro.com/privacy), [Terms](https://qefro.com/terms) |
 
-## Concepts
+## Implemented technical controls (summary)
 
-See [Security Overview](/docs/security/overview) for the control list.
+- Organization (tenant) isolation on API and data access paths
+- Workspace-scoped knowledge and Business Tools
+- Encrypted Business Tool credentials
+- SSRF-aware egress for tools and related webhooks
+- Optional end-user identity forwarding via widget `identify()`
+- Organization audit logs and tool execution logs
+- Authentication abuse rate limiting
+- Razorpay webhook signature verification for billing events
 
-## Architecture
+Full narrative: [Security Overview](/docs/security/overview).
 
-```mermaid
-flowchart TB
-  Tenant --> Workspace
-  Workspace --> Secrets
-  Workspace --> AuthZ
-  AuthZ --> Logs
-```
+## Roadmap / Enterprise discussions
 
-## Workflow
+| Topic | Notes |
+| --- | --- |
+| SOC 2 Type II | Roadmap — request timeline from Sales |
+| SSO / SAML | Enterprise discussions |
+| Private / VPC-style deploy | See [Deployment](/docs/platform/deployment); Enterprise packaging |
+| Custom DPA / SCCs | Available through Sales for qualifying plans |
 
-<WorkflowCard title="Security review" steps={[
-  {title: 'Map data', description: 'Knowledge + tool payloads.'},
-  {title: 'Least privilege', description: 'RBAC + tool scopes.'},
-  {title: 'Verify isolation', description: 'Cross-workspace tests.'},
-  {title: 'Audit', description: 'Org + tool logs.'},
-]} />
+<Warning>
+If a questionnaire asks “Are you SOC 2 certified?” and certification is not complete, answer **No** (or “In progress” only if Sales confirms that wording). Do not infer certification from marketing pages.
+</Warning>
 
-## Code examples
+## Vendor review workflow
 
-```bash
-curl -sS -H "Authorization: Bearer $USER_JWT" \
-  https://api.qefro.com/api/v1/org/audit-logs
-```
+<WorkflowCard
+  title="Complete a customer security review"
+  steps={[
+    {title: 'Share this Security section', description: 'Overview, isolation, secrets, audit, compliance.'},
+    {title: 'Pilot with non-production data', description: 'Use a staging organization when possible.'},
+    {title: 'Define data classes', description: 'What may enter knowledge vs tools vs transcripts.'},
+    {title: 'Request DPA / subprocessors', description: 'Via Sales or support@qefro.com.'},
+    {title: 'Re-check after enabling tools', description: 'Actions change the threat model vs RAG-only.'},
+  ]}
+/>
 
-## Best practices
+## Shared responsibility
 
-- Separate staging and production organizations when feasible
-- Review OpenAPI imports for overly broad operations
-
-## Security notes
-
-<InfoBox>
-Contact Sales for Enterprise compliance questionnaires and DPA process.
-</InfoBox>
+| Qefro | Customer |
+| --- | --- |
+| Platform isolation and control plane security | Which documents you upload |
+| Encrypting stored tool secrets | Scoping keys you issue to Qefro |
+| Logging admin and tool executions | Reviewing logs; rotating keys |
+| Channel/webhook verification mechanisms | Correct Meta / domain configuration |
+| Honest status of certifications | Your internal risk acceptance |
 
 ## FAQ
 
-<FaqAccordion items={[
-  {question: 'Is Qefro SOC 2 certified today?', answer: 'SOC 2 is on the roadmap; ask Sales for the current timeline.'},
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Where is data hosted?',
+      answer:
+        'Confirm the current hosting regions and subprocessors with Sales — infrastructure details can change and should not be frozen only in docs.',
+    },
+    {
+      question: 'Can I use Qefro with regulated data?',
+      answer:
+        'Many teams start with non-regulated FAQs. For regulated workloads, complete a security review, DPA, and workspace/tool design with your counsel.',
+    },
+    {
+      question: 'Does Qefro train foundation models on my data?',
+      answer:
+        'Product intent is to use your data to power your tenant’s assistants, not to train public foundation models on customer content. Confirm contractual language in your agreement / DPA.',
+    },
+  ]}
+/>
+
+<InfoBox title="Contact">
+Security questionnaires and DPA requests: [support@qefro.com](mailto:support@qefro.com) or [Contact](https://qefro.com/contact).
+</InfoBox>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Security Overview', to: '/docs/security/overview'},
-  {label: 'RBAC', to: '/docs/platform/rbac'},
-  {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'Tenant Isolation', to: '/docs/security/tenant-isolation'},
+    {label: 'Secrets', to: '/docs/security/secrets'},
+    {label: 'Audit Logs', to: '/docs/security/audit-logs'},
+    {label: 'AI Agent Security', to: '/docs/concepts/ai-agent-security'},
+    {label: 'Production Deployment', to: '/docs/guides/production-deployment'},
+  ]}
+/>

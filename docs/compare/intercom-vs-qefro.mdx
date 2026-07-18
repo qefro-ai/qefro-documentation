@@ -1,120 +1,103 @@
 ---
-sidebar_label: "Intercom vs Qefro"
 title: "Intercom vs Qefro"
-description: "Factual comparison of Intercom and Qefro for AI workspaces and customer/employee AI."
+description: "Educational comparison of Intercom-style customer messaging suites and Qefro AI Workspaces for Customer AI, Employee AI, and Business Actions."
+sidebar_label: "Intercom vs Qefro"
 ---
 
 import {
   InfoBox,
-  Warning,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ComparisonTable,
 } from '@site/src/components';
 
 # Intercom vs Qefro
 
-**Intercom vs Qefro** compares Customer messaging and support suites with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+**Intercom vs Qefro** contrasts full customer messaging / support suites with Qefro’s focus on **AI Workspaces** — grounded assistants and Business Actions across customer and employee channels.
 
-## Introduction
+## Short definition (citation-ready)
 
-This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+> Intercom-class suites optimize for lifecycle messaging, inbox workflows, and support operations. Qefro optimizes for workspace-isolated RAG assistants and authorized API actions for customers and employees.
 
-## Why it exists
+## Capability matrix
 
-Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
-
-## Concepts
-
-- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
-- **Intercom**: Customer messaging and support suites
-- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
-
-## Architecture
-
-Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
-
-```mermaid
-flowchart LR
-  subgraph Qefro
-    WS[AI Workspaces]
-    CA[Customer AI]
-    EA[Employee AI]
-    BA[Business Actions]
-  end
-  Other[Intercom]
-```
-
-## Workflow
-
-<WorkflowCard
-  title="Evaluation workflow"
-  steps={[
-    {title: 'List must-haves', description: 'Channels, actions, employee portal, isolation.'},
-    {title: 'Pilot knowledge', description: 'Test citation quality and refusals.'},
-    {title: 'Pilot actions', description: 'Connect one read-only API if needed.'},
-    {title: 'Review security', description: 'Tenant isolation, secrets, logs.'},
+<ComparisonTable
+  otherName="Intercom-class suite"
+  rows={[
+    {capability: 'Primary focus', qefro: 'AI Workspaces + Business Actions', other: 'Messaging, inbox, lifecycle engagement'},
+    {capability: 'Human agent inbox', qefro: 'Not a full contact-center inbox', other: 'Core strength'},
+    {capability: 'Employee AI portal', qefro: 'First-class Internal Portal', other: 'Not the primary product'},
+    {capability: 'Knowledge / RAG', qefro: 'Hybrid RAG per workspace + citations', other: 'Help center / AI features vary'},
+    {capability: 'Tool calling', qefro: 'Business Tools (REST/OpenAPI) with logs', other: 'Series of integrations / apps'},
+    {capability: 'WhatsApp', qefro: 'Growth+ Customer AI channel', other: 'Available in suite packaging'},
+    {capability: 'RBAC for internal AI', qefro: 'Owner/Admin/Member + workspace grants', other: 'Seat/role models differ'},
+    {capability: 'Replace CRM?', qefro: 'No — calls your systems of record', other: 'Often adjacent to CRM workflows'},
   ]}
 />
 
-## Code examples
+## Typical coexistence
 
-```json
-{
-  "evaluation_criteria": [
-    "workspace_isolation",
-    "employee_portal",
-    "business_actions",
-    "whatsapp",
-    "rbac",
-    "citations"
-  ]
-}
-```
+Many teams keep Intercom (or similar) as the **human inbox / messaging** system and use Qefro for:
 
-## Best practices
+- Workspace-isolated knowledge assistants
+- Employee AI on a branded portal
+- Tightly scoped Business Actions into order/ticket APIs
 
-- Compare against your required channels and identity model
-- Prefer read-only tool scopes during pilots
-- Document gaps honestly for stakeholders
+Qefro does not claim to replace every messaging workflow.
 
-## Security notes
+## When to prefer which
 
-<InfoBox>
-Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
-</InfoBox>
+| Situation | Lean toward |
+| --- | --- |
+| Complex human inbox + lifecycle campaigns | Intercom-class suite |
+| Multi-team AI knowledge + employee portal | Qefro |
+| AI that must call your APIs with audit logs | Qefro Business Actions |
+| Both human inbox and AI workspaces | Often **both** (integration via tools/webhooks) |
+
+## Evaluation workflow
+
+<WorkflowCard
+  title="Decide replace vs complement"
+  steps={[
+    {title: 'Map inbox needs', description: 'Do you require a full agent workspace today?'},
+    {title: 'Map AI workspace needs', description: 'Isolation, Employee AI, citations, tools.'},
+    {title: 'Pilot Qefro knowledge', description: 'Support workspace + widget.'},
+    {title: 'Optional tool to create tickets', description: 'Business Action into your helpdesk API.'},
+    {title: 'Security review', description: 'Secrets, identity forwarding, logs.'},
+  ]}
+/>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "Does Qefro replace Intercom?",
-    "answer": "Not necessarily. Qefro may complement systems of record. Intercom may remain the system for tickets/CRM depending on your stack."
-  },
-  {
-    "question": "Where can I learn Qefro specifics?",
-    "answer": "Start with AI Workspaces and Business Actions documentation."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Does Qefro replace Intercom?',
+      answer:
+        'Usually no. Intercom remains strong for messaging operations. Qefro is chosen for AI Workspaces, Employee AI, and Business Actions — often alongside a helpdesk.',
+    },
+    {
+      question: 'Can Qefro create Intercom conversations?',
+      answer:
+        'If Intercom exposes an API you control, you can model it as a Business Tool. Prefer read-only pilots first.',
+    },
+  ]}
+/>
+
+<InfoBox>
+Verify Intercom’s current packaging on their site. This comparison is educational and capability-oriented.
+</InfoBox>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Pricing",
-    "to": "https://qefro.com/pricing"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Customer AI', to: '/docs/platform/customer-ai'},
+    {label: 'Employee AI', to: '/docs/platform/employee-ai'},
+    {label: 'Business Actions', to: '/docs/concepts/business-actions'},
+    {label: 'Zendesk vs Qefro', to: '/docs/compare/zendesk-vs-qefro'},
+    {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'Pricing', to: 'https://qefro.com/pricing'},
+  ]}
+/>

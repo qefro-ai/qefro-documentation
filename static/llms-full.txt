@@ -2981,60 +2981,106 @@ Reject unsigned payloads. Do not expose webhook URLs that skip verification.
 
 Source: https://docs.qefro.com/docs/security/overview/
 
-> Tenant isolation, encrypted secrets, SSRF, identity forwarding, audit logs.
+> How Qefro protects tenants: isolation, RBAC, encrypted secrets, SSRF-aware tool egress, identity forwarding, audit logs, and honest compliance status.
 
-**Security Overview** — Tenant isolation, encrypted secrets, SSRF, identity forwarding, audit logs.
+Qefro security is built around **tenant isolation**, **workspace boundaries**, **least-privilege access**, and **auditable Business Actions**. This page summarizes controls that exist in the running product on `app.qefro.com` / `api.qefro.com` — not aspirational marketing claims.
 
-## Introduction
+## Short definition (citation-ready)
 
-Qefro security controls in the running product:
+> Qefro isolates each organization (tenant) and further scopes knowledge, tools, and conversations to AI Workspaces, with encrypted tool secrets, SSRF-aware egress, optional end-user identity forwarding, and organization plus tool execution logs.
 
-- Multi-tenant isolation by `tenant_id`
-- Workspace isolation for knowledge/tools/conversations
-- Encrypted Business Tool secrets
-- SSRF / DNS-pinned egress for tools and handoff webhooks
-- End-user identity forwarding via `identify()`
-- Org audit logs (`/api/v1/org/audit-logs`) and tool execution logs
-- Auth abuse rate limits
-- Razorpay webhook signature verification
+## Control map
 
-SOC 2 and SSO/SAML are on the roadmap — contact Sales for timelines.
-
-## Why it exists
-
-Security documentation must reflect implemented controls, not aspirational marketing.
-
-## Concepts
-
-See [Security Overview](/docs/security/overview) for the control list.
+| Control | What it protects | Docs |
+| --- | --- | --- |
+| Tenant isolation | Cross-customer data leakage | [Tenant Isolation](/docs/security/tenant-isolation) |
+| Workspace isolation | Cross-team knowledge/tool leakage | [AI Workspaces](/docs/platform/ai-workspaces) |
+| RBAC + Teams | Who can configure vs chat internally | [RBAC](/docs/platform/rbac) |
+| Encrypted secrets | API keys for Business Tools | [Secrets](/docs/security/secrets) |
+| SSRF-aware egress | Unsafe tool / webhook destinations | [Business Actions](/docs/concepts/business-actions) |
+| Identity forwarding | Confused-deputy tool calls | [Identity Forwarding](/docs/platform/identity-forwarding) |
+| Audit + tool logs | Who changed what; which tools ran | [Audit Logs](/docs/security/audit-logs) |
+| Auth rate limits | Credential stuffing / abuse | [API Authentication](/docs/api/authentication) |
+| Webhook signatures | Forged billing / channel events | [Webhooks](/docs/api/webhooks) |
+| Compliance posture | Questionnaires, DPA, roadmap | [Compliance](/docs/security/compliance) |
 
 ## Architecture
 
 ```mermaid
 flowchart TB
-  Tenant --> Workspace
-  Workspace --> Secrets
-  Workspace --> AuthZ
-  AuthZ --> Logs
+  subgraph Boundaries
+    Org[Organization / tenant]
+    WS[AI Workspaces]
+  end
+  subgraph Access
+    RBAC[Owner / Admin / Member + Teams]
+    ID[identify end-user forwarding]
+  end
+  subgraph Egress
+    Sec[Encrypted tool secrets]
+    SSRF[SSRF-safe HTTPS]
+  end
+  subgraph Evidence
+    AL[Org audit logs]
+    TL[Tool execution logs]
+  end
+  Org --> WS
+  WS --> RBAC
+  WS --> ID
+  WS --> Sec --> SSRF
+  RBAC --> AL
+  SSRF --> TL
 ```
 
-## Workflow
+## Threats we design for
 
-## Code examples
+| Threat | Mitigation in Qefro |
+| --- | --- |
+| Org A reads Org B knowledge | Tenant-scoped APIs and indexes |
+| Public widget reads HR PDFs | Separate Customer vs Employee workspaces |
+| Chat triggers privileged refunds | Least-privilege tools; avoid write tools on public workspaces |
+| Tool URL hits cloud metadata | SSRF / DNS controls on egress |
+| Keys in browser or prompts | Server-side encrypted secrets |
+| Unaudited model writes | Tool execution logs + org audit logs |
+
+Deeper agent threat model: [AI Agent Security](/docs/concepts/ai-agent-security).
+
+## Security review workflow
+
+## What is implemented vs roadmap
+
+| Area | Status |
+| --- | --- |
+| Multi-tenant + workspace isolation | Implemented |
+| Encrypted Business Tool credentials | Implemented |
+| SSRF-aware tool / webhook egress | Implemented |
+| Widget `identify()` identity forwarding | Implemented |
+| Org audit logs + tool logs | Implemented |
+| Auth abuse rate limits | Implemented |
+| Razorpay webhook signature verify | Implemented |
+| SOC 2 Type II | Roadmap — ask Sales for timeline |
+| SSO / SAML | Roadmap — Enterprise discussions |
+
+Do not treat roadmap items as shipped controls in vendor questionnaires. Use this page and [Compliance](/docs/security/compliance) for accurate answers.
+
+## Practical API checks
 
 ```bash
+# Organization audit trail (Admin/Owner JWT)
 curl -sS -H "Authorization: Bearer $USER_JWT" \
   https://api.qefro.com/api/v1/org/audit-logs
+
+# Tool execution history for a Business Tool
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/logs
 ```
 
 ## Best practices
 
 - Separate staging and production organizations when feasible
-- Review OpenAPI imports for overly broad operations
-
-## Security notes
-
-Contact Sales for Enterprise compliance questionnaires and DPA process.
+- Prefer read-only Business Tools until citation quality is proven
+- Re-review OpenAPI imports for overly broad write operations
+- Treat uploaded documents as untrusted input when tools are enabled (prompt injection)
 
 ## FAQ
 
@@ -3046,49 +3092,73 @@ Contact Sales for Enterprise compliance questionnaires and DPA process.
 
 Source: https://docs.qefro.com/docs/security/tenant-isolation/
 
-> How organizations and workspaces isolate data.
+> How Qefro isolates organizations (tenants) and AI Workspaces so knowledge, tools, conversations, and billing never cross customer boundaries.
 
-**Tenant Isolation** — How organizations and workspaces isolate data.
+**Tenant isolation** is the guarantee that one Qefro organization cannot read another organization’s knowledge, tools, conversations, members, or billing data. Inside a tenant, **workspaces** provide a second isolation layer for teams and audiences.
 
-## Introduction
+## Short definition (citation-ready)
 
-Every request resolves a tenant. Workspaces further isolate knowledge and tools. Cross-tenant access requires platform Super Admin capabilities — not tenant Admin roles.
+> In Qefro, every authenticated API request resolves an organization (tenant). Knowledge indexes, Business Tools, conversations, and Admin Console configuration are scoped to that tenant — and further to AI Workspaces within it.
 
-## Why it exists
+## Two boundaries
 
-Security documentation must reflect implemented controls, not aspirational marketing.
+| Boundary | Unit | Isolates |
+| --- | --- | --- |
+| **Tenant** | Organization created at signup | Customers from each other |
+| **Workspace** | AI Workspace (Support, HR, IT, …) | Teams / audiences inside a customer |
 
-## Concepts
-
-See [Security Overview](/docs/security/overview) for the control list.
+Concept deep dive: [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture).
 
 ## Architecture
 
 ```mermaid
 flowchart TB
-  Tenant --> Workspace
-  Workspace --> Secrets
-  Workspace --> AuthZ
-  AuthZ --> Logs
+  Platform[Qefro platform]
+  Platform --> OrgA[Org A tenant]
+  Platform --> OrgB[Org B tenant]
+  OrgA --> WSA1[Workspace Support]
+  OrgA --> WSA2[Workspace HR]
+  OrgB --> WSB1[Workspace Support]
+  WSA1 -.->|no shared index| WSB1
+  WidgetA[Widget token A] --> OrgA
+  WidgetB[Widget token B] --> OrgB
 ```
 
-## Workflow
+## How requests are scoped
 
-## Code examples
+1. Authenticate (user JWT, widget token, or channel webhook).
+2. Resolve **tenant** from the credential / host.
+3. Resolve **workspace** from channel binding or portal selection.
+4. Retrieve only from that workspace’s knowledge index.
+5. Allow only that workspace’s Business Tools.
+6. Attribute logs to tenant + workspace (+ actor when known).
 
-```bash
-curl -sS -H "Authorization: Bearer $USER_JWT" \
-  https://api.qefro.com/api/v1/org/audit-logs
-```
+Cross-tenant access requires platform Super Admin capabilities — not a tenant Admin role.
+
+## What stays inside the tenant
+
+- Members, Teams, RBAC grants
+- Workspaces and their documents
+- Business Tool definitions and encrypted secrets
+- Conversations and feedbacks
+- Branding, custom domains, billing
+
+## Workspace isolation still matters
+
+Tenant isolation does **not** mean one shared index for the whole company is safe. A public Customer AI channel bound to a workspace that also holds HR PDFs is still a disclosure risk — inside the same tenant.
+
+See [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) and [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace).
+
+## Verification workflow
 
 ## Best practices
 
-- Separate staging and production organizations when feasible
-- Review OpenAPI imports for overly broad operations
+- One legal entity / billing customer → one organization
+- Never share Admin Console logins across customers “for convenience”
+- Use separate staging and production organizations when feasible
+- Custom portal domains still map to a single tenant — treat hostname setup as a security change
 
-## Security notes
-
-Contact Sales for Enterprise compliance questionnaires and DPA process.
+Widget tokens are publishable by design (they ship in browser HTML). They authenticate the *channel*, not an end user. Pair with workspace binding and `identify()` for user-scoped tools.
 
 ## FAQ
 
@@ -3100,49 +3170,57 @@ Contact Sales for Enterprise compliance questionnaires and DPA process.
 
 Source: https://docs.qefro.com/docs/security/secrets/
 
-> Encrypted credentials for Business Tools and channel configs.
+> How Qefro stores Business Tool credentials and related secrets — encrypted at rest, never in browser JS or prompts.
 
-**Secrets** — Encrypted credentials for Business Tools and channel configs.
+**Secrets** in Qefro are credentials used by Business Tools and channel integrations — API keys, bearer tokens, and similar material. They must stay **server-side**, **encrypted at rest**, and **rotated** when people or vendors change.
 
-## Introduction
+## Short definition (citation-ready)
 
-Business Tool credentials are stored encrypted server-side. Widget tokens are publishable embed keys (rotate if leaked). Never place tool secrets in widget.js snippets.
+> Qefro stores Business Tool and integration credentials encrypted in the tenant’s configuration. Publishable widget tokens are intentionally public channel keys; they are not substitutes for end-user or admin secrets.
 
-## Why it exists
+## What counts as a secret
 
-Security documentation must reflect implemented controls, not aspirational marketing.
-
-## Concepts
-
-See [Security Overview](/docs/security/overview) for the control list.
+| Material | Where it lives | Public? |
+| --- | --- | --- |
+| Business Tool API keys / tokens | Encrypted tool credentials | No |
+| Channel / Meta credentials | Admin Console integration config | No |
+| User passwords / session JWTs | Auth subsystem | No |
+| Widget token | Admin Console + browser embed | Yes (publishable) |
+| End-user JWT via `identify()` | Passed per session to tools | Short-lived; your app issues it |
 
 ## Architecture
 
 ```mermaid
-flowchart TB
-  Tenant --> Workspace
-  Workspace --> Secrets
-  Workspace --> AuthZ
-  AuthZ --> Logs
+sequenceDiagram
+  participant Admin as Admin Console
+  participant API as api.qefro.com
+  participant Store as Encrypted secret store
+  participant Tool as Customer HTTPS API
+  Admin->>API: Save tool credential
+  API->>Store: Encrypt at rest
+  Note over API,Tool: Later, during a Business Action
+  API->>Store: Decrypt for egress only
+  API->>Tool: Authorized HTTPS request
 ```
+
+## Rules of thumb
+
+1. **Never** put long-lived admin or CRM keys in website JavaScript.
+2. **Never** paste production secrets into prompts, tickets, or chat transcripts.
+3. Prefer **scoped** vendor keys (read-only order lookup ≠ full admin API).
+4. Rotate secrets on staffing changes and after OpenAPI reimports that change auth.
+5. Use [`identify()`](/docs/platform/identity-forwarding) so *your* API can authorize the end user separately from the tool’s service credential.
+
+A widget token in HTML is expected. A Stripe/CRM secret in HTML is an incident. If a Business Action needs privileged access, keep that credential on the server-side tool configuration only.
 
 ## Workflow
 
-## Code examples
+## Related product surfaces
 
-```bash
-curl -sS -H "Authorization: Bearer $USER_JWT" \
-  https://api.qefro.com/api/v1/org/audit-logs
-```
-
-## Best practices
-
-- Separate staging and production organizations when feasible
-- Review OpenAPI imports for overly broad operations
-
-## Security notes
-
-Contact Sales for Enterprise compliance questionnaires and DPA process.
+- [Business Tools](/docs/platform/business-tools)
+- [What are Business Actions?](/docs/concepts/business-actions)
+- [Secure Business Actions](/docs/guides/secure-business-actions)
+- [Website Widget](/docs/platform/website-widget) (publishable token)
 
 ## FAQ
 
@@ -3154,49 +3232,62 @@ Contact Sales for Enterprise compliance questionnaires and DPA process.
 
 Source: https://docs.qefro.com/docs/security/audit-logs/
 
-> Organization audit trail and tool execution logs.
+> Organization audit logs and Business Tool execution logs — how to investigate configuration changes and AI-initiated API calls.
 
-**Audit Logs** — Organization audit trail and tool execution logs.
+**Audit logs** record security-relevant activity in a Qefro organization. Separately, **tool execution logs** record each Business Action — which tool ran, when, and with what outcome. Together they answer “who changed configuration?” and “what did the assistant call?”
 
-## Introduction
+## Short definition (citation-ready)
 
-Org audit: `GET /api/v1/org/audit-logs`. Tool executions: `GET /api/v1/tools/:id/logs`.
+> Qefro exposes organization audit logs for administrative and security events, and per-tool execution logs for Business Actions, so teams can investigate configuration changes and AI-initiated API traffic.
 
-## Why it exists
+## Two log streams
 
-Security documentation must reflect implemented controls, not aspirational marketing.
-
-## Concepts
-
-See [Security Overview](/docs/security/overview) for the control list.
+| Stream | Answers | Typical consumers |
+| --- | --- | --- |
+| **Org audit logs** | Who invited users, changed RBAC, updated integrations? | Security, Admins |
+| **Tool execution logs** | Which Business Tool ran during chat? Success or error? | Engineering, Support leads |
 
 ## Architecture
 
 ```mermaid
-flowchart TB
-  Tenant --> Workspace
-  Workspace --> Secrets
-  Workspace --> AuthZ
-  AuthZ --> Logs
+flowchart LR
+  Admin[Admin Console actions] --> AL[Org audit logs]
+  Chat[Widget / Portal / WhatsApp] --> BA[Business Action]
+  BA --> TL[Tool execution logs]
+  AL --> Review[Security review]
+  TL --> Review
 ```
 
-## Workflow
-
-## Code examples
+## API surfaces
 
 ```bash
 curl -sS -H "Authorization: Bearer $USER_JWT" \
   https://api.qefro.com/api/v1/org/audit-logs
+
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/logs
 ```
+
+Exact fields evolve with the product; use the Admin Console views during pilots and the API for automation.
+
+## Investigation workflow
+
+## What to log on your side
+
+Qefro logs the action attempt. Your API should still log:
+
+- Authenticated end-user id (from forwarded identity headers)
+- Resource ids touched
+- Authorization allow/deny decisions
+
+That dual trail is what incident response needs.
 
 ## Best practices
 
-- Separate staging and production organizations when feasible
-- Review OpenAPI imports for overly broad operations
-
-## Security notes
-
-Contact Sales for Enterprise compliance questionnaires and DPA process.
+- Review tool logs weekly during the first month of any new Business Action
+- Alert on bursts of failures (often bad credentials or SSRF blocks)
+- Retain exports according to your compliance policy — do not assume infinite retention
+- Treat conversation transcripts as potentially sensitive if tools return PII
 
 ## FAQ
 
@@ -3208,51 +3299,64 @@ Contact Sales for Enterprise compliance questionnaires and DPA process.
 
 Source: https://docs.qefro.com/docs/security/compliance/
 
-> Roadmap items: SOC 2, SSO/SAML, Enterprise private deploy.
+> Honest compliance posture for Qefro — what is implemented today, what is on the roadmap, and how to run vendor security reviews.
 
-**Compliance** — Roadmap items: SOC 2, SSO/SAML, Enterprise private deploy.
+**Compliance** for Qefro buyers usually means answering questionnaires (security, privacy, AI), signing a DPA where required, and mapping product controls to frameworks. This page stays factual: shipped controls versus roadmap items.
 
-## Introduction
+## Short definition (citation-ready)
 
-Current public posture: strong isolation + encryption + auditability on the cloud product. Formal SOC 2 certification and SSO/SAML are roadmap items — email support@qefro.com / Sales for timelines. Enterprise private deployment is available as a custom engagement.
+> Qefro provides multi-tenant SaaS controls (isolation, encryption of tool secrets, logging, webhook verification) suitable as inputs to customer compliance programs. Formal certifications such as SOC 2 Type II are tracked on a roadmap — confirm current status with Sales.
 
-## Why it exists
+## Use Qefro controls in your program
 
-Security documentation must reflect implemented controls, not aspirational marketing.
+| Your need | Map to Qefro |
+| --- | --- |
+| Customer data segregation | [Tenant Isolation](/docs/security/tenant-isolation) |
+| Least privilege for staff AI | [RBAC](/docs/platform/rbac), [Employee AI](/docs/platform/employee-ai) |
+| AI tool risk | [AI Agent Security](/docs/concepts/ai-agent-security), [Secrets](/docs/security/secrets) |
+| Evidence of admin/tool activity | [Audit Logs](/docs/security/audit-logs) |
+| Subprocessor / hosting questions | Contact Sales for current list |
+| Privacy policy / terms | [Privacy](https://qefro.com/privacy), [Terms](https://qefro.com/terms) |
 
-## Concepts
+## Implemented technical controls (summary)
 
-See [Security Overview](/docs/security/overview) for the control list.
+- Organization (tenant) isolation on API and data access paths
+- Workspace-scoped knowledge and Business Tools
+- Encrypted Business Tool credentials
+- SSRF-aware egress for tools and related webhooks
+- Optional end-user identity forwarding via widget `identify()`
+- Organization audit logs and tool execution logs
+- Authentication abuse rate limiting
+- Razorpay webhook signature verification for billing events
 
-## Architecture
+Full narrative: [Security Overview](/docs/security/overview).
 
-```mermaid
-flowchart TB
-  Tenant --> Workspace
-  Workspace --> Secrets
-  Workspace --> AuthZ
-  AuthZ --> Logs
-```
+## Roadmap / Enterprise discussions
 
-## Workflow
+| Topic | Notes |
+| --- | --- |
+| SOC 2 Type II | Roadmap — request timeline from Sales |
+| SSO / SAML | Enterprise discussions |
+| Private / VPC-style deploy | See [Deployment](/docs/platform/deployment); Enterprise packaging |
+| Custom DPA / SCCs | Available through Sales for qualifying plans |
 
-## Code examples
+If a questionnaire asks “Are you SOC 2 certified?” and certification is not complete, answer **No** (or “In progress” only if Sales confirms that wording). Do not infer certification from marketing pages.
 
-```bash
-curl -sS -H "Authorization: Bearer $USER_JWT" \
-  https://api.qefro.com/api/v1/org/audit-logs
-```
+## Vendor review workflow
 
-## Best practices
+## Shared responsibility
 
-- Separate staging and production organizations when feasible
-- Review OpenAPI imports for overly broad operations
-
-## Security notes
-
-Contact Sales for Enterprise compliance questionnaires and DPA process.
+| Qefro | Customer |
+| --- | --- |
+| Platform isolation and control plane security | Which documents you upload |
+| Encrypting stored tool secrets | Scoping keys you issue to Qefro |
+| Logging admin and tool executions | Reviewing logs; rotating keys |
+| Channel/webhook verification mechanisms | Correct Meta / domain configuration |
+| Honest status of certifications | Your internal risk acceptance |
 
 ## FAQ
+
+Security questionnaires and DPA requests: [support@qefro.com](mailto:support@qefro.com) or [Contact](https://qefro.com/contact).
 
 ## Related topics
 
@@ -3264,69 +3368,37 @@ Contact Sales for Enterprise compliance questionnaires and DPA process.
 
 Source: https://docs.qefro.com/docs/compare/chatbase-vs-qefro/
 
-> Factual comparison of Chatbase and Qefro for AI workspaces and customer/employee AI.
+> Educational comparison of Chatbase-style website chatbots and Qefro AI Workspaces for Customer AI, Employee AI, and Business Actions.
 
-**Chatbase vs Qefro** compares chatbot builders focused on website Q&A with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+**Chatbase vs Qefro** contrasts website-centric chatbot builders with Qefro’s **AI Workspace Platform** — Customer AI, Employee AI, Business Actions, and organization RBAC.
 
-## Introduction
+## Short definition (citation-ready)
 
-This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+> Chatbase-class products optimize for embedding a knowledge chatbot on a website. Qefro optimizes for multi-workspace organizational AI: customer channels, an employee portal, and authorized API actions under tenant isolation.
 
 ## Capability matrix
 
-## Why it exists
+## When Chatbase-class tools fit
 
-Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+- You only need a public website Q&A bot
+- No employee portal or internal RBAC is required
+- You will not call privileged APIs from the assistant
+- A single knowledge project is enough
 
-## Concepts
+## When Qefro fits better
 
-- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
-- **Chatbase**: Chatbot builders focused on website Q&A
-- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
+- Support, HR, and IT must not share one index
+- You need [Employee AI](/docs/platform/employee-ai) on a branded portal
+- You need [Business Actions](/docs/concepts/business-actions) with auditability
+- You want widget + WhatsApp from one Support workspace
 
-## Architecture
+See also: [AI Workspace vs AI Chatbot](/docs/concepts/ai-workspace-vs-ai-chatbot).
 
-Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
-
-```mermaid
-flowchart LR
-  subgraph Qefro
-    WS[AI Workspaces]
-    CA[Customer AI]
-    EA[Employee AI]
-    BA[Business Actions]
-  end
-  Other[Chatbase]
-```
-
-## Workflow
-
-## Code examples
-
-```json
-{
-  "evaluation_criteria": [
-    "workspace_isolation",
-    "employee_portal",
-    "business_actions",
-    "whatsapp",
-    "rbac",
-    "citations"
-  ]
-}
-```
-
-## Best practices
-
-- Compare against your required channels and identity model
-- Prefer read-only tool scopes during pilots
-- Document gaps honestly for stakeholders
-
-## Security notes
-
-Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+## Evaluation workflow
 
 ## FAQ
+
+Verify Chatbase’s current features on their site before purchasing — products change. This page is educational, not a sales sheet.
 
 ## Related topics
 
@@ -3336,67 +3408,40 @@ Do not migrate production secrets into a pilot until DPA/security review is comp
 
 Source: https://docs.qefro.com/docs/compare/intercom-vs-qefro/
 
-> Factual comparison of Intercom and Qefro for AI workspaces and customer/employee AI.
+> Educational comparison of Intercom-style customer messaging suites and Qefro AI Workspaces for Customer AI, Employee AI, and Business Actions.
 
-**Intercom vs Qefro** compares Customer messaging and support suites with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+**Intercom vs Qefro** contrasts full customer messaging / support suites with Qefro’s focus on **AI Workspaces** — grounded assistants and Business Actions across customer and employee channels.
 
-## Introduction
+## Short definition (citation-ready)
 
-This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+> Intercom-class suites optimize for lifecycle messaging, inbox workflows, and support operations. Qefro optimizes for workspace-isolated RAG assistants and authorized API actions for customers and employees.
 
-## Why it exists
+## Capability matrix
 
-Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+## Typical coexistence
 
-## Concepts
+Many teams keep Intercom (or similar) as the **human inbox / messaging** system and use Qefro for:
 
-- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
-- **Intercom**: Customer messaging and support suites
-- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
+- Workspace-isolated knowledge assistants
+- Employee AI on a branded portal
+- Tightly scoped Business Actions into order/ticket APIs
 
-## Architecture
+Qefro does not claim to replace every messaging workflow.
 
-Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
+## When to prefer which
 
-```mermaid
-flowchart LR
-  subgraph Qefro
-    WS[AI Workspaces]
-    CA[Customer AI]
-    EA[Employee AI]
-    BA[Business Actions]
-  end
-  Other[Intercom]
-```
+| Situation | Lean toward |
+| --- | --- |
+| Complex human inbox + lifecycle campaigns | Intercom-class suite |
+| Multi-team AI knowledge + employee portal | Qefro |
+| AI that must call your APIs with audit logs | Qefro Business Actions |
+| Both human inbox and AI workspaces | Often **both** (integration via tools/webhooks) |
 
-## Workflow
-
-## Code examples
-
-```json
-{
-  "evaluation_criteria": [
-    "workspace_isolation",
-    "employee_portal",
-    "business_actions",
-    "whatsapp",
-    "rbac",
-    "citations"
-  ]
-}
-```
-
-## Best practices
-
-- Compare against your required channels and identity model
-- Prefer read-only tool scopes during pilots
-- Document gaps honestly for stakeholders
-
-## Security notes
-
-Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+## Evaluation workflow
 
 ## FAQ
+
+Verify Intercom’s current packaging on their site. This comparison is educational and capability-oriented.
 
 ## Related topics
 
@@ -3406,67 +3451,28 @@ Do not migrate production secrets into a pilot until DPA/security review is comp
 
 Source: https://docs.qefro.com/docs/compare/zendesk-vs-qefro/
 
-> Factual comparison of Zendesk and Qefro for AI workspaces and customer/employee AI.
+> Educational comparison of Zendesk-style helpdesks and Qefro AI Workspaces for grounded Customer AI, Employee AI, and Business Actions.
 
-**Zendesk vs Qefro** compares Ticketing-centric customer service platforms with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+**Zendesk vs Qefro** contrasts ticketing / helpdesk platforms with Qefro’s **AI Workspace** approach to customer and employee assistants.
 
-## Introduction
+## Short definition (citation-ready)
 
-This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+> Zendesk-class products optimize for tickets, SLAs, and agent workspaces. Qefro optimizes for workspace-isolated RAG and Business Actions; it can call a helpdesk API but is not a full ticketing suite.
 
-## Why it exists
+## Capability matrix
 
-Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+## Recommended pattern
 
-## Concepts
+1. Keep Zendesk (or similar) as the **ticket system of record**.
+2. Use Qefro for **deflection and grounded answers** on web/WhatsApp.
+3. Optionally add a Business Tool to **create or update tickets** when the assistant cannot resolve the issue.
+4. Use a separate Employee AI workspace for internal runbooks.
 
-- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
-- **Zendesk**: Ticketing-centric customer service platforms
-- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
-
-## Architecture
-
-Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
-
-```mermaid
-flowchart LR
-  subgraph Qefro
-    WS[AI Workspaces]
-    CA[Customer AI]
-    EA[Employee AI]
-    BA[Business Actions]
-  end
-  Other[Zendesk]
-```
-
-## Workflow
-
-## Code examples
-
-```json
-{
-  "evaluation_criteria": [
-    "workspace_isolation",
-    "employee_portal",
-    "business_actions",
-    "whatsapp",
-    "rbac",
-    "citations"
-  ]
-}
-```
-
-## Best practices
-
-- Compare against your required channels and identity model
-- Prefer read-only tool scopes during pilots
-- Document gaps honestly for stakeholders
-
-## Security notes
-
-Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+## Evaluation workflow
 
 ## FAQ
+
+Confirm Zendesk AI and channel packs on Zendesk’s site — packaging changes frequently.
 
 ## Related topics
 
@@ -3476,67 +3482,28 @@ Do not migrate production secrets into a pilot until DPA/security review is comp
 
 Source: https://docs.qefro.com/docs/compare/freshworks-vs-qefro/
 
-> Factual comparison of Freshworks and Qefro for AI workspaces and customer/employee AI.
+> Educational comparison of Freshworks-style CRM/support suites and Qefro AI Workspaces for Customer AI, Employee AI, and Business Actions.
 
-**Freshworks vs Qefro** compares CRM/support suites with AI assistants with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+**Freshworks vs Qefro** contrasts CRM / support suite platforms (Freshdesk, Freshchat, and related products) with Qefro’s **AI Workspace Platform**.
 
-## Introduction
+## Short definition (citation-ready)
 
-This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+> Freshworks-class suites optimize for CRM and support operations across sales and service clouds. Qefro optimizes for isolated AI Workspaces, employee portals, and auditable Business Actions into systems you already run.
 
-## Why it exists
+## Capability matrix
 
-Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+## Coexistence pattern
 
-## Concepts
+- Freshworks remains CRM / ticket system of record
+- Qefro hosts Support and internal workspaces
+- Business Tools call Freshworks APIs when you need create/update operations
+- Keep HR/IT knowledge out of the public Support workspace
 
-- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
-- **Freshworks**: CRM/support suites with AI assistants
-- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
-
-## Architecture
-
-Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
-
-```mermaid
-flowchart LR
-  subgraph Qefro
-    WS[AI Workspaces]
-    CA[Customer AI]
-    EA[Employee AI]
-    BA[Business Actions]
-  end
-  Other[Freshworks]
-```
-
-## Workflow
-
-## Code examples
-
-```json
-{
-  "evaluation_criteria": [
-    "workspace_isolation",
-    "employee_portal",
-    "business_actions",
-    "whatsapp",
-    "rbac",
-    "citations"
-  ]
-}
-```
-
-## Best practices
-
-- Compare against your required channels and identity model
-- Prefer read-only tool scopes during pilots
-- Document gaps honestly for stakeholders
-
-## Security notes
-
-Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+## Evaluation workflow
 
 ## FAQ
+
+Freshworks product names and AI features change by SKU — verify on their site before buying.
 
 ## Related topics
 
@@ -3546,67 +3513,37 @@ Do not migrate production secrets into a pilot until DPA/security review is comp
 
 Source: https://docs.qefro.com/docs/compare/customgpt-vs-qefro/
 
-> Factual comparison of CustomGPT and Qefro for AI workspaces and customer/employee AI.
+> Educational comparison of CustomGPT-style custom bot builders and Qefro AI Workspaces for multi-team Customer AI, Employee AI, and Business Actions.
 
-**CustomGPT vs Qefro** compares Custom GPT / knowledge chatbot products with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+**CustomGPT vs Qefro** contrasts custom GPT / bot builders (upload docs → chat) with Qefro’s organization-grade **AI Workspaces**.
 
-## Introduction
+## Short definition (citation-ready)
 
-This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+> CustomGPT-class products excel at turning document sets into chatbots quickly. Qefro adds multi-workspace isolation, an employee portal with RBAC, WhatsApp, and production-oriented Business Actions.
 
-## Why it exists
+## Capability matrix
 
-Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+## When a custom GPT builder is enough
 
-## Concepts
+- Personal or single-team knowledge chat
+- No employee portal or WhatsApp requirement
+- Limited need for audited API tools
+- Speed of experiment matters more than org RBAC
 
-- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
-- **CustomGPT**: Custom GPT / knowledge chatbot products
-- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
+## When to move to Qefro
 
-## Architecture
+- Multiple audiences (customer vs employee) must stay separated
+- You need [Internal Portal](/docs/platform/internal-portal) branding and grants
+- You need production [Business Actions](/docs/concepts/business-actions)
+- Security review asks for tenant isolation and tool logs
 
-Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
+Background: [AI Workspace vs AI Chatbot](/docs/concepts/ai-workspace-vs-ai-chatbot).
 
-```mermaid
-flowchart LR
-  subgraph Qefro
-    WS[AI Workspaces]
-    CA[Customer AI]
-    EA[Employee AI]
-    BA[Business Actions]
-  end
-  Other[CustomGPT]
-```
-
-## Workflow
-
-## Code examples
-
-```json
-{
-  "evaluation_criteria": [
-    "workspace_isolation",
-    "employee_portal",
-    "business_actions",
-    "whatsapp",
-    "rbac",
-    "citations"
-  ]
-}
-```
-
-## Best practices
-
-- Compare against your required channels and identity model
-- Prefer read-only tool scopes during pilots
-- Document gaps honestly for stakeholders
-
-## Security notes
-
-Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+## Evaluation workflow
 
 ## FAQ
+
+CustomGPT.ai and similar builders change features often — verify on the vendor’s site.
 
 ## Related topics
 
@@ -3616,67 +3553,36 @@ Do not migrate production secrets into a pilot until DPA/security review is comp
 
 Source: https://docs.qefro.com/docs/compare/copilot-studio-vs-qefro/
 
-> Factual comparison of Copilot Studio and Qefro for AI workspaces and customer/employee AI.
+> Educational comparison of Microsoft Copilot Studio-style enterprise copilots and Qefro AI Workspaces for Customer AI, Employee AI, and Business Actions.
 
-**Copilot Studio vs Qefro** compares Microsoft low-code copilots with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+**Copilot Studio vs Qefro** contrasts Microsoft-centric enterprise copilots / agent builders with Qefro’s focused **AI Workspace Platform** for customer and employee assistants.
 
-## Introduction
+## Short definition (citation-ready)
 
-This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+> Copilot Studio-class tools optimize for Microsoft 365 / Power Platform ecosystems and enterprise graph connectors. Qefro optimizes for SaaS AI Workspaces with website/WhatsApp Customer AI, a branded employee portal, and REST/OpenAPI Business Actions.
 
-## Why it exists
+## Capability matrix
 
-Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
+## Choose based on gravity
 
-## Concepts
+| Your world | Lean toward |
+| --- | --- |
+| Deep Microsoft 365 + Azure AD + Power Platform | Copilot Studio-class |
+| SaaS AI for website + WhatsApp + branded portal | Qefro |
+| Need OpenAPI tools without Power Platform | Qefro Business Tools |
+| Need both | Possible — different jobs; integrate carefully |
 
-- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
-- **Copilot Studio**: Microsoft low-code copilots
-- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
+## Evaluation workflow
 
-## Architecture
+## Honest gaps to discuss
 
-Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
-
-```mermaid
-flowchart LR
-  subgraph Qefro
-    WS[AI Workspaces]
-    CA[Customer AI]
-    EA[Employee AI]
-    BA[Business Actions]
-  end
-  Other[Copilot Studio]
-```
-
-## Workflow
-
-## Code examples
-
-```json
-{
-  "evaluation_criteria": [
-    "workspace_isolation",
-    "employee_portal",
-    "business_actions",
-    "whatsapp",
-    "rbac",
-    "citations"
-  ]
-}
-```
-
-## Best practices
-
-- Compare against your required channels and identity model
-- Prefer read-only tool scopes during pilots
-- Document gaps honestly for stakeholders
-
-## Security notes
-
-Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
+- Qefro SSO/SAML is roadmap for Enterprise — see [Compliance](/docs/security/compliance)
+- Copilot Studio may win when Teams is the only employee surface you will ever need
+- Qefro may win when you want a customer-facing widget + WhatsApp without standing up a full Power Platform program
 
 ## FAQ
+
+Microsoft product names and licensing change often — verify Copilot Studio capabilities on Microsoft’s documentation.
 
 ## Related topics
 

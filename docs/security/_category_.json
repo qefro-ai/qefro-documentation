@@ -1,0 +1,9 @@
+{
+  "label": "Security",
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Security",
+    "description": "Tenant isolation, secrets, audit logs, compliance posture, and how Qefro approaches AI agent security."
+  }
+}

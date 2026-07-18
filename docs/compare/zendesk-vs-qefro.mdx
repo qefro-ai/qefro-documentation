@@ -1,120 +1,91 @@
 ---
-sidebar_label: "Zendesk vs Qefro"
 title: "Zendesk vs Qefro"
-description: "Factual comparison of Zendesk and Qefro for AI workspaces and customer/employee AI."
+description: "Educational comparison of Zendesk-style helpdesks and Qefro AI Workspaces for grounded Customer AI, Employee AI, and Business Actions."
+sidebar_label: "Zendesk vs Qefro"
 ---
 
 import {
   InfoBox,
-  Warning,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ComparisonTable,
 } from '@site/src/components';
 
 # Zendesk vs Qefro
 
-**Zendesk vs Qefro** compares Ticketing-centric customer service platforms with Qefro’s AI Workspace Platform (Customer AI, Employee AI, Business Actions).
+**Zendesk vs Qefro** contrasts ticketing / helpdesk platforms with Qefro’s **AI Workspace** approach to customer and employee assistants.
 
-## Introduction
+## Short definition (citation-ready)
 
-This comparison is educational. Product capabilities change; verify details on each vendor’s site before purchasing. Qefro focuses on organization-wide AI Workspaces with shared knowledge, RBAC, and Business Actions — not on replacing every CRM or ticketing system of record.
+> Zendesk-class products optimize for tickets, SLAs, and agent workspaces. Qefro optimizes for workspace-isolated RAG and Business Actions; it can call a helpdesk API but is not a full ticketing suite.
 
-## Why it exists
+## Capability matrix
 
-Buyers evaluating AI support tools need clear capability boundaries rather than slogans.
-
-## Concepts
-
-- **Qefro**: AI Workspaces, Customer AI, Employee AI, Business Tools/Actions, Internal Portal
-- **Zendesk**: Ticketing-centric customer service platforms
-- Overlap often exists in conversational Q&A; divergence appears in employee portals, action execution, and workspace isolation models
-
-## Architecture
-
-Qefro centralizes Admin Console configuration and deploys multiple experiences from one knowledge/permission plane.
-
-```mermaid
-flowchart LR
-  subgraph Qefro
-    WS[AI Workspaces]
-    CA[Customer AI]
-    EA[Employee AI]
-    BA[Business Actions]
-  end
-  Other[Zendesk]
-```
-
-## Workflow
-
-<WorkflowCard
-  title="Evaluation workflow"
-  steps={[
-    {title: 'List must-haves', description: 'Channels, actions, employee portal, isolation.'},
-    {title: 'Pilot knowledge', description: 'Test citation quality and refusals.'},
-    {title: 'Pilot actions', description: 'Connect one read-only API if needed.'},
-    {title: 'Review security', description: 'Tenant isolation, secrets, logs.'},
+<ComparisonTable
+  otherName="Zendesk-class helpdesk"
+  rows={[
+    {capability: 'Primary focus', qefro: 'AI Workspaces + channels + actions', other: 'Tickets, SLAs, agent workspace'},
+    {capability: 'Ticket lifecycle', qefro: 'Via Business Tools to your helpdesk', other: 'Native core feature'},
+    {capability: 'Knowledge for AI', qefro: 'Hybrid RAG per workspace + citations', other: 'Help center + AI add-ons vary'},
+    {capability: 'Employee AI', qefro: 'Internal Portal with RBAC', other: 'Internal knowledge tools vary'},
+    {capability: 'Website widget AI', qefro: 'First-class Customer AI widget', other: 'Messaging/AI widgets vary'},
+    {capability: 'WhatsApp', qefro: 'Growth+ channel', other: 'Channel add-ons common'},
+    {capability: 'Replace helpdesk?', qefro: 'No — integrate as system of record', other: 'Is the system of record'},
+    {capability: 'Multi-team AI isolation', qefro: 'First-class workspaces', other: 'Depends on product configuration'},
   ]}
 />
 
-## Code examples
+## Recommended pattern
 
-```json
-{
-  "evaluation_criteria": [
-    "workspace_isolation",
-    "employee_portal",
-    "business_actions",
-    "whatsapp",
-    "rbac",
-    "citations"
-  ]
-}
-```
+1. Keep Zendesk (or similar) as the **ticket system of record**.
+2. Use Qefro for **deflection and grounded answers** on web/WhatsApp.
+3. Optionally add a Business Tool to **create or update tickets** when the assistant cannot resolve the issue.
+4. Use a separate Employee AI workspace for internal runbooks.
 
-## Best practices
+## Evaluation workflow
 
-- Compare against your required channels and identity model
-- Prefer read-only tool scopes during pilots
-- Document gaps honestly for stakeholders
-
-## Security notes
-
-<InfoBox>
-Do not migrate production secrets into a pilot until DPA/security review is complete for either vendor.
-</InfoBox>
+<WorkflowCard
+  title="Pilot Qefro beside Zendesk"
+  steps={[
+    {title: 'Export help center articles', description: 'Ingest into a Support workspace.'},
+    {title: 'Embed the widget', description: 'Measure deflection and citation quality.'},
+    {title: 'Add a create-ticket tool', description: 'Read-only status first if available; then create.'},
+    {title: 'Forward end-user identity', description: 'identify() so tickets map to the right customer.'},
+    {title: 'Review logs', description: 'Tool executions + helpdesk audit trail.'},
+  ]}
+/>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "Does Qefro replace Zendesk?",
-    "answer": "Not necessarily. Qefro may complement systems of record. Zendesk may remain the system for tickets/CRM depending on your stack."
-  },
-  {
-    "question": "Where can I learn Qefro specifics?",
-    "answer": "Start with AI Workspaces and Business Actions documentation."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Does Qefro replace Zendesk?',
+      answer:
+        'No. Qefro is not a full ticketing platform. It complements helpdesks with AI Workspaces and optional API actions.',
+    },
+    {
+      question: 'Where do agents work?',
+      answer:
+        'Human agents typically remain in Zendesk. Qefro handles AI conversations and can hand off via tools/webhooks you define.',
+    },
+  ]}
+/>
+
+<InfoBox>
+Confirm Zendesk AI and channel packs on Zendesk’s site — packaging changes frequently.
+</InfoBox>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Pricing",
-    "to": "https://qefro.com/pricing"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Build AI Customer Support', to: '/docs/guides/build-ai-customer-support'},
+    {label: 'Connect REST APIs', to: '/docs/guides/connect-rest-apis'},
+    {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
+    {label: 'Freshworks vs Qefro', to: '/docs/compare/freshworks-vs-qefro'},
+    {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'Pricing', to: 'https://qefro.com/pricing'},
+  ]}
+/>
