@@ -62,6 +62,14 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      - name: Ensure Cloudflare Pages project exists
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@3 pages project list 2>/dev/null | grep -q 'qefro-documentation' \
+            || npx --yes wrangler@3 pages project create qefro-documentation --production-branch=main
+
       - name: Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
