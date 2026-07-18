@@ -322,14 +322,32 @@ export default function Home(): ReactNode {
           <div className="qefro-section__inner">
             <h2>Latest Blog Posts</h2>
             <p className="qefro-section__lead">
-              Platform, engineering, AI, architecture, product, security, and
-              tutorials from the Qefro team.
+              Architecture, security, tutorials, and product notes — with links
+              back into the docs.
             </p>
-            <Link
-              className="button button--primary"
-              to="/blog">
-              Read the blog
-            </Link>
+            <div className="qefro-guide-list">
+              <Link to="/blog/introducing-qefro-docs">
+                Introducing official Qefro documentation
+                <span>→</span>
+              </Link>
+              <Link to="/blog/ai-workspaces-architecture">
+                How AI Workspaces isolate knowledge and actions
+                <span>→</span>
+              </Link>
+              <Link to="/blog/hybrid-rag-in-practice">
+                Hybrid RAG in practice
+                <span>→</span>
+              </Link>
+              <Link to="/blog/securing-business-actions">
+                Securing Business Actions in production
+                <span>→</span>
+              </Link>
+            </div>
+            <p style={{marginTop: '1.5rem'}}>
+              <Link className="button button--primary" to="/blog">
+                View all posts
+              </Link>
+            </p>
           </div>
         </section>
       </main>
