@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Identity Forwarding"
 title: "Identity Forwarding"
-description: "Pass end-user identity into Business Actions via identify()."
+description: "Forward verified end-user identity into Business Tools with widget.identify()."
+sidebar_label: "Identity Forwarding"
 ---
 
 import {
@@ -14,109 +14,121 @@ import {
 
 # Identity Forwarding
 
-**Identity Forwarding** attaches verified end-user identity so actions run as that user.
+**Identity Forwarding** lets your host application tell Qefro who the website visitor is, so Business Actions can call your APIs in that user’s context. Qefro does **not** replace your auth system — you own JWT/session issuance.
 
 ## Introduction
 
-Identity Forwarding is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Implemented in `@qefro-ai/widget` via:
+
+- `widget.identify({ id, email?, name?, auth?: { mode, token } })`
+- `widget.setAuthToken(jwt)` — refresh without restart
+- `widget.clearIdentity()` — clears local identity and notifies `POST /api/v1/widget/identity/clear`
+
+Auth modes:
+
+| Mode | Token transport |
+| --- | --- |
+| `jwt` | Header `X-End-User-Token` / WS `endUserToken` |
+| `session` | Header `X-End-User-Session` / WS `endUserSession` |
+| `none` | Profile only (id/email/name) — no bearer secret |
 
 ## Why it exists
 
-Organizations need clear boundaries for identity forwarding so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Order lookup, ticket creation, and account mutations must not run as a shared service account when the end user is logged into your product.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- **Host-owned identity** — your IdP / session store
+- **Forwarded claims** — id, email, name + auth material for tool HTTP calls
+- **Visitor session** — separate continuity key; clearing identity does not wipe chat history by default
 
 ## Architecture
 
-identify→claims→tool headers
-
 ```mermaid
 sequenceDiagram
-  participant App
-  participant Widget
-  participant Qefro
-  participant CRM
-  App->>Widget: identify(jwt)
-  Widget->>Qefro: Chat + identity
-  Qefro->>CRM: API with forwarded identity
+  participant App as Your app
+  participant Widget as Qefro Widget
+  participant API as api.qefro.com
+  participant Tool as Your REST API
+  App->>Widget: identify(id, jwt)
+  Widget->>API: Chat + X-End-User-Token
+  API->>Tool: Business Tool call with forwarded identity
+  Tool-->>API: Authorized response
+  API-->>Widget: Grounded answer / action result
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Identity Forwarding workflow"
+  title="Wire identify()"
   steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
+    {title: 'Authenticate in your app', description: 'Issue JWT or session as you already do.'},
+    {title: 'Call identify()', description: 'Pass stable user id + auth.mode/token.'},
+    {title: 'Configure tools', description: 'Business Tools that need user context read forwarded headers/claims.'},
+    {title: 'Logout', description: 'await widget.clearIdentity().'},
   ]}
 />
 
 ## Code examples
 
-```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
+```javascript
+widget.identify({
+  id: user.id,
+  email: user.email,
+  name: user.name,
+  auth: {
+    mode: 'jwt',
+    token: userJwt, // from YOUR auth system
+  },
+});
+
+// Later
+widget.setAuthToken(refreshedJwt);
+await widget.clearIdentity();
 ```
 
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
-```
+Anonymous visitors: **do not** call `identify()`.
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Use a stable opaque user id (not email alone) as `id`
+- Keep JWT lifetimes short; refresh with `setAuthToken`
+- Scope Business Tools to least privilege when identity is present
 
 ## Security notes
 
 <Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
+Never put end-user tokens in `setContext()`. Context is product/page metadata; identity is a separate API (`identify`).
 </Warning>
+
+<InfoBox>
+Tokens are sent on headers / WebSocket auth fields. They are not duplicated into the public identity JSON body.
+</InfoBox>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "What is Identity Forwarding?",
-    "answer": "Identity Forwarding attaches verified end-user identity so actions run as that user."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Does Qefro validate my JWT signature?',
+      answer:
+        'Your APIs remain the source of truth for authorization. Qefro forwards identity material into configured Business Tool calls under your tool security settings.',
+    },
+    {
+      question: 'Can Internal Portal users use identify()?',
+      answer:
+        'Internal Portal users authenticate as Qefro org members. identify() is the website widget path for your customers.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Website Widget', to: '/docs/platform/website-widget'},
+    {label: 'Business Actions', to: '/docs/platform/business-actions'},
+    {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
+    {label: 'Authentication', to: '/docs/platform/authentication'},
+  ]}
+/>

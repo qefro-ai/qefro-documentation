@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Compliance"
 title: "Compliance"
-description: "Roadmap items such as SOC 2 and SSO/SAML."
+description: "Roadmap items: SOC 2, SSO/SAML, Enterprise private deploy."
+sidebar_label: "Compliance"
 ---
 
 import {
@@ -14,104 +14,68 @@ import {
 
 # Compliance
 
-**Compliance** — Roadmap items such as SOC 2 and SSO/SAML.
+**Compliance** — Roadmap items: SOC 2, SSO/SAML, Enterprise private deploy.
 
 ## Introduction
 
-Roadmap items such as SOC 2 and SSO/SAML. This page explains controls, responsibilities, and how they map to Customer AI and Employee AI deployments.
+Current public posture: strong isolation + encryption + auditability on the cloud product. Formal SOC 2 certification and SSO/SAML are roadmap items — email support@qefro.com / Sales for timelines. Enterprise private deployment is available as a custom engagement.
 
 ## Why it exists
 
-Security documentation must be precise so buyers and builders can evaluate trust boundaries without marketing language.
+Security documentation must reflect implemented controls, not aspirational marketing.
 
 ## Concepts
 
-- Tenant / workspace isolation
-- Encrypted secrets
-- Identity forwarding
-- Execution logs for Business Actions
+See [Security Overview](/docs/security/overview) for the control list.
 
 ## Architecture
 
-Defense in depth across authn, authz, network egress controls for tools, and auditability.
-
 ```mermaid
 flowchart TB
-  Tenant[Tenant Boundary] --> WS[Workspace Isolation]
-  WS --> Secrets[Encrypted Secrets]
-  WS --> AuthZ[RBAC / Action Auth]
-  AuthZ --> Logs[Execution Logs]
+  Tenant --> Workspace
+  Workspace --> Secrets
+  Workspace --> AuthZ
+  AuthZ --> Logs
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="Security review checklist"
-  steps={[
-    {title: 'Map data', description: 'Classify knowledge and tool payloads.'},
-    {title: 'Least privilege', description: 'Tighten RBAC and tool scopes.'},
-    {title: 'Verify isolation', description: 'Cross-workspace retrieval tests.'},
-    {title: 'Audit', description: 'Confirm logs for sensitive actions.'},
-  ]}
-/>
+<WorkflowCard title="Security review" steps={[
+  {title: 'Map data', description: 'Knowledge + tool payloads.'},
+  {title: 'Least privilege', description: 'RBAC + tool scopes.'},
+  {title: 'Verify isolation', description: 'Cross-workspace tests.'},
+  {title: 'Audit', description: 'Org + tool logs.'},
+]} />
 
 ## Code examples
 
-```json
-{
-  "security_controls": [
-    "multi_tenant_isolation",
-    "workspace_isolation",
-    "encrypted_tool_secrets",
-    "identity_forwarding",
-    "execution_logs"
-  ]
-}
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/audit-logs
 ```
 
 ## Best practices
 
-- Separate staging and production organizations when possible
+- Separate staging and production organizations when feasible
 - Review OpenAPI imports for overly broad operations
-- Disable unused Business Tools
 
 ## Security notes
 
 <InfoBox>
-SOC 2 compliance is on the roadmap — contact Sales for timeline. SSO/SAML is on the Enterprise roadmap.
+Contact Sales for Enterprise compliance questionnaires and DPA process.
 </InfoBox>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "Is Qefro SOC 2 certified today?",
-    "answer": "SOC 2 is on the roadmap; ask Sales for the current timeline."
-  },
-  {
-    "question": "Who can see execution logs?",
-    "answer": "Organization Owners/Admins with appropriate console access."
-  }
+  {question: 'Is Qefro SOC 2 certified today?', answer: 'SOC 2 is on the roadmap; ask Sales for the current timeline.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "RBAC",
-    "to": "/docs/platform/rbac"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Identity Forwarding",
-    "to": "/docs/platform/identity-forwarding"
-  },
-  {
-    "label": "Secure Business Actions guide",
-    "to": "/docs/guides/secure-business-actions"
-  }
+  {label: 'Security Overview', to: '/docs/security/overview'},
+  {label: 'RBAC', to: '/docs/platform/rbac'},
+  {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
 ]} />
 

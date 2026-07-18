@@ -1,7 +1,7 @@
 ---
-sidebar_label: "WhatsApp"
 title: "WhatsApp"
-description: "Customer AI over WhatsApp (Growth+)."
+description: "Customer AI over Meta Cloud API — webhook verify/incoming at /api/v1/whatsapp/webhook."
+sidebar_label: "WhatsApp"
 ---
 
 import {
@@ -14,106 +14,85 @@ import {
 
 # WhatsApp
 
-**WhatsApp** connects Meta Cloud API messaging to a Qefro workspace.
+**WhatsApp** connects Meta Cloud API messaging to a Qefro Customer AI workspace. Availability: **Growth+**.
 
 ## Introduction
 
-WhatsApp is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+API routes:
+
+- `GET /api/v1/whatsapp/webhook` — Meta verification challenge
+- `POST /api/v1/whatsapp/webhook` — inbound messages
+
+Tenant WhatsApp configuration is managed in the Admin Console (and platform admin WhatsApp config endpoints for operators). Phone numbers map into workspace-scoped assistants like other Customer AI channels.
 
 ## Why it exists
 
-Organizations need clear boundaries for whatsapp so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Customers already message businesses on WhatsApp. Reusing the same knowledge + Business Actions avoids a second bot stack.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- **Webhook verify token** — Meta subscription handshake
+- **Phone number ID** — Cloud API sender identity
+- **Workspace binding** — which knowledge/tools answer
 
 ## Architecture
-
-webhook→workspace→reply
 
 ```mermaid
 flowchart LR
   User --> Meta[Meta Cloud API]
-  Meta --> Qefro[Qefro Webhook]
-  Qefro --> WS[Workspace]
+  Meta --> WH["GET/POST /api/v1/whatsapp/webhook"]
+  WH --> WS[Workspace]
+  WS --> RAG[Knowledge]
   WS --> Meta
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="WhatsApp workflow"
+  title="Enable WhatsApp"
   steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
+    {title: 'Upgrade to Growth+', description: 'WhatsApp is not on Free/Starter.'},
+    {title: 'Configure Meta app', description: 'Cloud API + webhook pointing at api.qefro.com.'},
+    {title: 'Map to workspace', description: 'Admin Console WhatsApp settings.'},
+    {title: 'Test', description: 'Send a real message; verify citations/actions.'},
   ]}
 />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+# Webhook URL (configure in Meta)
+# https://api.qefro.com/api/v1/whatsapp/webhook
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Use the same Customer Support workspace as the website widget when you want one brain
+- Keep write tools tightly scoped on messaging channels
 
 ## Security notes
 
 <Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
+Protect verify tokens and Cloud API secrets like production credentials. Rotate if exposed.
 </Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "What is WhatsApp?",
-    "answer": "WhatsApp connects Meta Cloud API messaging to a Qefro workspace."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Same knowledge as the widget?',
+      answer: 'Yes — if both channels bind to the same workspace.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Customer AI', to: '/docs/platform/customer-ai'},
+    {label: 'Deploy WhatsApp AI', to: '/docs/guides/deploy-whatsapp-ai'},
+    {label: 'Website Widget', to: '/docs/platform/website-widget'},
+  ]}
+/>

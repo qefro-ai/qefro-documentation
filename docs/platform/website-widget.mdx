@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Website Widget"
 title: "Website Widget"
-description: "Embeddable chat with short-lived JWT auth and optional identify()."
+description: "Embed Customer AI with cdn.qefro.com/widget.js, workspace binding, WebSocket chat, and identify()."
+sidebar_label: "Website Widget"
 ---
 
 import {
@@ -11,111 +11,168 @@ import {
   FaqAccordion,
   WorkflowCard,
 } from '@site/src/components';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Website Widget
 
-The **Website Widget** embeds Customer AI on your site.
+The **Website Widget** is Qefro’s embeddable Customer AI chat. It loads from `https://cdn.qefro.com/widget.js` (or your configured CDN), authenticates with a **publishable widget token**, and streams replies over WebSocket (`/ws/chat`) with HTTP fallback (`POST /api/v1/widget/chat`).
 
 ## Introduction
 
-Website Widget is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Configure appearance and copy the embed snippet from **Admin Console → Widget**. Select a **workspace** so the live preview and embed `data-workspace-id` stay aligned.
+
+Supported surfaces in the widget implementation:
+
+- Text chat with streaming
+- Optional lead capture
+- Message feedback
+- Human handoff / ticket triggers
+- Voice STT/TTS via `/api/v1/widget/stt` and `/api/v1/widget/tts`
+- `setContext()` for page/product context
+- `identify()` for end-user identity (Business Tools)
 
 ## Why it exists
 
-Organizations need clear boundaries for website widget so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Customer AI must ship on your website without hosting RAG infra. The widget is the public channel; knowledge and tools stay on `api.qefro.com` under your tenant.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+| Concept | Detail |
+| --- | --- |
+| Widget token | Publishable embed key; rotatable in Admin Console |
+| `data-endpoint` | Usually `https://api.qefro.com` |
+| `data-workspace-id` | Binds chat to a workspace knowledge/tools set |
+| Visitor session | Continuity cookie/header separate from `identify()` |
+| End-user identity | Host-owned JWT/session via `identify()` |
 
 ## Architecture
 
-embed→jwt→stream
-
 ```mermaid
 sequenceDiagram
-  participant Site
-  participant Widget
-  participant API
-  Site->>Widget: Load script
-  Widget->>API: Auth JWT
-  Widget->>API: Chat WebSocket
+  participant Site as Your website
+  participant CDN as cdn.qefro.com
+  participant API as api.qefro.com
+  Site->>CDN: Load widget.js
+  Site->>API: WS /ws/chat?token=WIDGET_TOKEN
+  Note over Site,API: Optional identify() → X-End-User-Token / WS fields
+  API-->>Site: Streamed assistant tokens + citations
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Website Widget workflow"
+  title="Deploy the widget"
   steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
+    {title: 'Pick workspace', description: 'Admin Console → Widget → select workspace.'},
+    {title: 'Copy embed', description: 'Paste script tag before </body>.'},
+    {title: 'Optional identify', description: 'Call widget.identify() after your app login.'},
+    {title: 'Test', description: 'Anonymous + authenticated flows; rotate token if leaked.'},
   ]}
 />
 
 ## Code examples
 
-```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
+<Tabs>
+  <TabItem value="script" label="Script tag" default>
+
+```html
+<script
+  src="https://cdn.qefro.com/widget.js"
+  data-token="YOUR_WIDGET_TOKEN"
+  data-endpoint="https://api.qefro.com"
+  data-theme="auto"
+  data-position="bottom-right"
+  data-primary-color="#7c3aed"
+  data-welcome-message="Hi! How can we help?"
+  data-workspace-id="YOUR_WORKSPACE_ID">
+</script>
 ```
 
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+  </TabItem>
+  <TabItem value="npm" label="npm / JS API">
+
+```bash
+npm install @qefro-ai/widget
 ```
+
+```javascript
+import { Widget } from '@qefro-ai/widget';
+
+const widget = new Widget({
+  token: 'YOUR_WIDGET_TOKEN',
+  endpoint: 'https://api.qefro.com',
+  theme: 'auto',
+  position: 'bottom-right',
+  workspaceId: 'YOUR_WORKSPACE_ID',
+});
+
+widget.open();
+
+// Page context — NOT identity
+widget.setContext({ page: '/checkout', productId: 'ABC123' });
+
+// Authenticated end user — for Business Tools
+widget.identify({
+  id: user.id,
+  email: user.email,
+  name: user.name,
+  auth: { mode: 'jwt', token: userJwt },
+});
+
+// Refresh JWT without restarting
+widget.setAuthToken(newJwt);
+
+// Logout
+await widget.clearIdentity();
+```
+
+  </TabItem>
+</Tabs>
+
+Identity transport (real widget behavior):
+
+- JWT mode → HTTP header `X-End-User-Token`, WebSocket field `endUserToken`
+- Session mode → `X-End-User-Session` / `endUserSession`
+- Profile fields (`id`, `email`, `name`, `authMode`) go in the request body — **tokens are never placed in the JSON body**
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Always set `data-workspace-id` for production embeds
+- Call `identify()` only after your own auth succeeds
+- Rotate the widget token if it leaks; update every embed
+- Use `clearIdentity()` on logout
 
 ## Security notes
 
 <Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
+The widget token is publishable but still site-scoped. Do not treat it as a server API key. Business Tool secrets stay encrypted in Qefro; never embed them in the page.
 </Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "What is Website Widget?",
-    "answer": "The Website Widget embeds Customer AI on your site."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'What endpoints does the widget call?',
+      answer:
+        'Primary: WebSocket /ws/chat. Fallback: POST /api/v1/widget/chat. Also settings, leads, feedback, handoff, STT/TTS, and identity/clear under /api/v1/widget/*.',
+    },
+    {
+      question: 'Is identify() required?',
+      answer:
+        'No for anonymous FAQ bots. Yes when Business Tools must run as a specific end user.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
+    {label: 'Customer AI', to: '/docs/platform/customer-ai'},
+    {label: 'Business Actions', to: '/docs/platform/business-actions'},
+    {label: 'Deploy Website Widget', to: '/docs/guides/deploy-website-widget'},
+  ]}
+/>

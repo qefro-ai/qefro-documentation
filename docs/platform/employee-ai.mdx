@@ -1,12 +1,11 @@
 ---
-sidebar_label: "Employee AI"
 title: "Employee AI"
-description: "Internal assistants via branded Internal Portal."
+description: "Internal assistants on the branded Internal Portal for organization members."
+sidebar_label: "Employee AI"
 ---
 
 import {
   InfoBox,
-  Warning,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
@@ -14,106 +13,90 @@ import {
 
 # Employee AI
 
-**Employee AI** serves staff through the Internal Portal with RBAC-aware knowledge and actions.
+**Employee AI** is Qefro’s internal assistant experience. Employees sign in to the **Internal Portal** (`your-company.qefro.com` or a custom domain) and chat with workspaces their **teams** grant them access to.
 
 ## Introduction
 
-Employee AI is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Unlike the public widget:
+
+- Users authenticate as org members (Owner / Admin / Member)
+- Access is RBAC + team → workspace mapping
+- Chat uses authenticated APIs (`POST /api/v1/chat`, `/api/v1/chat/stream`, WebSocket patterns for portal clients)
+- Branding comes from tenant settings (`GET /api/v1/public/tenant-branding`)
 
 ## Why it exists
 
-Organizations need clear boundaries for employee ai so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Employees need the same knowledge platform and Business Actions with stronger identity and tighter workspace grants than anonymous website visitors.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- **Internal Portal** — employee web app
+- **Tenant slug** — `your-company.qefro.com`
+- **Team workspace grants** — Members only see authorized workspaces
+- **Document write** — Members need team write permission to upload
 
 ## Architecture
-
-portal→auth→workspace
 
 ```mermaid
 flowchart LR
   Emp[Employee] --> Portal[Internal Portal]
-  Portal --> Auth[Auth / Teams]
-  Auth --> WS[Workspace]
-  WS --> Actions[Permitted Actions]
+  Portal --> Auth[Org session / JWT]
+  Auth --> Teams[Team membership]
+  Teams --> WS[Authorized workspaces]
+  WS --> RAG[Knowledge]
+  WS --> Tools[Business Tools]
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Employee AI workflow"
+  title="Enable Employee AI"
   steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
+    {title: 'Set slug / domain', description: 'Settings → portal URL and optional custom domain.'},
+    {title: 'Create internal workspaces', description: 'HR, IT, Finance — separate from Customer Support.'},
+    {title: 'Configure teams', description: 'Organization → Teams → members + workspaces.'},
+    {title: 'Invite employees', description: 'Team invite APIs / Admin Console invitations.'},
   ]}
 />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+# Public branding for portal bootstrap
+curl -sS "https://api.qefro.com/api/v1/public/tenant-branding?slug=your-company"
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Never reuse the Customer Support workspace for HR
+- Grant Members least workspace access
+- Use org audit logs for sensitive membership changes
 
 ## Security notes
 
-<Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
-</Warning>
+<InfoBox>
+Owners/Admins can access all workspaces. Members cannot invite users, manage billing, or see secrets.
+</InfoBox>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "What is Employee AI?",
-    "answer": "Employee AI serves staff through the Internal Portal with RBAC-aware knowledge and actions."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Is the portal a separate product?',
+      answer:
+        'No — same organization, knowledge platform, and Business Tools. Different experience and auth path.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
+    {label: 'RBAC', to: '/docs/platform/rbac'},
+    {label: 'Custom Domains', to: '/docs/platform/custom-domains'},
+    {label: 'Create Employee AI', to: '/docs/guides/create-employee-ai'},
+  ]}
+/>

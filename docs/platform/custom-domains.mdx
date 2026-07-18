@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Custom Domains"
 title: "Custom Domains"
-description: "Serve Internal Portal on your domain."
+description: "Serve the Internal Portal on your hostname via Cloudflare custom hostnames."
+sidebar_label: "Custom Domains"
 ---
 
 import {
@@ -10,108 +10,73 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Custom Domains
 
-**Custom Domains** map a hostname you control to the Internal Portal.
+
+**Custom Domains** map a hostname you control to the Internal Portal. In product settings the CNAME target defaults to `org.qefro.com` (see Admin Console → Custom Domain). Your `your-company.qefro.com` subdomain continues to work.
 
 ## Introduction
 
-Custom Domains is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Typical flow: add hostname → create DNS CNAME → wait for certificate → verify in console. Remove unused hostnames promptly.
 
 ## Why it exists
 
-Organizations need clear boundaries for custom domains so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Enterprises often require `portal.company.com` instead of `company.qefro.com`.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- Custom hostname
+- CNAME target
+- TLS via Cloudflare
 
 ## Architecture
 
-DNS→TLS→portal
-
 ```mermaid
 flowchart LR
-  DNS[CNAME] --> Edge
-  Edge --> Portal
+  DNS[CNAME portal.company.com] --> CF[Cloudflare]
+  CF --> Portal[Internal Portal]
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="Custom Domains workflow"
-  steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
-  ]}
-/>
+<WorkflowCard title="Attach a domain" steps={[
+  {title: 'Add domain in Settings', description: 'Custom Domain section.'},
+  {title: 'Create CNAME', description: 'Point to the shown target (e.g. org.qefro.com).'},
+  {title: 'Wait for TLS', description: 'Complete verification in console.'},
+]} />
 
 ## Code examples
 
-```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+```text
+portal.example.com  CNAME  org.qefro.com
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Use a dedicated subdomain (`portal.` / `ai.`)
+- Document DNS owners in your runbook
 
 ## Security notes
 
 <Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
+Only attach domains you control. Remove domains when contracts end.
 </Warning>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "What is Custom Domains?",
-    "answer": "Custom Domains map a hostname you control to the Internal Portal."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
+  {question: 'Does custom domain affect the API?', answer: 'No — API remains api.qefro.com. Domain is for the employee portal host.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
+  {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
+  {label: 'Enable Custom Domains', to: '/docs/guides/enable-custom-domains'},
+  {label: 'Branding', to: '/docs/platform/branding'},
 ]} />
+
 

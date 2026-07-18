@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Error Codes"
 title: "Error Codes"
-description: "Common API error shapes and meanings."
+description: "API error shape and common failure modes."
+sidebar_label: "Error Codes"
 ---
 
 import {
@@ -10,119 +10,82 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Error Codes
 
-**Error Codes** — Common API error shapes and meanings.
+
+**Error responses** typically include a machine-readable `code` and human `message` (see API `ApiError` JSON). Common situations:
+
+| Situation | What to check |
+| --- | --- |
+| 401 | Missing/expired user JWT or widget token |
+| 403 | RBAC — Member lacking workspace/team grant |
+| 404 | Wrong id / tenant scoping |
+| 429 | Rate limit or plan quota |
+| 400 | Validation / bad signature (billing, WhatsApp) |
 
 ## Introduction
 
-This page documents error codes for builders integrating with `https://api.qefro.com`. Full OpenAPI export will plug into this section as it is published.
+GraphQL errors follow GraphQL conventions; REST uses HTTP status + JSON body.
 
 ## Why it exists
 
-Stable API contracts let customers automate Admin Console workflows and embed Qefro safely.
+Clients need stable codes for retries vs user-visible failures.
 
 ## Concepts
 
-- Base URL: `https://api.qefro.com`
-- JSON request/response bodies
-- Bearer authentication for server-side clients
+- `code` string
+- HTTP status
+- Validation errors
 
 ## Architecture
 
-Clients call versioned REST endpoints; webhooks deliver async events.
-
 ```mermaid
-sequenceDiagram
-  participant Client
-  participant API
-  participant Qefro
-  Client->>API: Authorization Bearer
-  API->>Qefro: Authorize + route
-  Qefro-->>Client: JSON response
+flowchart LR
+  Handler --> ApiError --> JSON
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="API usage"
-  steps={[
-    {title: 'Obtain credentials', description: 'Create an API token in the Admin Console (Developer settings).'},
-    {title: 'Call endpoints', description: 'Use HTTPS + Bearer token.'},
-    {title: 'Handle errors', description: 'Map status codes and error.code fields.'},
-    {title: 'Subscribe webhooks', description: 'Verify signatures before processing.'},
-  ]}
-/>
+<WorkflowCard title="Debug" steps={[
+  {title: 'Read status + code', description: 'Do not retry all 4xx.'},
+  {title: 'Check authz', description: 'Role and workspace grants.'},
+  {title: 'Check quotas', description: 'Billing plan limits.'},
+]} />
 
 ## Code examples
 
-```bash
-curl -sS \
-  -H "Authorization: Bearer $QEFRO_TOKEN" \
-  -H "Content-Type: application/json" \
-  https://api.qefro.com/api/v1/billing/plans
-```
-
-```python
-import os, urllib.request
-req = urllib.request.Request(
-    "https://api.qefro.com/api/v1/billing/plans",
-    headers={"Authorization": f"Bearer {os.environ['QEFRO_TOKEN']}"},
-)
-print(urllib.request.urlopen(req).read().decode())
-```
-
-```typescript
-const res = await fetch('https://api.qefro.com/api/v1/billing/plans', {
-  headers: { Authorization: `Bearer ${process.env.QEFRO_TOKEN}` },
-});
+```json
+{
+  "code": "FORBIDDEN",
+  "message": "Insufficient permissions"
+}
 ```
 
 ## Best practices
 
-- Store tokens in a secrets manager
-- Prefer workspace-scoped tokens when available
-- Log `request_id` / correlation IDs on failures
+- Log `request` correlation ids when present
+- Map 429 to exponential backoff
 
 ## Security notes
 
 <Warning>
-Rotate tokens after teammate offboarding. Do not commit tokens to git.
+Do not echo raw upstream tool errors containing secrets to end users.
 </Warning>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "Is OpenAPI available?",
-    "answer": "Structure is prepared here; publish your OpenAPI document under static/openapi when ready."
-  },
-  {
-    "question": "Which languages are supported?",
-    "answer": "Any HTTP client. Examples cover cURL, TypeScript, and Python."
-  }
+  {question: 'Where are codes defined?', answer: 'Domain/API error modules in the backend map to stable code strings.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "Authentication",
-    "to": "/docs/api/authentication"
-  },
-  {
-    "label": "Webhooks",
-    "to": "/docs/api/webhooks"
-  },
-  {
-    "label": "Error Codes",
-    "to": "/docs/api/error-codes"
-  },
-  {
-    "label": "Identity Forwarding",
-    "to": "/docs/platform/identity-forwarding"
-  }
+  {label: 'Rate Limits', to: '/docs/api/rate-limits'},
+  {label: 'REST APIs', to: '/docs/api/rest-apis'},
 ]} />
+
 

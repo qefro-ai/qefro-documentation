@@ -1,12 +1,11 @@
 ---
-sidebar_label: "Internal Portal"
 title: "Internal Portal"
-description: "Branded employee chat experience on yourcompany.qefro.com."
+description: "Branded employee experience on your-company.qefro.com or a custom domain."
+sidebar_label: "Internal Portal"
 ---
 
 import {
   InfoBox,
-  Warning,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
@@ -14,105 +13,85 @@ import {
 
 # Internal Portal
 
-The **Internal Portal** is the employee-facing web app for Employee AI.
+The **Internal Portal** is the employee-facing web app for Employee AI. Default host: `https://{tenantSlug}.qefro.com`. Optional custom domains terminate via Cloudflare (CNAME target defaults to `org.qefro.com` in product settings).
 
 ## Introduction
 
-Internal Portal is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Portal bootstrap uses public branding:
+
+- `GET /api/v1/public/tenant-branding`
+- `GET /api/v1/public/tenant-slug-available`
+
+Authenticated employees then use org chat/document APIs under their RBAC grants. Share links and branding are configured in Admin Console → Settings (Employee branding / Internal Portal).
 
 ## Why it exists
 
-Organizations need clear boundaries for internal portal so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Employees need a first-party, branded chat experience — not a public website widget.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- **Tenant slug** — subdomain label
+- **Custom hostname** — customer DNS → Cloudflare → portal
+- **Branding** — logo/colors from tenant settings
 
 ## Architecture
 
-branding→auth→workspaces
-
 ```mermaid
 flowchart LR
-  DNS[Custom Domain] --> Portal
-  Portal[Internal Portal] --> Workspaces
-  Workspaces --> Chat
+  DNS[CNAME] --> Edge[Cloudflare]
+  Edge --> Portal[Internal Portal]
+  Portal --> API[api.qefro.com]
+  API --> WS[Authorized workspaces]
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Internal Portal workflow"
+  title="Go live"
   steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
+    {title: 'Choose slug', description: 'Ensure availability via public API.'},
+    {title: 'Brand', description: 'Logo and colors for employees.'},
+    {title: 'RBAC', description: 'Teams → workspaces.'},
+    {title: 'Optional custom domain', description: 'CNAME + verify in Settings.'},
   ]}
 />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+curl -sS "https://api.qefro.com/api/v1/public/tenant-slug-available?slug=acme"
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Communicate the portal URL in your IT onboarding docs
+- Keep Customer Support widget traffic off employee-only workspaces
 
 ## Security notes
 
-<Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
-</Warning>
+<InfoBox>
+Custom domains should use HTTPS only. Remove unused hostnames promptly in Settings.
+</InfoBox>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "What is Internal Portal?",
-    "answer": "The Internal Portal is the employee-facing web app for Employee AI."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Can customers use the Internal Portal?',
+      answer:
+        'No — portal users are organization members. Customers use the website widget or WhatsApp.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Employee AI', to: '/docs/platform/employee-ai'},
+    {label: 'Custom Domains', to: '/docs/platform/custom-domains'},
+    {label: 'Branding', to: '/docs/platform/branding'},
+    {label: 'RBAC', to: '/docs/platform/rbac'},
+  ]}
+/>

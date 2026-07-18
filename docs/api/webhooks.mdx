@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Webhooks"
 title: "Webhooks"
-description: "Verify and handle Qefro/Razorpay-related webhook patterns."
+description: "Razorpay billing webhooks and WhatsApp Meta webhooks."
+sidebar_label: "Webhooks"
 ---
 
 import {
@@ -10,119 +10,90 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Webhooks
 
-**Webhooks** — Verify and handle Qefro/Razorpay-related webhook patterns.
+
+**Webhooks** Qefro consumes:
+
+### Billing (Razorpay)
+- `POST /api/v1/billing/webhook`
+- Verifies Razorpay signature
+- Handles events including `payment.captured`, `payment.failed`, subscription lifecycle events
+- Failed payments stored with `error_code` / `error_reason` / `error_description`
+- Activation is idempotent on `payment_id` and order-level capture
+
+### WhatsApp (Meta)
+- `GET /api/v1/whatsapp/webhook` — verification
+- `POST /api/v1/whatsapp/webhook` — inbound messages
 
 ## Introduction
 
-This page documents webhooks for builders integrating with `https://api.qefro.com`. Full OpenAPI export will plug into this section as it is published.
+Configure Razorpay to send events to `https://api.qefro.com/api/v1/billing/webhook` and enable `payment.failed` for support visibility.
 
 ## Why it exists
 
-Stable API contracts let customers automate Admin Console workflows and embed Qefro safely.
+Async payment and messaging systems must notify Qefro without polling.
 
 ## Concepts
 
-- Base URL: `https://api.qefro.com`
-- JSON request/response bodies
-- Bearer authentication for server-side clients
+- Signature verification
+- Idempotent processing
+- Acknowledge-even-on-unknown (where safe)
 
 ## Architecture
 
-Clients call versioned REST endpoints; webhooks deliver async events.
-
 ```mermaid
 sequenceDiagram
-  participant Client
-  participant API
-  participant Qefro
-  Client->>API: Authorization Bearer
-  API->>Qefro: Authorize + route
-  Qefro-->>Client: JSON response
+  participant R as Razorpay/Meta
+  participant WH as Qefro webhook
+  participant DB as Postgres
+  R->>WH: POST signed payload
+  WH->>WH: Verify
+  WH->>DB: Upsert state
+  WH-->>R: 200
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="API usage"
-  steps={[
-    {title: 'Obtain credentials', description: 'Create an API token in the Admin Console (Developer settings).'},
-    {title: 'Call endpoints', description: 'Use HTTPS + Bearer token.'},
-    {title: 'Handle errors', description: 'Map status codes and error.code fields.'},
-    {title: 'Subscribe webhooks', description: 'Verify signatures before processing.'},
-  ]}
-/>
+<WorkflowCard title="Enable billing webhooks" steps={[
+  {title: 'Dashboard', description: 'Razorpay → Webhooks → api.qefro.com/api/v1/billing/webhook.'},
+  {title: 'Subscribe events', description: 'Include payment.captured and payment.failed.'},
+  {title: 'Test', description: 'Complete a test payment; confirm /billing/payments.'},
+]} />
 
 ## Code examples
 
-```bash
-curl -sS \
-  -H "Authorization: Bearer $QEFRO_TOKEN" \
-  -H "Content-Type: application/json" \
-  https://api.qefro.com/api/v1/billing/plans
-```
-
-```python
-import os, urllib.request
-req = urllib.request.Request(
-    "https://api.qefro.com/api/v1/billing/plans",
-    headers={"Authorization": f"Bearer {os.environ['QEFRO_TOKEN']}"},
-)
-print(urllib.request.urlopen(req).read().decode())
-```
-
-```typescript
-const res = await fetch('https://api.qefro.com/api/v1/billing/plans', {
-  headers: { Authorization: `Bearer ${process.env.QEFRO_TOKEN}` },
-});
+```text
+https://api.qefro.com/api/v1/billing/webhook
+https://api.qefro.com/api/v1/whatsapp/webhook
 ```
 
 ## Best practices
 
-- Store tokens in a secrets manager
-- Prefer workspace-scoped tokens when available
-- Log `request_id` / correlation IDs on failures
+- Keep webhook secrets only in server env
+- Treat duplicate deliveries as normal (idempotency)
 
 ## Security notes
 
 <Warning>
-Rotate tokens after teammate offboarding. Do not commit tokens to git.
+Reject unsigned payloads. Do not expose webhook URLs that skip verification.
 </Warning>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "Is OpenAPI available?",
-    "answer": "Structure is prepared here; publish your OpenAPI document under static/openapi when ready."
-  },
-  {
-    "question": "Which languages are supported?",
-    "answer": "Any HTTP client. Examples cover cURL, TypeScript, and Python."
-  }
+  {question: 'Do you send outbound webhooks to customers?', answer: 'Handoff/CRM webhooks can be configured per tenant and are SSRF-validated before egress.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "Authentication",
-    "to": "/docs/api/authentication"
-  },
-  {
-    "label": "Webhooks",
-    "to": "/docs/api/webhooks"
-  },
-  {
-    "label": "Error Codes",
-    "to": "/docs/api/error-codes"
-  },
-  {
-    "label": "Identity Forwarding",
-    "to": "/docs/platform/identity-forwarding"
-  }
+  {label: 'REST APIs', to: '/docs/api/rest-apis'},
+  {label: 'Security Overview', to: '/docs/security/overview'},
+  {label: 'WhatsApp', to: '/docs/platform/whatsapp'},
 ]} />
+
 

@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Authentication"
 title: "Authentication"
-description: "How humans and services authenticate to Qefro."
+description: "How Admin Console users, Internal Portal members, widget tokens, and APIs authenticate to Qefro."
+sidebar_label: "Authentication"
 ---
 
 import {
@@ -14,106 +14,99 @@ import {
 
 # Authentication
 
-**Authentication** verifies Admin Console users, portal employees, and API clients.
+**Authentication** in Qefro depends on the surface:
+
+| Surface | Mechanism |
+| --- | --- |
+| Admin Console / Internal Portal users | Email+password (OTP verify on signup), session JWT |
+| Website Widget | Publishable **widget token** (`Authorization: Bearer` / `?token=`) |
+| End-user identity for tools | Host JWT/session via `identify()` headers |
+| Super Admin | Separate `/api/v1/admin/auth/login` |
+| GraphQL | Same user JWT on `POST /graphql` |
+| Metrics | Optional `METRICS_AUTH_TOKEN` bearer when not public |
 
 ## Introduction
 
-Authentication is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+User auth routes live under the API (REST + GraphQL). Abuse controls rate-limit login/OTP/forgot/reset (e.g. login ~20 / 15 min per email). Sessions can be listed and revoked (`/api/v1/me/sessions`, org admin session revoke).
 
 ## Why it exists
 
-Organizations need clear boundaries for authentication so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Customer AI, Employee AI, and Admin Console have different trust levels. Mixing them would either over-expose tools or block legitimate embeds.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- **User JWT** — org member session for console/portal/REST
+- **Widget token** — site embed key; rotatable
+- **End-user token** — your customer’s JWT/session for Business Tools
+- **Super Admin** — platform operator, not tenant Owner
 
 ## Architecture
 
-session/jwt/api key
-
 ```mermaid
 flowchart TB
-  Admin[Admin Console] --> Session[Session Auth]
-  Portal[Internal Portal] --> Session
-  Widget[Widget] --> JWT[Short-lived JWT]
-  API[REST API] --> Bearer[Bearer Token]
+  Console[Admin Console] --> UserJWT[User JWT]
+  Portal[Internal Portal] --> UserJWT
+  UserJWT --> GQL[POST /graphql]
+  UserJWT --> REST[REST /api/v1/*]
+  Widget[Website Widget] --> WToken[Widget token]
+  WToken --> WS["/ws/chat"]
+  Widget --> Identify[identify JWT/session]
+  Identify --> Tools[Business Tool egress]
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Authentication workflow"
+  title="Secure a production tenant"
   steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
+    {title: 'Owner account', description: 'Strong password; verify email.'},
+    {title: 'Invite Admins', description: 'Prefer Admin over sharing Owner login.'},
+    {title: 'Rotate widget token if leaked', description: 'Update every embed.'},
+    {title: 'Revoke sessions on offboarding', description: 'me/sessions or org member sessions.'},
   ]}
 />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
+# Health is public
+curl -sS https://api.qefro.com/health
 
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+# Authenticated REST example
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/roles
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Never put User JWTs in the website widget snippet
+- Use `identify()` only for customer end users, not to impersonate org Admins
+- Review org audit logs after role changes
 
 ## Security notes
 
 <Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
+Super Admin credentials are platform-level. Tenant Owners cannot perform super-admin actions; Admins cannot transfer ownership or delete the Owner.
 </Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "What is Authentication?",
-    "answer": "Authentication verifies Admin Console users, portal employees, and API clients."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Is SSO/SAML available?',
+      answer: 'SSO/SAML is on the Enterprise roadmap — contact Sales for timeline.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'RBAC', to: '/docs/platform/rbac'},
+    {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
+    {label: 'API Authentication', to: '/docs/api/authentication'},
+    {label: 'Security Overview', to: '/docs/security/overview'},
+  ]}
+/>

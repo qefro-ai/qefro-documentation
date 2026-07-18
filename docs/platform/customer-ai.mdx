@@ -1,12 +1,11 @@
 ---
-sidebar_label: "Customer AI"
 title: "Customer AI"
-description: "External-facing assistants on website widget and WhatsApp."
+description: "External assistants on the website widget and WhatsApp, grounded in a workspace."
+sidebar_label: "Customer AI"
 ---
 
 import {
   InfoBox,
-  Warning,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
@@ -14,106 +13,84 @@ import {
 
 # Customer AI
 
-**Customer AI** is Qefro’s external assistant experience for end customers.
+**Customer AI** is Qefro’s external assistant experience for end customers — primarily the **Website Widget** and **WhatsApp** (Growth+), bound to a workspace’s knowledge and Business Tools.
 
 ## Introduction
 
-Customer AI is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Configure once in the Admin Console:
+
+- Knowledge + instructions on a Customer Support workspace
+- Widget embed (`cdn.qefro.com/widget.js`) with `data-workspace-id`
+- Optional WhatsApp Cloud API webhook at `POST /api/v1/whatsapp/webhook`
+- Optional lead capture, handoff, and CRM hooks under tenant settings
 
 ## Why it exists
 
-Organizations need clear boundaries for customer ai so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Support teams need consistent answers across website and messaging without maintaining separate bots per channel.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- **Channel** — widget or WhatsApp → same workspace knowledge plane
+- **Lead capture** — `POST /api/v1/widget/leads`
+- **Handoff** — `POST /api/v1/widget/conversations/:id/handoff` (+ tenant handoff config)
+- **Feedback** — `POST /api/v1/widget/messages/:id/feedback`
 
 ## Architecture
-
-channels→workspace→knowledge/actions
 
 ```mermaid
 flowchart LR
   W[Website Widget] --> WS[Support Workspace]
   WA[WhatsApp] --> WS
-  WS --> RAG[Knowledge]
+  WS --> RAG[Knowledge Platform]
   WS --> ACT[Business Actions]
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Customer AI workflow"
+  title="Launch Customer AI"
   steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
+    {title: 'Workspace + knowledge', description: 'Upload FAQs, policies, product docs.'},
+    {title: 'Widget', description: 'Embed and test anonymous chat.'},
+    {title: 'Optional tools', description: 'Add read-only Business Tools + identify() if needed.'},
+    {title: 'WhatsApp', description: 'Growth+ — map phone number to workspace.'},
   ]}
 />
 
 ## Code examples
 
-```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
-```
+See [Website Widget](/docs/platform/website-widget) for embed and `identify()` examples.
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Keep Internal HR knowledge out of the Customer Support workspace
+- Enable handoff when the assistant should escalate to humans
+- Review analytics and feedbacks weekly after launch
 
 ## Security notes
 
-<Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
-</Warning>
+<InfoBox>
+Widget traffic is rate-limited and message-quota enforced (`check_messages_limit_widget`). Plan conversation limits apply.
+</InfoBox>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "What is Customer AI?",
-    "answer": "Customer AI is Qefro’s external assistant experience for end customers."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Is WhatsApp on Free?',
+      answer: 'WhatsApp is available on Growth and above.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Website Widget', to: '/docs/platform/website-widget'},
+    {label: 'WhatsApp', to: '/docs/platform/whatsapp'},
+    {label: 'Build AI Customer Support', to: '/docs/guides/build-ai-customer-support'},
+    {label: 'Employee AI', to: '/docs/platform/employee-ai'},
+  ]}
+/>

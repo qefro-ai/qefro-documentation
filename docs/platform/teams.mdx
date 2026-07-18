@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Teams"
 title: "Teams"
-description: "Group users for collaboration and access patterns."
+description: "Group members and grant workspace access for Employee AI."
+sidebar_label: "Teams"
 ---
 
 import {
@@ -10,108 +10,74 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Teams
 
-**Teams** organize members inside an organization for workspace access.
+
+**Teams** organize Members inside an organization and grant access to workspaces. Owners/Admins manage teams; Members only see teams they belong to.
 
 ## Introduction
 
-Teams is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+REST: `GET/POST /api/v1/org/teams`, `PUT .../members`, `PUT .../workspaces`, and per-member write flags.
 
 ## Why it exists
 
-Organizations need clear boundaries for teams so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Employee AI needs scalable access control without making everyone an Admin.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- Team membership
+- Workspace grants
+- Document write permission
 
 ## Architecture
 
-team→workspace roles
-
 ```mermaid
 flowchart LR
-  Team[Team] --> Members
-  Team --> WS[Workspace Access]
+  Team --> Members
+  Team --> Workspaces
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="Teams workflow"
-  steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
-  ]}
-/>
+<WorkflowCard title="Team setup" steps={[
+  {title: 'Create team', description: 'Name by department.'},
+  {title: 'Add members', description: 'Invite then assign.'},
+  {title: 'Attach workspaces', description: 'Least privilege.'},
+]} />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/teams
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Mirror real departments (Support, HR, IT)
+- Avoid putting all Members on one mega-team
 
 ## Security notes
 
-<Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
-</Warning>
+<InfoBox>
+Granting a team a workspace also grants its Business Tools in that workspace.
+</InfoBox>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "What is Teams?",
-    "answer": "Teams organize members inside an organization for workspace access."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
+  {question: 'Do Owners need team membership?', answer: 'Owners/Admins already access all workspaces; teams primarily gate Members.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
+  {label: 'RBAC', to: '/docs/platform/rbac'},
+  {label: 'Employee AI', to: '/docs/platform/employee-ai'},
+  {label: 'Configure RBAC', to: '/docs/guides/configure-rbac'},
 ]} />
+
 

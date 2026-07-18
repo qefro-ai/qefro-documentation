@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Authentication"
 title: "Authentication"
-description: "Authenticate to the Qefro REST API."
+description: "Authenticate to api.qefro.com with user JWTs, widget tokens, or admin credentials."
+sidebar_label: "Authentication"
 ---
 
 import {
@@ -10,119 +10,97 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Authentication
 
-**Authentication** — Authenticate to the Qefro REST API.
+
+**API authentication** uses HTTPS to `https://api.qefro.com`.
+
+| Client | Credential |
+| --- | --- |
+| Admin Console / portal / most REST | `Authorization: Bearer <user_jwt>` |
+| Website Widget | Widget token on WS query/`Authorization` |
+| End-user for tools | `X-End-User-Token` or `X-End-User-Session` |
+| Super Admin | Token from `POST /api/v1/admin/auth/login` |
+| GraphQL | User JWT on `POST /graphql` |
 
 ## Introduction
 
-This page documents authentication for builders integrating with `https://api.qefro.com`. Full OpenAPI export will plug into this section as it is published.
+Signup/login/OTP also available via GraphQL and REST auth handlers with Redis-backed abuse rate limits.
 
 ## Why it exists
 
-Stable API contracts let customers automate Admin Console workflows and embed Qefro safely.
+Different surfaces need different trust levels without sharing Owner JWTs to browsers.
 
 ## Concepts
 
-- Base URL: `https://api.qefro.com`
-- JSON request/response bodies
-- Bearer authentication for server-side clients
+- User JWT / session jti (revocable)
+- Widget token (rotatable publishable key)
+- Forwarded end-user identity
 
 ## Architecture
-
-Clients call versioned REST endpoints; webhooks deliver async events.
 
 ```mermaid
 sequenceDiagram
   participant Client
   participant API
-  participant Qefro
   Client->>API: Authorization Bearer
-  API->>Qefro: Authorize + route
-  Qefro-->>Client: JSON response
+  API->>API: Resolve tenant + role
+  API-->>Client: JSON / stream
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="API usage"
-  steps={[
-    {title: 'Obtain credentials', description: 'Create an API token in the Admin Console (Developer settings).'},
-    {title: 'Call endpoints', description: 'Use HTTPS + Bearer token.'},
-    {title: 'Handle errors', description: 'Map status codes and error.code fields.'},
-    {title: 'Subscribe webhooks', description: 'Verify signatures before processing.'},
-  ]}
-/>
+<WorkflowCard title="Call the API" steps={[
+  {title: 'Sign in', description: 'Obtain user JWT from Admin Console login.'},
+  {title: 'Call REST or GraphQL', description: 'Include Bearer header.'},
+  {title: 'Handle 401/403', description: 'Refresh session or check RBAC.'},
+]} />
 
 ## Code examples
 
 ```bash
-curl -sS \
-  -H "Authorization: Bearer $QEFRO_TOKEN" \
+curl -sS -H "Authorization: Bearer $USER_JWT" \
   -H "Content-Type: application/json" \
   https://api.qefro.com/api/v1/billing/plans
 ```
 
-```python
-import os, urllib.request
-req = urllib.request.Request(
-    "https://api.qefro.com/api/v1/billing/plans",
-    headers={"Authorization": f"Bearer {os.environ['QEFRO_TOKEN']}"},
-)
-print(urllib.request.urlopen(req).read().decode())
-```
-
 ```typescript
-const res = await fetch('https://api.qefro.com/api/v1/billing/plans', {
-  headers: { Authorization: `Bearer ${process.env.QEFRO_TOKEN}` },
+await fetch('https://api.qefro.com/graphql', {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${userJwt}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ query: '{ __typename }' }),
 });
 ```
 
 ## Best practices
 
-- Store tokens in a secrets manager
-- Prefer workspace-scoped tokens when available
-- Log `request_id` / correlation IDs on failures
+- Store JWTs in memory/httpOnly patterns appropriate to your client
+- Rotate widget tokens after incidents
 
 ## Security notes
 
 <Warning>
-Rotate tokens after teammate offboarding. Do not commit tokens to git.
+Never commit JWTs or widget tokens to git. Prefer environment injection in CI.
 </Warning>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "Is OpenAPI available?",
-    "answer": "Structure is prepared here; publish your OpenAPI document under static/openapi when ready."
-  },
-  {
-    "question": "Which languages are supported?",
-    "answer": "Any HTTP client. Examples cover cURL, TypeScript, and Python."
-  }
+  {question: 'Is there a long-lived API key product?', answer: 'Day-to-day automation uses user JWTs / console sessions today. Prefer server-side jobs with tightly scoped accounts.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "Authentication",
-    "to": "/docs/api/authentication"
-  },
-  {
-    "label": "Webhooks",
-    "to": "/docs/api/webhooks"
-  },
-  {
-    "label": "Error Codes",
-    "to": "/docs/api/error-codes"
-  },
-  {
-    "label": "Identity Forwarding",
-    "to": "/docs/platform/identity-forwarding"
-  }
+  {label: 'REST APIs', to: '/docs/api/rest-apis'},
+  {label: 'Webhooks', to: '/docs/api/webhooks'},
+  {label: 'Platform Authentication', to: '/docs/platform/authentication'},
 ]} />
+
 

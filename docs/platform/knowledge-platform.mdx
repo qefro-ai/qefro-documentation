@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Knowledge Platform"
 title: "Knowledge Platform"
-description: "Hybrid BM25+vector RAG with OCR, crawl, citations, and isolation."
+description: "Document ingest, crawl, OCR, hybrid BM25+vector retrieval, citations, and workspace isolation."
+sidebar_label: "Knowledge Platform"
 ---
 
 import {
@@ -14,105 +14,93 @@ import {
 
 # Knowledge Platform
 
-The **Knowledge Platform** indexes organizational content for retrieval-augmented generation.
+The **Knowledge Platform** indexes organizational content for retrieval-augmented generation (RAG). Uploads and crawls are chunked, embedded, and retrieved with **hybrid BM25 + vector** search. Answers include **citations**; the assistant is guided to refuse when no relevant source exists.
 
 ## Introduction
 
-Knowledge Platform is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Ingest paths in the real API:
+
+- `POST /api/v1/documents` — multipart upload (quota: `check_documents_limit`)
+- `POST /api/v1/documents/text` — create from raw text
+- `POST /api/v1/documents/:id/reindex` — rebuild index for a document
+- GraphQL mutations for console workflows including **website crawl**
+- `GET /api/v1/documents/:id/view` — authorized document view
+
+Supported formats include PDF, DOCX, Markdown, TXT; OCR covers scans/images. Multilingual retrieval supports EN, AR, TA, HI and more.
 
 ## Why it exists
 
-Organizations need clear boundaries for knowledge platform so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Customer AI and Employee AI must share one high-quality retrieval stack with hard **workspace isolation**.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- **Document / chunk / embedding** — indexed units
+- **Hybrid retrieval** — lexical + vector
+- **Citation** — source attribution in answers
+- **Isolation** — workspace-scoped indexes
 
 ## Architecture
 
-ingest→index→retrieve→cite
-
 ```mermaid
 flowchart LR
-  Docs[Docs/Crawl/OCR] --> Index[Hybrid Index]
-  Index --> Retrieve[Retrieve]
-  Retrieve --> Cite[Answer + Citations]
+  Upload[Upload / Crawl / OCR] --> Chunk[Chunk]
+  Chunk --> Index[Hybrid index]
+  Query[User question] --> Retrieve[Retrieve]
+  Index --> Retrieve
+  Retrieve --> Gen[Generate + cite]
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Knowledge Platform workflow"
+  title="Improve answer quality"
   steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
+    {title: 'Curate sources', description: 'Prefer canonical policies over stale copies.'},
+    {title: 'Ingest', description: 'Upload or crawl; wait for indexing.'},
+    {title: 'Probe', description: 'Ask known questions; verify citations.'},
+    {title: 'Reindex', description: 'Use reindex after content corrections.'},
   ]}
 />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+curl -sS -X POST \
+  -H "Authorization: Bearer $USER_JWT" \
+  -F "file=@policy.pdf" \
+  -F "workspace_id=$WORKSPACE_ID" \
+  https://api.qefro.com/api/v1/documents
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Separate customer vs employee corpora by workspace
+- Re-test after every major document delete/replace
+- Prefer crawl allowlists over unbounded domains
 
 ## Security notes
 
 <Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
+Deleting a document removes associated chunks/embeddings. Confirm before destructive operations in production workspaces.
 </Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "What is Knowledge Platform?",
-    "answer": "The Knowledge Platform indexes organizational content for retrieval-augmented generation."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Do I host the vector DB?',
+      answer: 'Not on Qefro cloud — indexing and retrieval are platform-managed.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'AI Workspaces', to: '/docs/platform/ai-workspaces'},
+    {label: 'Quick Start', to: '/docs/getting-started/quick-start'},
+    {label: 'Customer AI', to: '/docs/platform/customer-ai'},
+  ]}
+/>

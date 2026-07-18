@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Secure Business Actions"
 title: "Secure Business Actions"
-description: "Harden tools, secrets, and identity forwarding."
+description: "Least privilege tools, encrypted secrets, identify(), SSRF, logs."
+sidebar_label: "Secure Business Actions"
 ---
 
 import {
@@ -14,102 +14,54 @@ import {
 
 # Secure Business Actions
 
-**Secure Business Actions** is a practical guide: Harden tools, secrets, and identity forwarding.
+
+**Secure Business Actions** — Least privilege tools, encrypted secrets, identify(), SSRF, logs.
 
 ## Introduction
 
-Follow this guide to harden tools, secrets, and identity forwarding. using the Qefro Admin Console and documented APIs.
+Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
 
 ## Why it exists
 
-Guides encode the recommended path so teams avoid insecure shortcuts and incomplete go-lives.
+Guides encode the recommended path so teams avoid insecure shortcuts.
 
 ## Concepts
 
-- Prerequisites (plan, roles, workspace)
-- Configuration steps
-- Validation and rollback
+See linked platform pages for definitions used in this guide.
 
 ## Architecture
-
-Guide steps map to Admin Console configuration and optional API calls.
 
 ```mermaid
 flowchart TD
   A[Prerequisites] --> B[Configure]
   B --> C[Validate]
   C --> D[Go live]
-  D --> E[Monitor]
 ```
+
 
 ## Workflow
 
-<WorkflowCard
-  title="Secure Business Actions"
-  steps={[
-    {title: 'Prerequisites', description: 'Confirm plan limits, Owner/Admin access, and target workspace.'},
-    {title: 'Configure', description: 'Apply settings described in this guide.'},
-    {title: 'Validate', description: 'Run test conversations and permission checks.'},
-    {title: 'Go live', description: 'Enable channels or publish portal access.'},
-  ]}
-/>
-
-## Code examples
-
-```bash
-# Example curl pattern against the API host
-curl -sS -H "Authorization: Bearer $TOKEN" \
-  https://api.qefro.com/api/v1/health
-```
-
-```javascript
-// Widget snippet placeholder — replace with your workspace keys from the console
-window.QefroWidget?.init({ workspaceId: 'YOUR_WORKSPACE_ID' });
-```
-
-## Best practices
-
-- Keep a staging workspace for experiments
-- Record owners and runbooks before production
-- Re-test after every OpenAPI/tool change
+<WorkflowCard title="Harden tools" steps={[
+  {title: 'Least privilege', description: 'Read-only first.'},
+  {title: 'Encrypt secrets', description: 'Never in frontend.'},
+  {title: 'identify() when needed', description: 'Per-user APIs.'},
+  {title: 'Review logs', description: 'GET /api/v1/tools/:id/logs.'},
+  {title: 'Separate workspaces', description: 'Customer vs internal tools.'},
+]} />
 
 ## Security notes
 
-<InfoBox>
-Prefer encrypted secrets in Business Tools. Never paste production credentials into chat transcripts or screenshots.
-</InfoBox>
-
-## FAQ
-
-<FaqAccordion items={[
-  {
-    "question": "How long does this take?",
-    "answer": "Typically 30–90 minutes depending on knowledge volume and API readiness."
-  },
-  {
-    "question": "What if validation fails?",
-    "answer": "Disable the channel, fix knowledge/tools, and re-test before re-enabling."
-  }
-]} />
+<Warning>
+Outbound calls are SSRF-validated. Do not weaken DNS pinning for convenience.
+</Warning>
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "Quick Start",
-    "to": "/docs/getting-started/quick-start"
-  },
-  {
-    "label": "Business Tools",
-    "to": "/docs/platform/business-tools"
-  },
-  {
-    "label": "RBAC",
-    "to": "/docs/platform/rbac"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  }
+  {label: 'Business Actions', to: '/docs/platform/business-actions'},
+  {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
+  {label: 'Security Overview', to: '/docs/security/overview'},
 ]} />
+
+
 

@@ -1,7 +1,7 @@
 ---
-sidebar_label: "SDKs"
 title: "SDKs"
-description: "Official and community SDK guidance."
+description: "Official widget package and HTTP examples for server integrations."
+sidebar_label: "SDKs"
 ---
 
 import {
@@ -10,119 +10,84 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # SDKs
 
-**SDKs** — Official and community SDK guidance.
+
+**SDKs** today center on the embeddable widget:
+
+- npm: `@qefro-ai/widget`
+- CDN: `https://cdn.qefro.com/widget.js`
+
+Server integrations use ordinary HTTPS clients against `api.qefro.com` (REST + GraphQL).
 
 ## Introduction
 
-This page documents sdks for builders integrating with `https://api.qefro.com`. Full OpenAPI export will plug into this section as it is published.
+The widget exposes `open`, `setContext`, `identify`, `setAuthToken`, and `clearIdentity`.
 
 ## Why it exists
 
-Stable API contracts let customers automate Admin Console workflows and embed Qefro safely.
+Most customers embed chat in a website; npm/CDN coverage matters more than a dozen language SDKs.
 
 ## Concepts
 
-- Base URL: `https://api.qefro.com`
-- JSON request/response bodies
-- Bearer authentication for server-side clients
+- Widget SDK
+- REST/GraphQL via fetch/curl
 
 ## Architecture
 
-Clients call versioned REST endpoints; webhooks deliver async events.
-
 ```mermaid
-sequenceDiagram
-  participant Client
-  participant API
-  participant Qefro
-  Client->>API: Authorization Bearer
-  API->>Qefro: Authorize + route
-  Qefro-->>Client: JSON response
+flowchart LR
+  NPM["@qefro-ai/widget"] --> API
+  CDN[widget.js] --> API
+  Server[Your backend] --> API
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="API usage"
-  steps={[
-    {title: 'Obtain credentials', description: 'Create an API token in the Admin Console (Developer settings).'},
-    {title: 'Call endpoints', description: 'Use HTTPS + Bearer token.'},
-    {title: 'Handle errors', description: 'Map status codes and error.code fields.'},
-    {title: 'Subscribe webhooks', description: 'Verify signatures before processing.'},
-  ]}
-/>
+<WorkflowCard title="Choose a client" steps={[
+  {title: 'Browser', description: 'Use widget SDK.'},
+  {title: 'Backend automation', description: 'User JWT + REST.'},
+]} />
 
 ## Code examples
 
 ```bash
-curl -sS \
-  -H "Authorization: Bearer $QEFRO_TOKEN" \
-  -H "Content-Type: application/json" \
-  https://api.qefro.com/api/v1/billing/plans
+npm install @qefro-ai/widget
 ```
 
-```python
-import os, urllib.request
-req = urllib.request.Request(
-    "https://api.qefro.com/api/v1/billing/plans",
-    headers={"Authorization": f"Bearer {os.environ['QEFRO_TOKEN']}"},
-)
-print(urllib.request.urlopen(req).read().decode())
-```
-
-```typescript
-const res = await fetch('https://api.qefro.com/api/v1/billing/plans', {
-  headers: { Authorization: `Bearer ${process.env.QEFRO_TOKEN}` },
+```javascript
+import { Widget } from '@qefro-ai/widget';
+const widget = new Widget({
+  token: process.env.QEFRO_WIDGET_TOKEN,
+  endpoint: 'https://api.qefro.com',
 });
 ```
 
 ## Best practices
 
-- Store tokens in a secrets manager
-- Prefer workspace-scoped tokens when available
-- Log `request_id` / correlation IDs on failures
+- Pin widget CDN versions in enterprise change control if you mirror the script
+- Keep server secrets off the client
 
 ## Security notes
 
 <Warning>
-Rotate tokens after teammate offboarding. Do not commit tokens to git.
+Do not ship Owner JWTs inside frontend bundles.
 </Warning>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "Is OpenAPI available?",
-    "answer": "Structure is prepared here; publish your OpenAPI document under static/openapi when ready."
-  },
-  {
-    "question": "Which languages are supported?",
-    "answer": "Any HTTP client. Examples cover cURL, TypeScript, and Python."
-  }
+  {question: 'Python/Rust SDKs?', answer: 'Use HTTP. Examples are in the Examples page.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "Authentication",
-    "to": "/docs/api/authentication"
-  },
-  {
-    "label": "Webhooks",
-    "to": "/docs/api/webhooks"
-  },
-  {
-    "label": "Error Codes",
-    "to": "/docs/api/error-codes"
-  },
-  {
-    "label": "Identity Forwarding",
-    "to": "/docs/platform/identity-forwarding"
-  }
+  {label: 'Website Widget', to: '/docs/platform/website-widget'},
+  {label: 'Examples', to: '/docs/api/examples'},
 ]} />
+
 

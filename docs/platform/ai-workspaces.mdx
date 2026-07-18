@@ -1,6 +1,6 @@
 ---
 title: "AI Workspaces"
-description: "Isolated AI contexts with their own knowledge, instructions, actions, and conversations."
+description: "Isolated AI contexts in a Qefro organization — knowledge, instructions, Business Tools, and conversations."
 sidebar_label: "AI Workspaces"
 ---
 
@@ -18,95 +18,88 @@ import TabItem from '@theme/TabItem';
 
 # AI Workspaces
 
-An **AI Workspace** is a scoped AI environment for a team or use case inside a Qefro organization. Every workspace has its own knowledge base, instructions, Business Tools, conversations, and permission boundaries.
+An **AI Workspace** is a scoped AI environment inside a Qefro **organization (tenant)**. Each workspace has its own knowledge base, assistant instructions, Business Tools, and conversations. Customer AI (website widget, WhatsApp) and Employee AI (Internal Portal) bind to workspaces you configure in the Admin Console.
 
 ## Introduction
 
-Qefro is organized around workspaces — for example Customer Support, HR, or IT. Configure once in the Admin Console, then deploy Customer AI and Employee AI experiences that read from the correct workspace.
+In the product data model:
+
+- **Organization / tenant** — top-level isolation and billing boundary (`app.qefro.com` signup)
+- **Workspace** — team/use-case boundary (Customer Support, HR, IT, …)
+- **Team (org RBAC)** — grants Members access to specific workspaces
+
+Admin Console APIs expose workspaces under `/api/v1/org/workspaces` (list/get) and GraphQL for day-to-day console operations.
 
 ## Why it exists
 
-Organizations rarely have one corpus and one audience. Mixing customer FAQs with internal HR policy creates inaccurate answers and privacy risk. Workspaces make isolation the default.
+Mixing customer FAQs with internal HR policy causes inaccurate answers and privacy risk. Workspaces make isolation the default: retrieval and Business Actions stay inside the selected workspace.
 
 ## Concepts
 
-| Concept | Meaning |
+| Term | Meaning in Qefro |
 | --- | --- |
-| Organization | Tenant that owns users, billing, and workspaces |
+| Organization | Tenant: users, billing, branding, widget token |
 | Workspace | Isolated knowledge + tools + conversations |
 | Instructions | System guidance (tone, language, refusal) |
-| Business Tools | Connectors available to actions in the workspace |
-| Experience | Widget, Internal Portal, or WhatsApp bound to a workspace |
+| Business Tools | REST/OpenAPI connectors bound to a workspace |
+| Experience | Widget, Internal Portal, or WhatsApp → workspace |
 
 ## Architecture
 
 ```mermaid
 flowchart TB
-  Org[Organization]
+  Org[Organization / tenant]
   Org --> WS1[Workspace: Customer Support]
   Org --> WS2[Workspace: HR]
   Org --> WS3[Workspace: IT]
-  WS1 --> K1[Knowledge]
+  WS1 --> K1[Knowledge index]
   WS1 --> T1[Business Tools]
   WS1 --> C1[Conversations]
-  WS2 --> K2[Knowledge]
-  WS2 --> T2[Business Tools]
-  WS3 --> K3[Knowledge]
+  Widget[Website Widget] --> WS1
+  Portal[Internal Portal] --> WS2
+  WA[WhatsApp] --> WS1
 ```
 
 <FeatureCardGrid>
-  <ArchitectureCard layer="Boundary" title="Tenant" description="Organization-level isolation for users and billing." />
-  <ArchitectureCard layer="Boundary" title="Workspace" description="Knowledge and tools never cross unless you explicitly design it." />
-  <ArchitectureCard layer="Runtime" title="Experiences" description="Widget, portal, and WhatsApp select a workspace at runtime." />
+  <ArchitectureCard layer="Tenant" title="Organization" description="Billing, members, branding, publishable widget token." />
+  <ArchitectureCard layer="Scope" title="Workspace" description="Knowledge and tools never cross unless you design it." />
+  <ArchitectureCard layer="Access" title="Teams + RBAC" description="Owner/Admin/Member; Members only see granted workspaces." />
 </FeatureCardGrid>
 
 ## Workflow
 
 <WorkflowCard
-  title="Create and operate a workspace"
+  title="Operate a workspace"
   steps={[
-    {title: 'Create', description: 'Name the workspace and assign owners.'},
-    {title: 'Ingest knowledge', description: 'Upload docs or crawl approved sites.'},
-    {title: 'Attach tools', description: 'Bind least-privilege Business Tools.'},
-    {title: 'Connect channels', description: 'Widget, portal, and/or WhatsApp.'},
-    {title: 'Monitor', description: 'Review analytics, refusals, and action logs.'},
+    {title: 'Create', description: 'Admin Console → create workspace and name the use case.'},
+    {title: 'Ingest knowledge', description: 'Upload documents or crawl approved sites (POST /api/v1/documents).'},
+    {title: 'Attach tools', description: 'Under the workspace, create integrations/tools or import OpenAPI.'},
+    {title: 'Bind channels', description: 'Widget data-workspace-id, portal workspace access, WhatsApp mapping.'},
+    {title: 'Monitor', description: 'Analytics, feedbacks, and tool execution logs.'},
   ]}
 />
 
 ## Code examples
 
 <Tabs>
-  <TabItem value="json" label="JSON" default>
+  <TabItem value="html" label="Widget bind" default>
 
-```json
-{
-  "organization_id": "org_...",
-  "workspace": {
-    "name": "Customer Support",
-    "instructions": "Answer only from knowledge. Cite sources. Refuse when unsure.",
-    "channels": ["website_widget", "whatsapp"]
-  }
-}
+```html
+<script
+  src="https://cdn.qefro.com/widget.js"
+  data-token="YOUR_WIDGET_TOKEN"
+  data-endpoint="https://api.qefro.com"
+  data-workspace-id="YOUR_WORKSPACE_ID">
+</script>
 ```
 
   </TabItem>
-  <TabItem value="ts" label="TypeScript">
-
-```typescript
-type Workspace = {
-  id: string;
-  name: string;
-  instructions: string;
-  knowledgeIsolated: true;
-};
-```
-
-  </TabItem>
-  <TabItem value="curl" label="cURL">
+  <TabItem value="curl" label="Org workspaces API">
 
 ```bash
-curl -sS -H "Authorization: Bearer $QEFRO_TOKEN" \
-  https://api.qefro.com/api/v1/workspaces
+curl -sS \
+  -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/workspaces
 ```
 
   </TabItem>
@@ -115,19 +108,15 @@ curl -sS -H "Authorization: Bearer $QEFRO_TOKEN" \
 ## Best practices
 
 - One primary audience per workspace (customers vs employees)
-- Start narrow: high-quality docs before bulk imports
-- Test cross-topic questions to prove isolation
-- Document a human owner for each workspace
+- Start narrow on knowledge quality before bulk imports
+- Cross-test: ask Support questions against HR knowledge to prove isolation
+- Assign a human owner per workspace
 
 ## Security notes
 
 <Warning>
-Do not attach privileged Business Tools to a public Customer AI workspace without identity forwarding and strict allowlists.
+Do not attach privileged write Business Tools to a public Customer AI workspace without identity forwarding (`identify()`) and least-privilege scopes.
 </Warning>
-
-<InfoBox>
-Workspace isolation is complementary to tenant isolation. Both must hold under test.
-</InfoBox>
 
 ## FAQ
 
@@ -136,17 +125,12 @@ Workspace isolation is complementary to tenant isolation. Both must hold under t
     {
       question: 'What is an AI Workspace?',
       answer:
-        'A scoped AI environment with its own knowledge, instructions, tools, and conversations inside a Qefro organization.',
+        'A scoped AI environment with its own knowledge, instructions, Business Tools, and conversations inside a Qefro organization.',
     },
     {
-      question: 'Can two workspaces share the same documents?',
+      question: 'How do Members get access?',
       answer:
-        'Upload or connect sources per workspace. Sharing should be intentional — do not rely on accidental overlap.',
-    },
-    {
-      question: 'How do workspaces relate to teams?',
-      answer:
-        'Teams and RBAC control who can configure or use a workspace. See Teams and RBAC docs.',
+        'Via Organization → Teams: add users to a team, then attach workspaces to that team. Owners/Admins can access all workspaces.',
     },
   ]}
 />
@@ -157,10 +141,10 @@ Workspace isolation is complementary to tenant isolation. Both must hold under t
   topics={[
     {label: 'Knowledge Platform', to: '/docs/platform/knowledge-platform'},
     {label: 'Business Actions', to: '/docs/platform/business-actions'},
+    {label: 'Business Tools', to: '/docs/platform/business-tools'},
     {label: 'RBAC', to: '/docs/platform/rbac'},
-    {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
-    {label: 'Analytics', to: '/docs/platform/analytics'},
     {label: 'Customer AI', to: '/docs/platform/customer-ai'},
     {label: 'Employee AI', to: '/docs/platform/employee-ai'},
+    {label: 'Analytics', to: '/docs/platform/analytics'},
   ]}
 />

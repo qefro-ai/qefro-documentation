@@ -1,112 +1,112 @@
 ---
-sidebar_label: "Quick Start"
 title: "Quick Start"
-description: "Create an AI Workspace, upload knowledge, and chat in under 15 minutes."
+description: "Create a workspace, upload documents, test chat, then embed the website widget."
+sidebar_label: "Quick Start"
 ---
 
 import {
   InfoBox,
   Warning,
+  Success,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
+  ComparisonTable,
 } from '@site/src/components';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Quick Start
 
-**Quick Start** walks through creating a workspace, adding documents, and testing Customer AI in the Admin Console.
+
+**Quick Start** gets you from an empty organization to cited answers in the Admin Console, then optionally to a live website widget.
 
 ## Introduction
 
-This guide produces a working AI Workspace grounded on your documents. You will not yet expose a public widget or WhatsApp channel — that comes in the deploy guides.
+In Qefro, knowledge is scoped to a **workspace**. Customer AI (widget / WhatsApp) and Employee AI (Internal Portal) both bind to workspaces you configure in the Admin Console.
 
 ## Why it exists
 
-A short path from empty tenant to cited answers validates retrieval quality before you connect actions or channels.
+Validating retrieval quality before connecting Business Tools or public channels avoids shipping an inaccurate assistant.
 
 ## Concepts
 
-- **Document** — PDF, DOCX, Markdown, TXT, or crawled page
-- **Citation** — source reference returned with answers
-- **Instruction** — system guidance for tone and scope
+- **Document** — PDF, DOCX, Markdown, TXT, or crawled pages; chunked and indexed with hybrid BM25 + vector retrieval
+- **Citation** — answers include source references; the model is instructed to refuse when no relevant source exists
+- **Widget token** — publishable embed key from **Widget** in the Admin Console (rotatable)
 
 ## Architecture
 
-Upload → chunk/embed → hybrid retrieve → generate with citations.
-
 ```mermaid
 sequenceDiagram
-  participant Admin
-  participant Console
-  participant Knowledge
-  participant AI
-  Admin->>Console: Create workspace
-  Admin->>Knowledge: Upload PDF
-  Admin->>AI: Ask test question
-  AI->>Knowledge: Retrieve chunks
-  AI-->>Admin: Answer + citations
+  participant You
+  participant Console as Admin Console
+  participant API as api.qefro.com
+  participant RAG as Knowledge Platform
+  You->>Console: Create workspace
+  You->>Console: Upload PDF / crawl site
+  Console->>API: GraphQL + POST /api/v1/documents
+  API->>RAG: Chunk, embed, index
+  You->>Console: Test chat
+  API->>RAG: Hybrid retrieve
+  RAG-->>You: Answer + citations
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="First workspace"
+  title="First productive workspace"
   steps={[
-    {title: 'Create workspace', description: 'Name it (e.g. Customer Support).'},
-    {title: 'Upload docs', description: 'Add policies, FAQs, and product guides.'},
-    {title: 'Set instructions', description: 'Define tone, language, and refusal behavior.'},
-    {title: 'Test chat', description: 'Ask questions that should and should not be answerable.'},
+    {title: 'Create workspace', description: 'Admin Console → Workspaces (e.g. Customer Support).'},
+    {title: 'Add knowledge', description: 'Documents → upload files or start a website crawl.'},
+    {title: 'Set instructions', description: 'Define tone, languages, and refusal behavior for the assistant.'},
+    {title: 'Test in console', description: 'Ask in-scope and out-of-scope questions; check citations.'},
+    {title: 'Embed widget (optional)', description: 'Widget page → copy script with data-token and data-workspace-id.'},
   ]}
 />
 
 ## Code examples
 
-```json
-{
-  "workspace": "customer-support",
-  "instructions": "Answer only from knowledge. Cite sources. Refuse when unsure."
-}
+Website embed (values come from Admin Console → Widget):
+
+```html
+<script
+  src="https://cdn.qefro.com/widget.js"
+  data-token="YOUR_WIDGET_TOKEN"
+  data-endpoint="https://api.qefro.com"
+  data-theme="auto"
+  data-position="bottom-right"
+  data-workspace-id="YOUR_WORKSPACE_ID">
+</script>
 ```
 
 ## Best practices
 
-- Start with 5–20 high-quality documents, not an entire drive dump
+- Start with 5–20 high-quality docs, not a full drive dump
+- Keep customer-facing and employee knowledge in separate workspaces
 - Test refusal: ask something outside the corpus
-- Keep Customer Support and Employee AI in separate workspaces
 
 ## Security notes
 
 <InfoBox>
-Workspace knowledge is isolated. Documents in HR must not appear in Customer Support answers.
+Workspace knowledge is isolated. HR documents must not answer Customer Support widget questions.
 </InfoBox>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "How long until documents are searchable?",
-    "answer": "Usually seconds to a few minutes depending on size and OCR."
-  },
-  {
-    "question": "Can I use website crawl instead of upload?",
-    "answer": "Yes — see Knowledge Platform."
-  }
+  {question: 'How long until uploads are searchable?', answer: 'Usually seconds to a few minutes depending on size and OCR.'},
+  {question: 'Is chat WebSocket or HTTP?', answer: 'The widget prefers WebSocket at /ws/chat?token=… with HTTP SSE fallback at POST /api/v1/widget/chat.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Knowledge Platform",
-    "to": "/docs/platform/knowledge-platform"
-  },
-  {
-    "label": "Build AI Customer Support",
-    "to": "/docs/guides/build-ai-customer-support"
-  }
+  {label: 'AI Workspaces', to: '/docs/platform/ai-workspaces'},
+  {label: 'Knowledge Platform', to: '/docs/platform/knowledge-platform'},
+  {label: 'Website Widget', to: '/docs/platform/website-widget'},
+  {label: 'Build AI Customer Support', to: '/docs/guides/build-ai-customer-support'},
 ]} />
+
 

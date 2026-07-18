@@ -1,32 +1,32 @@
 ---
 title: Glossary
-description: Canonical Qefro terminology for AI Workspaces and related concepts.
+description: Canonical Qefro terminology aligned with the product.
 ---
 
 import { RelatedTopics } from '@site/src/components';
 
 # Glossary
 
-**Glossary** defines Qefro terms used across documentation and product UI.
-
 | Term | Definition |
 | --- | --- |
-| AI Workspace | Isolated AI context with knowledge, instructions, actions, and conversations |
-| Customer AI | External assistant on website widget and/or WhatsApp |
-| Employee AI | Internal assistant via Internal Portal |
-| Knowledge Platform | Ingestion + hybrid retrieval + citations |
+| Organization / Tenant | Top-level account boundary for billing and isolation |
+| AI Workspace | Isolated knowledge + tools + conversations |
+| Customer AI | Website widget and/or WhatsApp assistants |
+| Employee AI | Internal Portal assistants for org members |
+| Knowledge Platform | Ingest + hybrid retrieval + citations |
 | Business Tool | REST/OpenAPI connector with encrypted credentials |
-| Business Action | Authorized execution of a Business Tool |
-| Identity Forwarding | Passing verified end-user identity into actions |
-| Internal Portal | Branded employee web experience |
-| Organization | Top-level tenant |
-| RBAC | Role-based access control (Owner/Admin/Member) |
+| Business Action | Runtime invocation of a Business Tool |
+| Identity Forwarding | identify() end-user JWT/session into tool calls |
+| Widget token | Publishable embed key for cdn.qefro.com/widget.js |
+| Internal Portal | your-company.qefro.com employee experience |
+| Owner / Admin / Member | Organization RBAC roles |
+| Team | Grants Members access to workspaces |
 
 ## Related topics
 
 <RelatedTopics topics={[
   {label: 'AI Workspaces', to: '/docs/platform/ai-workspaces'},
-  {label: 'Business Actions', to: '/docs/platform/business-actions'},
+  {label: 'Business Tools', to: '/docs/platform/business-tools'},
   {label: 'FAQ', to: '/docs/faq'},
 ]} />
 

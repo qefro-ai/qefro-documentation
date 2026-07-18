@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Business Tools"
 title: "Business Tools"
-description: "REST connectors and OpenAPI imports with encrypted credentials."
+description: "REST connectors and OpenAPI import that power Business Actions — encrypted credentials, test, logs."
+sidebar_label: "Business Tools"
 ---
 
 import {
@@ -10,110 +10,133 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Business Tools
 
-**Business Tools** are the configured connectors that power Business Actions.
+**Business Tools** are workspace-scoped connectors (REST APIs and OpenAPI imports) that the assistant can invoke as **Business Actions**. Credentials are stored encrypted server-side. Qefro does not become your CRM/ERP — tools call *your* systems of record.
 
 ## Introduction
 
-Business Tools is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Admin Console → workspace → integrations/tools. REST surface (authenticated with the user’s Admin Console JWT):
+
+| Method | Path |
+| --- | --- |
+| GET/POST | `/api/v1/workspaces/:workspace_id/integrations` |
+| POST | `/api/v1/workspaces/:workspace_id/integrations/import/preview` |
+| POST | `/api/v1/workspaces/:workspace_id/integrations/import/preview/upload` |
+| POST | `/api/v1/workspaces/:workspace_id/integrations/import/apply` |
+| GET/PATCH/DELETE | `/api/v1/integrations/:id` |
+| POST | `/api/v1/integrations/:id/reimport` |
+| GET/POST | `/api/v1/workspaces/:workspace_id/tools` |
+| GET/PATCH/DELETE | `/api/v1/tools/:id` |
+| POST | `/api/v1/tools/:id/test` |
+| GET | `/api/v1/tools/:id/logs` |
+
+Plan limits (from domain `PlanDefinition.business_tools_limit`):
+
+| Plan | Business Tools |
+| --- | --- |
+| Free | 1 |
+| Starter | 5 |
+| Growth / Enterprise | Unlimited (`-1`) |
 
 ## Why it exists
 
-Organizations need clear boundaries for business tools so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Most chatbots only answer from documents. Qefro also executes configured actions (order status, ticket create, …) under RBAC, SSRF protections, and execution logs.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- **Integration** — connector grouping (often from OpenAPI)
+- **Tool** — invocable operation (method, URL template, auth)
+- **Execution log** — audit trail for tool runs (`/api/v1/tools/:id/logs`)
+- **Test** — `POST /api/v1/tools/:id/test` (rate-limited)
 
 ## Architecture
 
-openapi/rest→secrets→workspace binding
-
 ```mermaid
 flowchart TB
-  OpenAPI[OpenAPI Import] --> Tool[Business Tool]
-  REST[Manual REST] --> Tool
-  Tool --> Secret[Encrypted Credentials]
-  Tool --> WS[Workspace Binding]
+  OpenAPI[OpenAPI import] --> Integration
+  REST[Manual REST tool] --> Tool
+  Integration --> Tool
+  Tool --> Secrets[Encrypted credentials]
+  Tool --> Exec[SSRF-checked HTTPS egress]
+  Exec --> Logs[Execution logs]
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Business Tools workflow"
+  title="Add a tool"
   steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
+    {title: 'Choose workspace', description: 'Tools are workspace-scoped.'},
+    {title: 'Import or create', description: 'OpenAPI preview/apply or manual REST tool.'},
+    {title: 'Store secrets', description: 'API keys / OAuth material encrypted at rest.'},
+    {title: 'Test', description: 'POST /api/v1/tools/:id/test from the console.'},
+    {title: 'Monitor', description: 'Review /logs after production traffic.'},
   ]}
 />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
+# List tools for a workspace
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/workspaces/$WORKSPACE_ID/tools
+
+# Test a tool
+curl -sS -X POST -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/test \
+  -H 'Content-Type: application/json' \
+  -d '{}'
 ```
 
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
-```
+<ApiEndpointCard
+  method="POST"
+  path="/api/v1/workspaces/:workspace_id/integrations/import/apply"
+  description="Apply a previously previewed OpenAPI import into integrations/tools."
+/>
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Prefer read-only tools during pilots
+- Re-import OpenAPI after upstream API changes (`/reimport`)
+- Keep customer-facing tools separate from privileged internal tools (different workspaces)
 
 ## Security notes
 
 <Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
+Outbound tool URLs are SSRF-validated (HTTPS, blocked private/link-local targets, DNS pinning for webhooks). Do not disable these controls for convenience.
 </Warning>
+
+MCP connectors are on the roadmap — not required for REST/OpenAPI today.
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "What is Business Tools?",
-    "answer": "Business Tools are the configured connectors that power Business Actions."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'What is the difference between Business Tools and Business Actions?',
+      answer:
+        'Tools are the configured connectors. Actions are the runtime invocations the AI performs using those tools.',
+    },
+    {
+      question: 'How does identify() relate?',
+      answer:
+        'Website end-user JWT/session can be forwarded into tool calls so your API authorizes the real customer.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Business Actions', to: '/docs/platform/business-actions'},
+    {label: 'Import OpenAPI', to: '/docs/guides/import-openapi'},
+    {label: 'Connect REST APIs', to: '/docs/guides/connect-rest-apis'},
+    {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
+    {label: 'Security Overview', to: '/docs/security/overview'},
+  ]}
+/>

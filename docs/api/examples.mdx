@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Examples"
 title: "Examples"
-description: "cURL, TypeScript, and Python examples."
+description: "cURL, TypeScript, and Python examples against production hosts."
+sidebar_label: "Examples"
 ---
 
 import {
@@ -10,60 +10,46 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Examples
 
-**Examples** — cURL, TypeScript, and Python examples.
 
-## Introduction
+**Examples** for common calls.
 
-This page documents examples for builders integrating with `https://api.qefro.com`. Full OpenAPI export will plug into this section as it is published.
-
-## Why it exists
-
-Stable API contracts let customers automate Admin Console workflows and embed Qefro safely.
-
-## Concepts
-
-- Base URL: `https://api.qefro.com`
-- JSON request/response bodies
-- Bearer authentication for server-side clients
-
-## Architecture
-
-Clients call versioned REST endpoints; webhooks deliver async events.
-
-```mermaid
-sequenceDiagram
-  participant Client
-  participant API
-  participant Qefro
-  Client->>API: Authorization Bearer
-  API->>Qefro: Authorize + route
-  Qefro-->>Client: JSON response
-```
-
-## Workflow
-
-<WorkflowCard
-  title="API usage"
-  steps={[
-    {title: 'Obtain credentials', description: 'Create an API token in the Admin Console (Developer settings).'},
-    {title: 'Call endpoints', description: 'Use HTTPS + Bearer token.'},
-    {title: 'Handle errors', description: 'Map status codes and error.code fields.'},
-    {title: 'Subscribe webhooks', description: 'Verify signatures before processing.'},
-  ]}
-/>
-
-## Code examples
+## Health
 
 ```bash
-curl -sS \
-  -H "Authorization: Bearer $QEFRO_TOKEN" \
-  -H "Content-Type: application/json" \
+curl -sS https://api.qefro.com/health
+```
+
+## List plans
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
   https://api.qefro.com/api/v1/billing/plans
 ```
+
+## Upload a document
+
+```bash
+curl -sS -X POST -H "Authorization: Bearer $USER_JWT" \
+  -F "file=@faq.pdf" -F "workspace_id=$WORKSPACE_ID" \
+  https://api.qefro.com/api/v1/documents
+```
+
+## TypeScript widget identify
+
+```typescript
+widget.identify({
+  id: user.id,
+  email: user.email,
+  auth: { mode: 'jwt', token: userJwt },
+});
+```
+
+## Python plans
 
 ```python
 import os, urllib.request
@@ -74,55 +60,11 @@ req = urllib.request.Request(
 print(urllib.request.urlopen(req).read().decode())
 ```
 
-```typescript
-const res = await fetch('https://api.qefro.com/api/v1/billing/plans', {
-  headers: { Authorization: `Bearer ${process.env.QEFRO_TOKEN}` },
-});
-```
-
-## Best practices
-
-- Store tokens in a secrets manager
-- Prefer workspace-scoped tokens when available
-- Log `request_id` / correlation IDs on failures
-
-## Security notes
-
-<Warning>
-Rotate tokens after teammate offboarding. Do not commit tokens to git.
-</Warning>
-
-## FAQ
-
-<FaqAccordion items={[
-  {
-    "question": "Is OpenAPI available?",
-    "answer": "Structure is prepared here; publish your OpenAPI document under static/openapi when ready."
-  },
-  {
-    "question": "Which languages are supported?",
-    "answer": "Any HTTP client. Examples cover cURL, TypeScript, and Python."
-  }
-]} />
-
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "Authentication",
-    "to": "/docs/api/authentication"
-  },
-  {
-    "label": "Webhooks",
-    "to": "/docs/api/webhooks"
-  },
-  {
-    "label": "Error Codes",
-    "to": "/docs/api/error-codes"
-  },
-  {
-    "label": "Identity Forwarding",
-    "to": "/docs/platform/identity-forwarding"
-  }
+  {label: 'REST APIs', to: '/docs/api/rest-apis'},
+  {label: 'Authentication', to: '/docs/api/authentication'},
 ]} />
+
 

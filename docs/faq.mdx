@@ -1,27 +1,28 @@
 ---
 title: FAQ
-description: Frequently asked questions about Qefro.
+description: Frequently asked questions about the real Qefro product.
 ---
 
 import { FaqAccordion, RelatedTopics } from '@site/src/components';
 
 # FAQ
 
-**FAQ** answers common questions about Qefro’s AI Workspace Platform.
+**FAQ** for the Qefro AI Workspace Platform as implemented on app.qefro.com / api.qefro.com.
 
 ## Product
 
 <FaqAccordion items={[
-  {question: 'What is Qefro?', answer: 'Qefro is an AI Workspace Platform for organizations. Configure once in the Admin Console, deploy Customer AI on website and WhatsApp, and give employees a branded Internal Portal.'},
-  {question: 'How is Qefro different from a chatbot widget?', answer: 'Qefro also supports Employee AI, Business Actions against your APIs, workspace isolation, and shared RBAC — not only website Q&A.'},
-  {question: 'Does Qefro replace my CRM?', answer: 'No. Business Actions call your systems of record; Qefro does not become the CRM/ERP.'},
+  {question: 'What is Qefro?', answer: 'An AI Workspace Platform: configure once in the Admin Console, deploy Customer AI (website widget + WhatsApp) and Employee AI (Internal Portal) with shared knowledge, RBAC, and Business Actions.'},
+  {question: 'Do I host the vector DB?', answer: 'Not on Qefro cloud — RAG infrastructure is managed for you.'},
+  {question: 'Does Qefro replace my CRM?', answer: 'No. Business Tools call your systems of record.'},
+  {question: 'What is identify()?', answer: 'Widget API to forward your end-user JWT/session into Business Tool calls.'},
 ]} />
 
-## Plans & limits
+## Plans
 
 <FaqAccordion items={[
-  {question: 'Is there a free plan?', answer: 'Yes — limited conversations and one business system connection for getting started.'},
-  {question: 'When is WhatsApp available?', answer: 'WhatsApp is available on Growth and above.'},
+  {question: 'Free plan limits?', answer: 'From product plans: 100 messages, limited documents/users, 1 Business Tool — see Billing in the console for live numbers.'},
+  {question: 'When is WhatsApp available?', answer: 'Growth and above.'},
 ]} />
 
 ## Related topics

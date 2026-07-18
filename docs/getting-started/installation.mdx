@@ -1,115 +1,123 @@
 ---
-sidebar_label: "Installation"
 title: "Installation"
-description: "How to create a Qefro account, open the Admin Console, and prepare your first organization."
+description: "Create a Qefro organization at app.qefro.com — cloud hosted, no local RAG stack required."
+sidebar_label: "Installation"
 ---
 
 import {
   InfoBox,
   Warning,
+  Success,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
+  ComparisonTable,
 } from '@site/src/components';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Installation
 
-**Installation** means creating your Qefro organization and accessing the Admin Console at app.qefro.com — no self-hosted infrastructure is required for the cloud product.
+
+**Installation** for Qefro cloud means signing up at [app.qefro.com](https://app.qefro.com), verifying email, and creating an organization (tenant). You do not install vector databases, LLM gateways, or RAG infrastructure yourself.
 
 ## Introduction
 
-Qefro is delivered as a multi-tenant cloud platform. You sign up, create an organization, and configure AI Workspaces from the Admin Console. Optional self-hosted and private deployment options are available for Enterprise customers.
+Qefro is a multi-tenant SaaS platform. Production hosts:
+
+| Surface | URL |
+| --- | --- |
+| Marketing | https://qefro.com |
+| Admin Console | https://app.qefro.com |
+| API | https://api.qefro.com |
+| Widget CDN | https://cdn.qefro.com/widget.js |
+| Internal Portal | `your-company.qefro.com` (or custom domain) |
 
 ## Why it exists
 
-Teams need a low-friction path from signup to a working workspace without standing up vector databases, LLM gateways, or RAG pipelines themselves.
+Teams need Customer AI and Employee AI without operating embedding pipelines, hybrid search, or tool-execution sandboxes.
 
 ## Concepts
 
-- **Organization** — your company tenant on Qefro
-- **Admin Console** — `https://app.qefro.com` for configuration
-- **Workspace** — an isolated AI context (for example Customer Support or HR)
-- **Plan** — Free, Starter, Growth, or Enterprise limits
+- **Organization / tenant** — billing and isolation boundary created at signup
+- **Admin Console** — configure workspaces, knowledge, Business Tools, channels, RBAC
+- **Workspace** — isolated knowledge + tools + conversations (e.g. Customer Support, HR)
+- **Plan** — Free, Starter, Growth, Enterprise (Razorpay billing)
 
 ## Architecture
 
-Cloud signup creates a tenant, default Free plan, and empty workspace capacity ready for knowledge and tools.
-
 ```mermaid
 flowchart LR
-  A[Sign up] --> B[Organization]
-  B --> C[Admin Console]
-  C --> D[Create Workspace]
-  D --> E[Upload Knowledge]
+  Signup[app.qefro.com signup] --> Org[Organization / tenant]
+  Org --> Console[Admin Console]
+  Console --> WS[Workspaces]
+  WS --> API[api.qefro.com]
+  API --> Exp[Widget / Portal / WhatsApp]
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Install (cloud)"
+  title="Cloud setup"
   steps={[
-    {title: 'Create account', description: 'Register at app.qefro.com with a work email.'},
-    {title: 'Verify email', description: 'Confirm ownership so invitations and billing work.'},
-    {title: 'Name organization', description: 'Choose a display name and optional subdomain.'},
-    {title: 'Invite admins', description: 'Add Owners/Admins before production changes.'},
+    {title: 'Register', description: 'Create an account at app.qefro.com with a work email.'},
+    {title: 'Verify email', description: 'Complete OTP / email verification before inviting teammates.'},
+    {title: 'Create organization', description: 'Choose a display name and tenant slug (used for your-company.qefro.com).'},
+    {title: 'Open Admin Console', description: 'Create your first workspace and upload knowledge.'},
   ]}
 />
 
 ## Code examples
 
-```bash
-# Open the Admin Console
-open https://app.qefro.com
+<Tabs>
+  <TabItem value="bash" label="Bash" default>
 
-# API base (authenticated requests)
-export QEFRO_API=https://api.qefro.com
+```bash
+# Health (no auth)
+curl -sS https://api.qefro.com/health
+
+# Ready (dependencies)
+curl -sS https://api.qefro.com/ready
 ```
 
+  </TabItem>
+  <TabItem value="ts" label="TypeScript">
+
 ```typescript
-// Example: health check against the public API host
 const res = await fetch('https://api.qefro.com/health');
 console.log(await res.text());
 ```
 
+  </TabItem>
+</Tabs>
+
 ## Best practices
 
-- Use a shared admin mailbox only if audit ownership is clear
-- Enable MFA for Owner accounts before connecting production APIs
-- Create separate workspaces for Customer Support vs internal HR/IT
+- Use a real company email for ownership and billing
+- Enable MFA / strong passwords on Owner accounts before connecting production APIs
+- Prefer separate workspaces for Customer Support vs internal HR/IT
 
 ## Security notes
 
 <Warning>
-Never embed long-lived API secrets in website JavaScript. Use the widget JWT flow and server-side Business Tools credentials instead.
+Never put long-lived Business Tool secrets or Admin Console JWTs in website JavaScript. Widget embeds use a publishable widget token; tool credentials stay encrypted server-side.
 </Warning>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "Do I need to install Docker locally?",
-    "answer": "Not for the cloud product. Docker is relevant only for private/Enterprise deployments."
-  },
-  {
-    "question": "Is there a free plan?",
-    "answer": "Yes. Free includes limited conversations and one business system connection for evaluation."
-  }
+  {question: 'Do I need Docker?', answer: 'Not for Qefro cloud. Private / Enterprise deployment is a separate conversation with Sales.'},
+  {question: 'Where is GraphQL?', answer: 'Primary Admin Console API is GraphQL at POST https://api.qefro.com/graphql (authenticated). REST covers uploads, billing, tools, widget, WhatsApp, and org RBAC.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "Quick Start",
-    "to": "/docs/getting-started/quick-start"
-  },
-  {
-    "label": "Organizations",
-    "to": "/docs/platform/organizations"
-  },
-  {
-    "label": "Deployment",
-    "to": "/docs/platform/deployment"
-  }
+  {label: 'Quick Start', to: '/docs/getting-started/quick-start'},
+  {label: 'Organizations', to: '/docs/platform/organizations'},
+  {label: 'Authentication', to: '/docs/platform/authentication'},
+  {label: 'API Authentication', to: '/docs/api/authentication'},
 ]} />
+
 

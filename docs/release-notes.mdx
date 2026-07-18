@@ -1,24 +1,23 @@
 ---
 title: Release Notes
-description: Qefro platform and documentation release notes.
+description: Documentation and platform notes.
 ---
 
 import { RelatedTopics } from '@site/src/components';
 
 # Release Notes
 
-**Release Notes** summarize notable platform and documentation changes.
+## 2026-07 — Docs aligned to production implementation
 
-## 2026-07 — Documentation site launch
-
-- Launched official docs at docs.qefro.com (this repository)
-- Added platform, guides, API, security, and compare sections
-- Enabled Mermaid diagrams and local search (`Ctrl/⌘ + K`)
+- Rewrote docs against real hosts: app.qefro.com, api.qefro.com, cdn.qefro.com
+- Documented widget identify() transport headers and Business Tools REST routes
+- Documented Razorpay webhooks including payment.failed and order-level idempotency
+- Documented Owner/Admin/Member RBAC and org team APIs
 
 ## Related topics
 
 <RelatedTopics topics={[
   {label: 'Blog', to: '/blog'},
-  {label: 'Getting Started', to: '/docs/getting-started/quick-start'},
+  {label: 'Quick Start', to: '/docs/getting-started/quick-start'},
 ]} />
 

@@ -1,12 +1,11 @@
 ---
-sidebar_label: "RBAC"
 title: "RBAC"
-description: "Owner, Admin, Member roles and workspace permissions."
+description: "Owner, Admin, and Member roles — teams, workspace grants, and document write flags."
+sidebar_label: "RBAC"
 ---
 
 import {
   InfoBox,
-  Warning,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
@@ -14,107 +13,115 @@ import {
 
 # RBAC
 
-**RBAC** controls who can configure, publish, and use AI capabilities.
+**RBAC** in Qefro uses organization roles **Owner**, **Admin**, and **Member**, plus **Teams** that grant Members access to specific **workspaces** (and optional document write).
 
 ## Introduction
 
-RBAC is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Canonical role definitions (from product `RoleDefinition`):
+
+### Owner
+- Manage billing and subscription
+- Transfer ownership / delete organization
+- Manage all teams, members, workspaces
+- Configure integrations and AI assistants
+- Access all workspaces
+- Cannot be removed by Admins
+
+### Admin
+- Access all workspaces; create/delete workspaces
+- Manage teams and invite members
+- Configure integrations and AI assistants
+- Change member roles (except Owner)
+- Cannot transfer ownership, change subscription owner, or delete the Owner
+
+### Member
+- Use AI + integrations only in authorized workspaces
+- View teams they belong to
+- Upload/manage documents **only** when granted team write
+- Cannot invite users, manage teams, billing, secrets, or promote roles
+
+REST (Admin Console JWT):
+
+- `/api/v1/org/roles`, `/api/v1/org/members`, `/api/v1/org/teams`, …
+- `/api/v1/org/teams/:id/workspaces`
+- `/api/v1/org/workspaces/:id/teams`
+- `/api/v1/org/audit-logs`
+- `/api/v1/team/invite`, `/api/v1/team/accept-invite`, …
 
 ## Why it exists
 
-Organizations need clear boundaries for rbac so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Employee AI and Admin Console need least privilege. Public Customer AI uses widget tokens instead of org roles.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- **Org role** — Owner / Admin / Member
+- **Team** — group of members
+- **Workspace grant** — which workspaces a team can use
+- **Write flag** — per team member document write
 
 ## Architecture
-
-role→permission→resource
 
 ```mermaid
 flowchart TB
   Owner --> Admin
   Admin --> Member
+  Member --> Team
+  Team --> Workspaces
   Owner --> Billing
-  Admin --> Configure
-  Member --> Use
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="RBAC workflow"
+  title="Configure RBAC"
   steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
+    {title: 'Invite Admins/Members', description: 'Organization / Team invite flows.'},
+    {title: 'Create teams', description: 'e.g. Support Agents, HR Staff.'},
+    {title: 'Attach workspaces', description: 'PUT team workspaces / workspace teams.'},
+    {title: 'Grant write sparingly', description: 'Only members who maintain knowledge.'},
   ]}
 />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/roles
 
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/teams
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Prefer Admin over shared Owner logins
+- Keep Customer Support tools off HR teams
+- Audit role changes via `/api/v1/org/audit-logs`
 
 ## Security notes
 
-<Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
-</Warning>
+<InfoBox>
+Plan seat limits (`users_limit`) still apply on Free/Starter/Growth — RBAC does not bypass quotas.
+</InfoBox>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "What is RBAC?",
-    "answer": "RBAC controls who can configure, publish, and use AI capabilities."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Can Members see all workspaces?',
+      answer: 'No. Only workspaces granted through their teams. Owners/Admins see all.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Teams', to: '/docs/platform/teams'},
+    {label: 'Organizations', to: '/docs/platform/organizations'},
+    {label: 'Configure RBAC', to: '/docs/guides/configure-rbac'},
+    {label: 'Employee AI', to: '/docs/platform/employee-ai'},
+  ]}
+/>

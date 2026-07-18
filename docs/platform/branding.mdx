@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Branding"
 title: "Branding"
-description: "Logos, colors, and portal appearance."
+description: "Logos, colors, and portal/widget appearance for your organization."
+sidebar_label: "Branding"
 ---
 
 import {
@@ -10,108 +10,73 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Branding
 
-**Branding** customizes the Internal Portal and widget chrome to match your brand.
+
+**Branding** customizes the Internal Portal and widget chrome (primary color, theme, welcome message). Public bootstrap uses `GET /api/v1/public/tenant-branding`.
 
 ## Introduction
 
-Branding is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Configure in Admin Console → Settings (Employee branding / Widget appearance). Widget embeds also accept `data-primary-color`, `data-theme`, and `data-welcome-message`.
 
 ## Why it exists
 
-Organizations need clear boundaries for branding so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Employees and customers should recognize your brand, not a generic chat bubble.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- Tenant branding payload
+- Widget appearance overrides
+- Portal share link
 
 ## Architecture
 
-tokens→portal/widget
-
 ```mermaid
 flowchart LR
-  Logo --> Portal
-  Colors --> Widget
+  Settings[Tenant settings] --> Portal
+  Settings --> Widget
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="Branding workflow"
-  steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
-  ]}
-/>
+<WorkflowCard title="Apply branding" steps={[
+  {title: 'Upload logo', description: 'Employee branding section.'},
+  {title: 'Set colors', description: 'Match brand guidelines.'},
+  {title: 'Preview', description: 'Portal + Widget live preview.'},
+]} />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+curl -sS "https://api.qefro.com/api/v1/public/tenant-branding?slug=acme"
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Keep contrast accessible in light and dark themes
+- Align widget primary color with website CTAs
 
 ## Security notes
 
-<Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
-</Warning>
+<InfoBox>
+Only allow HTTPS logo URLs from trusted origins.
+</InfoBox>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "What is Branding?",
-    "answer": "Branding customizes the Internal Portal and widget chrome to match your brand."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
+  {question: 'Does branding change model behavior?', answer: 'No — instructions and knowledge do. Branding is presentation.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
+  {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
+  {label: 'Website Widget', to: '/docs/platform/website-widget'},
+  {label: 'Custom Domains', to: '/docs/platform/custom-domains'},
 ]} />
+
 

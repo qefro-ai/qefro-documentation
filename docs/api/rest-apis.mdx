@@ -1,7 +1,7 @@
 ---
-sidebar_label: "REST APIs"
 title: "REST APIs"
-description: "REST resource overview (OpenAPI integration ready)."
+description: "Versioned REST surface on api.qefro.com — uploads, billing, tools, widget, org RBAC, WhatsApp."
+sidebar_label: "REST APIs"
 ---
 
 import {
@@ -10,119 +10,110 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # REST APIs
 
-**REST APIs** — REST resource overview (OpenAPI integration ready).
+
+**REST APIs** complement GraphQL. Important groups:
+
+### Health
+- `GET /health`, `GET /ready`
+
+### Widget
+- `POST /api/v1/widget/chat`, settings, leads, feedback, handoff, identity/clear, STT/TTS
+- `GET /widget.js`, `GET /ws/chat`
+
+### Documents
+- `POST /api/v1/documents`, `/documents/text`, `POST /documents/:id/reindex`
+
+### Chat (authenticated users)
+- `POST /api/v1/chat`, `/chat/stream`
+- Conversations CRUD under `/api/v1/conversations/*`
+
+### Billing (Razorpay)
+- `GET /api/v1/billing/plans`
+- `POST /api/v1/billing/checkout`, `/confirm`, `/cancel`
+- `GET /api/v1/billing/subscription`, `/payments`
+- `POST /api/v1/billing/webhook`
+
+### Business Tools
+- `/api/v1/workspaces/:id/integrations|tools` …
+- `/api/v1/tools/:id/test|logs`
+
+### Organization RBAC
+- `/api/v1/org/*`, `/api/v1/team/*`
+
+### WhatsApp
+- `GET|POST /api/v1/whatsapp/webhook`
+
+### Public
+- `/api/v1/public/tenant-branding`, `tenant-slug-available`
+- `/chat/:tenant_slug`
 
 ## Introduction
 
-This page documents rest apis for builders integrating with `https://api.qefro.com`. Full OpenAPI export will plug into this section as it is published.
+OpenAPI export can be added under `static/openapi/` as the contract freezes; this page lists the live route groups from the Rust API.
 
 ## Why it exists
 
-Stable API contracts let customers automate Admin Console workflows and embed Qefro safely.
+Multipart uploads, webhooks, and streaming chat are awkward in pure GraphQL — REST covers them.
 
 ## Concepts
 
-- Base URL: `https://api.qefro.com`
-- JSON request/response bodies
-- Bearer authentication for server-side clients
+- `/api/v1` version prefix
+- Tenant scoping via auth
+- Quota middleware on messages/documents
 
 ## Architecture
 
-Clients call versioned REST endpoints; webhooks deliver async events.
-
 ```mermaid
-sequenceDiagram
-  participant Client
-  participant API
-  participant Qefro
-  Client->>API: Authorization Bearer
-  API->>Qefro: Authorize + route
-  Qefro-->>Client: JSON response
+flowchart TB
+  Clients --> REST
+  Clients --> GQL[GraphQL /graphql]
+  REST --> Services[Domain services]
+  GQL --> Services
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="API usage"
-  steps={[
-    {title: 'Obtain credentials', description: 'Create an API token in the Admin Console (Developer settings).'},
-    {title: 'Call endpoints', description: 'Use HTTPS + Bearer token.'},
-    {title: 'Handle errors', description: 'Map status codes and error.code fields.'},
-    {title: 'Subscribe webhooks', description: 'Verify signatures before processing.'},
-  ]}
-/>
+<WorkflowCard title="Discover endpoints" steps={[
+  {title: 'Auth', description: 'Obtain user JWT or widget token.'},
+  {title: 'Hit health', description: 'Confirm environment.'},
+  {title: 'Use group APIs', description: 'Documents, tools, billing as needed.'},
+]} />
 
 ## Code examples
 
-```bash
-curl -sS \
-  -H "Authorization: Bearer $QEFRO_TOKEN" \
-  -H "Content-Type: application/json" \
-  https://api.qefro.com/api/v1/billing/plans
-```
-
-```python
-import os, urllib.request
-req = urllib.request.Request(
-    "https://api.qefro.com/api/v1/billing/plans",
-    headers={"Authorization": f"Bearer {os.environ['QEFRO_TOKEN']}"},
-)
-print(urllib.request.urlopen(req).read().decode())
-```
-
-```typescript
-const res = await fetch('https://api.qefro.com/api/v1/billing/plans', {
-  headers: { Authorization: `Bearer ${process.env.QEFRO_TOKEN}` },
-});
-```
+<ApiEndpointCard method="GET" path="/api/v1/billing/plans" description="List sellable plans and limits (messages, documents, users, business tools)." />
+<ApiEndpointCard method="POST" path="/api/v1/documents" description="Multipart document upload into a workspace (enforces documents quota)." />
+<ApiEndpointCard method="POST" path="/api/v1/billing/webhook" description="Razorpay webhook receiver (signature verified)." />
 
 ## Best practices
 
-- Store tokens in a secrets manager
-- Prefer workspace-scoped tokens when available
-- Log `request_id` / correlation IDs on failures
+- Prefer idempotent clients on billing confirm
+- Always send `workspace_id` where required
 
 ## Security notes
 
-<Warning>
-Rotate tokens after teammate offboarding. Do not commit tokens to git.
-</Warning>
+<InfoBox>
+Webhook routes verify signatures / Meta challenges before mutating state.
+</InfoBox>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "Is OpenAPI available?",
-    "answer": "Structure is prepared here; publish your OpenAPI document under static/openapi when ready."
-  },
-  {
-    "question": "Which languages are supported?",
-    "answer": "Any HTTP client. Examples cover cURL, TypeScript, and Python."
-  }
+  {question: 'Where is the OpenAPI file?', answer: 'Structure is ready for publication; until then use this reference + Admin Console network tab.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "Authentication",
-    "to": "/docs/api/authentication"
-  },
-  {
-    "label": "Webhooks",
-    "to": "/docs/api/webhooks"
-  },
-  {
-    "label": "Error Codes",
-    "to": "/docs/api/error-codes"
-  },
-  {
-    "label": "Identity Forwarding",
-    "to": "/docs/platform/identity-forwarding"
-  }
+  {label: 'Authentication', to: '/docs/api/authentication'},
+  {label: 'Error Codes', to: '/docs/api/error-codes'},
+  {label: 'Webhooks', to: '/docs/api/webhooks'},
+  {label: 'Examples', to: '/docs/api/examples'},
 ]} />
+
 

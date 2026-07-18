@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Rate Limits"
 title: "Rate Limits"
-description: "Request budgets and backoff guidance."
+description: "Abuse controls and runtime rate limits in the Qefro API."
+sidebar_label: "Rate Limits"
 ---
 
 import {
@@ -10,119 +10,83 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Rate Limits
 
-**Rate Limits** — Request budgets and backoff guidance.
+
+**Rate limits** protect auth and runtime surfaces:
+
+| Area | Behavior (implementation) |
+| --- | --- |
+| Login / OTP / forgot / reset | Per-email Redis limits (e.g. login ~20/15m) |
+| Widget HTTP | `rate_limit_middleware` on widget routes |
+| WebSocket | ~30 messages / 60s style checks |
+| Tool test | Limited per tenant (e.g. 60 window) |
+| Plan quotas | Messages/documents/users/business tools |
+
+Exceeding limits returns a rate-limited API error.
 
 ## Introduction
 
-This page documents rate limits for builders integrating with `https://api.qefro.com`. Full OpenAPI export will plug into this section as it is published.
+Quotas (`messages_limit`, `documents_limit`, …) are plan-level and enforced in middleware (`check_messages_limit_*`, `check_documents_limit`).
 
 ## Why it exists
 
-Stable API contracts let customers automate Admin Console workflows and embed Qefro safely.
+Public widget endpoints and auth forms are internet-facing.
 
 ## Concepts
 
-- Base URL: `https://api.qefro.com`
-- JSON request/response bodies
-- Bearer authentication for server-side clients
+- Abuse rate limit
+- Plan quota
+- Tool test throttle
 
 ## Architecture
 
-Clients call versioned REST endpoints; webhooks deliver async events.
-
 ```mermaid
-sequenceDiagram
-  participant Client
-  participant API
-  participant Qefro
-  Client->>API: Authorization Bearer
-  API->>Qefro: Authorize + route
-  Qefro-->>Client: JSON response
+flowchart LR
+  Req --> Middleware
+  Middleware --> Redis[(Redis counters)]
+  Middleware --> Handler
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="API usage"
-  steps={[
-    {title: 'Obtain credentials', description: 'Create an API token in the Admin Console (Developer settings).'},
-    {title: 'Call endpoints', description: 'Use HTTPS + Bearer token.'},
-    {title: 'Handle errors', description: 'Map status codes and error.code fields.'},
-    {title: 'Subscribe webhooks', description: 'Verify signatures before processing.'},
-  ]}
-/>
+<WorkflowCard title="If you are limited" steps={[
+  {title: 'Backoff', description: 'Retry with jitter.'},
+  {title: 'Check plan', description: 'Upgrade if messages quota exhausted.'},
+  {title: 'Contact support', description: 'support@qefro.com for sustained Enterprise needs.'},
+]} />
 
 ## Code examples
 
 ```bash
-curl -sS \
-  -H "Authorization: Bearer $QEFRO_TOKEN" \
-  -H "Content-Type: application/json" \
-  https://api.qefro.com/api/v1/billing/plans
-```
-
-```python
-import os, urllib.request
-req = urllib.request.Request(
-    "https://api.qefro.com/api/v1/billing/plans",
-    headers={"Authorization": f"Bearer {os.environ['QEFRO_TOKEN']}"},
-)
-print(urllib.request.urlopen(req).read().decode())
-```
-
-```typescript
-const res = await fetch('https://api.qefro.com/api/v1/billing/plans', {
-  headers: { Authorization: `Bearer ${process.env.QEFRO_TOKEN}` },
-});
+# Expect 429-style errors when limited — reduce chat spam in tests
 ```
 
 ## Best practices
 
-- Store tokens in a secrets manager
-- Prefer workspace-scoped tokens when available
-- Log `request_id` / correlation IDs on failures
+- Cache plan list responses
+- Don’t hammer `/tools/:id/test` in CI loops
 
 ## Security notes
 
-<Warning>
-Rotate tokens after teammate offboarding. Do not commit tokens to git.
-</Warning>
+<InfoBox>
+Auth rate limits intentionally avoid account enumeration (constant responses on some flows).
+</InfoBox>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "Is OpenAPI available?",
-    "answer": "Structure is prepared here; publish your OpenAPI document under static/openapi when ready."
-  },
-  {
-    "question": "Which languages are supported?",
-    "answer": "Any HTTP client. Examples cover cURL, TypeScript, and Python."
-  }
+  {question: 'Are limits identical for all plans?', answer: 'Abuse limits are platform-wide; conversation/document quotas vary by plan.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "Authentication",
-    "to": "/docs/api/authentication"
-  },
-  {
-    "label": "Webhooks",
-    "to": "/docs/api/webhooks"
-  },
-  {
-    "label": "Error Codes",
-    "to": "/docs/api/error-codes"
-  },
-  {
-    "label": "Identity Forwarding",
-    "to": "/docs/platform/identity-forwarding"
-  }
+  {label: 'Error Codes', to: '/docs/api/error-codes'},
+  {label: 'Deployment', to: '/docs/platform/deployment'},
 ]} />
+
 

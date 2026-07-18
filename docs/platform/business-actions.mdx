@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Business Actions"
 title: "Business Actions"
-description: "Secure execution of tools against customer systems of record."
+description: "Runtime AI invocation of Business Tools under authorization, SSRF controls, and execution logs."
+sidebar_label: "Business Actions"
 ---
 
 import {
@@ -14,111 +14,97 @@ import {
 
 # Business Actions
 
-A **Business Action** is an AI-invoked call to a Business Tool (REST/OpenAPI) under policy.
+A **Business Action** is the runtime execution of a **Business Tool** during a conversation — for example looking up an order or creating a ticket in your system of record.
 
 ## Introduction
 
-Business Actions is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Flow in production:
+
+1. User message arrives (widget WebSocket, Internal Portal chat, or WhatsApp)
+2. Assistant retrieves workspace knowledge (hybrid RAG)
+3. When appropriate, the model selects an allowed tool in that workspace
+4. Qefro authorizes the call, performs SSRF-safe HTTPS egress, and records an execution log
+5. Result is folded into the assistant reply
 
 ## Why it exists
 
-Organizations need clear boundaries for business actions so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Answers without actions force users to leave chat and dig through portals. Actions without isolation are unsafe. Qefro combines both under workspace + RBAC boundaries.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- **Tool selection** — only tools attached to the active workspace
+- **Identity** — optional end-user forwarding via `identify()` on the widget
+- **Execution log** — `GET /api/v1/tools/:id/logs`
+- **Failure modes** — tool errors surface safely; they must not leak secrets
 
 ## Architecture
-
-intent→authorize→execute→log
 
 ```mermaid
 sequenceDiagram
   participant User
-  participant AI
-  participant Policy
-  participant Tool
-  User->>AI: Request order status
-  AI->>Policy: Authorize action
-  Policy->>Tool: Call REST API
-  Tool-->>AI: Result
-  AI-->>User: Answer
+  participant AI as Qefro AI
+  participant Policy as AuthZ / SSRF
+  participant Tool as Customer API
+  User->>AI: "Where is order 123?"
+  AI->>AI: Retrieve knowledge
+  AI->>Policy: Authorize tool call
+  Policy->>Tool: HTTPS REST
+  Tool-->>AI: Payload
+  AI-->>User: Answer with live data
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Business Actions workflow"
+  title="Ship a safe action"
   steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
+    {title: 'Define tool', description: 'REST or OpenAPI import in the workspace.'},
+    {title: 'Least privilege', description: 'Read-only scopes first; encrypt secrets.'},
+    {title: 'Identity (if needed)', description: 'Widget identify() for per-user APIs.'},
+    {title: 'Test', description: 'Console tool test + conversational trial.'},
+    {title: 'Audit', description: 'Watch execution logs in production.'},
   ]}
 />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+# Inspect recent executions
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/logs
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Separate “customer-safe” tools from “admin-only” tools via workspaces
+- Prefer idempotent reads for auto-invoked actions
+- Document expected side effects for write tools
 
 ## Security notes
 
 <Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
+Treat every new tool like a production integration: SSRF validation, encrypted secrets, and review after OpenAPI reimport.
 </Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {
-    "question": "What is Business Actions?",
-    "answer": "A Business Action is an AI-invoked call to a Business Tool (REST/OpenAPI) under policy."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Does Qefro store my CRM data?',
+      answer:
+        'Tool responses may appear in conversation transcripts. Your CRM remains the system of record. Review retention and access with your security team.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
-]} />
-
+<RelatedTopics
+  topics={[
+    {label: 'Business Tools', to: '/docs/platform/business-tools'},
+    {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
+    {label: 'RBAC', to: '/docs/platform/rbac'},
+    {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
+  ]}
+/>

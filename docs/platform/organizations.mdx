@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Organizations"
 title: "Organizations"
-description: "Tenant boundary for billing, users, and workspaces."
+description: "Tenant boundary for billing, users, workspaces, and branding."
+sidebar_label: "Organizations"
 ---
 
 import {
@@ -10,110 +10,78 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Organizations
 
-An **Organization** is the top-level tenant in Qefro.
+
+An **Organization** (tenant) is the top-level Qefro account created at signup on [app.qefro.com](https://app.qefro.com). It owns members, workspaces, billing (Razorpay), widget token, branding, and channel configs.
 
 ## Introduction
 
-Organizations is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Multi-tenant isolation is enforced in the API: every authenticated request resolves `tenant_id` from the user JWT (or widget token). Super Admin APIs (`/api/v1/admin/tenants/*`) are platform-only.
 
 ## Why it exists
 
-Organizations need clear boundaries for organizations so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Billing, security, and data residency expectations attach to a company boundary — not to a single chatbot.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- Tenant / organization — same boundary in product language
+- Plan — Free, Starter, Growth, Enterprise
+- Slug — `your-company.qefro.com` Internal Portal host
 
 ## Architecture
 
-tenant isolation
-
 ```mermaid
 flowchart TB
-  Org --> Users
+  Org[Organization] --> Users
   Org --> Workspaces
   Org --> Billing
   Org --> Branding
+  Org --> WidgetToken[Widget token]
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="Organizations workflow"
-  steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
-  ]}
-/>
+<WorkflowCard title="Operate an org" steps={[
+  {title: 'Create', description: 'Signup + verify email.'},
+  {title: 'Invite', description: 'Add Admins/Members.'},
+  {title: 'Configure', description: 'Workspaces, knowledge, tools, channels.'},
+  {title: 'Bill', description: 'Upgrade via /api/v1/billing/checkout when ready.'},
+]} />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/team/my-tenants
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- One production org per company; use a separate org for experiments when possible
+- Transfer ownership intentionally via `/api/v1/org/transfer-ownership`
 
 ## Security notes
 
 <Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
+Deleting or suspending a tenant is destructive. Prefer suspend (platform admin) over hard delete during incidents.
 </Warning>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "What is Organizations?",
-    "answer": "An Organization is the top-level tenant in Qefro."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
+  {question: 'Can one user belong to multiple orgs?', answer: 'Yes — switch via /api/v1/team/switch-tenant and list with /api/v1/team/my-tenants.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
+  {label: 'Teams', to: '/docs/platform/teams'},
+  {label: 'RBAC', to: '/docs/platform/rbac'},
+  {label: 'Deployment', to: '/docs/platform/deployment'},
 ]} />
+
 

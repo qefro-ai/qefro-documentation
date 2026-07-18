@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Deployment"
 title: "Deployment"
-description: "Cloud vs private deployment options."
+description: "Qefro cloud hosts vs Enterprise private deployment options."
+sidebar_label: "Deployment"
 ---
 
 import {
@@ -10,108 +10,86 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Deployment
 
-**Deployment** describes how Qefro runs — managed cloud by default, private options for Enterprise.
+
+**Deployment** for most customers is fully managed:
+
+| Component | Production host |
+| --- | --- |
+| Admin Console | https://app.qefro.com |
+| API | https://api.qefro.com |
+| Widget CDN | https://cdn.qefro.com/widget.js |
+| Internal Portal | `your-company.qefro.com` or custom domain |
+| Docs | https://docs.qefro.com / Cloudflare Pages |
+
+Private / VPC deployment is an **Enterprise** option — contact Sales.
 
 ## Introduction
 
-Deployment is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+You configure product behavior in the Admin Console; Qefro operates API, RAG, and tool-execution infrastructure.
 
 ## Why it exists
 
-Organizations need clear boundaries for deployment so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Teams want AI Workspaces without staffing platform SRE for LLM gateways and vector stores.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- Managed cloud tenant
+- Enterprise private deploy
+- Static docs site (this repository)
 
 ## Architecture
-
-cloud|private
 
 ```mermaid
 flowchart TB
   Cloud[Qefro Cloud] --> Tenants
-  Private[Private Deploy] --> VPC
+  Private[Enterprise private] --> VPC
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="Deployment workflow"
-  steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
-  ]}
-/>
+<WorkflowCard title="Production checklist" steps={[
+  {title: 'Knowledge QA', description: 'Citations and refusals look right.'},
+  {title: 'Channels', description: 'Widget/WhatsApp/portal tested.'},
+  {title: 'Tools', description: 'Least privilege + logs.'},
+  {title: 'RBAC', description: 'Members scoped correctly.'},
+  {title: 'Billing', description: 'Plan limits match expected traffic.'},
+]} />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+curl -sS https://api.qefro.com/health
+curl -sS https://api.qefro.com/ready
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Maintain a staging organization for experiments
+- Track widget token rotations in your release notes
 
 ## Security notes
 
-<Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
-</Warning>
+<InfoBox>
+SOC 2 is on the roadmap — ask Sales for the current timeline. SSO/SAML is on the Enterprise roadmap.
+</InfoBox>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "What is Deployment?",
-    "answer": "Deployment describes how Qefro runs — managed cloud by default, private options for Enterprise."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
+  {question: 'Can I self-host the open components?', answer: 'Cloud is the default product. Discuss private deployment with Sales for Enterprise needs.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
+  {label: 'Production Deployment guide', to: '/docs/guides/production-deployment'},
+  {label: 'Security Overview', to: '/docs/security/overview'},
+  {label: 'Installation', to: '/docs/getting-started/installation'},
 ]} />
+
 

@@ -1,7 +1,7 @@
 ---
-sidebar_label: "Analytics"
 title: "Analytics"
-description: "Conversation, retrieval, and action metrics."
+description: "Tenant analytics, feedbacks, and conversation insights in the Admin Console."
+sidebar_label: "Analytics"
 ---
 
 import {
@@ -10,108 +10,74 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Analytics
 
-**Analytics** summarizes usage, quality signals, and action outcomes.
+
+**Analytics** summarizes usage for a tenant — conversations, messages, and related signals exposed via `GET /api/v1/tenant/analytics` and feedbacks via `GET /api/v1/tenant/feedbacks`. Platform operators have additional `/api/v1/admin/analytics/*` and LLM usage endpoints.
 
 ## Introduction
 
-Analytics is a core part of the Qefro AI Workspace Platform. This page defines the concept, how it fits the architecture, and how to operate it safely.
+Use analytics after launch to spot deflection, low-citation answers, and handoff volume.
 
 ## Why it exists
 
-Organizations need clear boundaries for analytics so Customer AI and Employee AI stay accurate, permissioned, and auditable.
+Without metrics, teams cannot tell if knowledge gaps or tool failures are driving escalations.
 
 ## Concepts
 
-- Definition aligned with Qefro terminology
-- Relationship to workspaces, knowledge, and Business Actions
-- Operational settings in the Admin Console
+- Tenant analytics dashboard
+- Message feedback
+- Platform usage (super admin)
 
 ## Architecture
 
-events→dashboards
-
 ```mermaid
 flowchart LR
-  Events --> Store
-  Store --> Dashboard
+  Events[Chat / tool / feedback events] --> Store
+  Store --> TenantDash[Tenant analytics]
+  Store --> AdminDash[Platform analytics]
 ```
 
 ## Workflow
 
-<WorkflowCard
-  title="Analytics workflow"
-  steps={[
-    {title: 'Plan', description: 'Decide ownership, scope, and success metrics.'},
-    {title: 'Configure', description: 'Set this capability in the Admin Console.'},
-    {title: 'Validate', description: 'Test happy path, refusal, and permission edges.'},
-    {title: 'Monitor', description: 'Review analytics and execution logs.'},
-  ]}
-/>
+<WorkflowCard title="Weekly review" steps={[
+  {title: 'Open analytics', description: 'Admin Console analytics views.'},
+  {title: 'Sample failures', description: 'Read conversations with poor feedback.'},
+  {title: 'Fix knowledge/tools', description: 'Reindex or tighten tool scopes.'},
+]} />
 
 ## Code examples
 
 ```bash
-# Typical console / API orientation
-export QEFRO_APP=https://app.qefro.com
-export QEFRO_API=https://api.qefro.com
-```
-
-```typescript
-// Conceptual: resolve a workspace-scoped request
-type WorkspaceContext = {
-  organizationId: string;
-  workspaceId: string;
-  actorId: string;
-};
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/tenant/analytics
 ```
 
 ## Best practices
 
-- Prefer least privilege
-- Separate customer-facing and employee-facing workspaces
-- Document owners for each workspace and tool
+- Pair analytics with citation spot-checks
+- Track tool error rates via tool logs
 
 ## Security notes
 
-<Warning>
-Treat configuration changes as production changes. Review Business Tools and RBAC before go-live.
-</Warning>
+<InfoBox>
+Analytics endpoints require authenticated tenant membership — not the public widget token.
+</InfoBox>
 
 ## FAQ
 
 <FaqAccordion items={[
-  {
-    "question": "What is Analytics?",
-    "answer": "Analytics summarizes usage, quality signals, and action outcomes."
-  },
-  {
-    "question": "Where do I configure it?",
-    "answer": "In the Admin Console at app.qefro.com, under the relevant workspace or organization settings."
-  }
+  {question: 'Are analytics real-time?', answer: 'Near real-time depending on traffic; refresh the console after test chats.'},
 ]} />
 
 ## Related topics
 
 <RelatedTopics topics={[
-  {
-    "label": "AI Workspaces",
-    "to": "/docs/platform/ai-workspaces"
-  },
-  {
-    "label": "Business Actions",
-    "to": "/docs/platform/business-actions"
-  },
-  {
-    "label": "Security Overview",
-    "to": "/docs/security/overview"
-  },
-  {
-    "label": "Glossary",
-    "to": "/docs/glossary"
-  }
+  {label: 'AI Workspaces', to: '/docs/platform/ai-workspaces'},
+  {label: 'Customer AI', to: '/docs/platform/customer-ai'},
 ]} />
+
 
