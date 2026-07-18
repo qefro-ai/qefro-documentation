@@ -1,0 +1,36 @@
+# Blog tags / categories for Qefro Docs
+
+platform:
+  label: Platform
+  permalink: /blog/tags/platform
+  description: Product platform updates
+
+engineering:
+  label: Engineering
+  permalink: /blog/tags/engineering
+  description: Engineering deep dives
+
+ai:
+  label: AI
+  permalink: /blog/tags/ai
+  description: AI and RAG topics
+
+architecture:
+  label: Architecture
+  permalink: /blog/tags/architecture
+  description: System architecture
+
+product:
+  label: Product
+  permalink: /blog/tags/product
+  description: Product announcements
+
+security:
+  label: Security
+  permalink: /blog/tags/security
+  description: Security and compliance
+
+tutorials:
+  label: Tutorials
+  permalink: /blog/tags/tutorials
+  description: How-to tutorials

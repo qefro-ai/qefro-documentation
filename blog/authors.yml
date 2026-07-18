@@ -1,0 +1,8 @@
+abu:
+  name: Qefro Team
+  title: Qefro
+  url: https://qefro.com
+  image_url: https://docs.qefro.com/img/qefro-logo.png
+  page: true
+  socials:
+    github: qefro-ai

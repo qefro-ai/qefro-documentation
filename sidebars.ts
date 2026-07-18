@@ -1,0 +1,119 @@
+import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
+
+/**
+ * Manual sidebars grouped by category.
+ * Auto-generated category indexes use `_category_.json` where helpful.
+ */
+const sidebars: SidebarsConfig = {
+  docsSidebar: [
+    {
+      type: 'category',
+      label: 'Getting Started',
+      collapsed: false,
+      items: [
+        'getting-started/installation',
+        'getting-started/quick-start',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Platform',
+      collapsed: false,
+      items: [
+        'platform/ai-workspaces',
+        'platform/customer-ai',
+        'platform/employee-ai',
+        'platform/knowledge-platform',
+        'platform/business-actions',
+        'platform/business-tools',
+        'platform/internal-portal',
+        'platform/website-widget',
+        'platform/whatsapp',
+        'platform/authentication',
+        'platform/identity-forwarding',
+        'platform/organizations',
+        'platform/teams',
+        'platform/rbac',
+        'platform/analytics',
+        'platform/branding',
+        'platform/custom-domains',
+        'platform/deployment',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Reference',
+      items: ['faq', 'glossary', 'release-notes'],
+    },
+  ],
+
+  guidesSidebar: [
+    {
+      type: 'category',
+      label: 'Guides',
+      collapsed: false,
+      items: [
+        'guides/build-ai-customer-support',
+        'guides/create-employee-ai',
+        'guides/connect-rest-apis',
+        'guides/import-openapi',
+        'guides/deploy-whatsapp-ai',
+        'guides/deploy-website-widget',
+        'guides/configure-rbac',
+        'guides/secure-business-actions',
+        'guides/enable-custom-domains',
+        'guides/production-deployment',
+      ],
+    },
+  ],
+
+  apiSidebar: [
+    {
+      type: 'category',
+      label: 'API Reference',
+      collapsed: false,
+      items: [
+        'api/authentication',
+        'api/rest-apis',
+        'api/sdks',
+        'api/examples',
+        'api/rate-limits',
+        'api/error-codes',
+        'api/webhooks',
+      ],
+    },
+  ],
+
+  securitySidebar: [
+    {
+      type: 'category',
+      label: 'Security',
+      collapsed: false,
+      items: [
+        'security/overview',
+        'security/tenant-isolation',
+        'security/secrets',
+        'security/audit-logs',
+        'security/compliance',
+      ],
+    },
+  ],
+
+  compareSidebar: [
+    {
+      type: 'category',
+      label: 'Compare',
+      collapsed: false,
+      items: [
+        'compare/chatbase-vs-qefro',
+        'compare/intercom-vs-qefro',
+        'compare/zendesk-vs-qefro',
+        'compare/freshworks-vs-qefro',
+        'compare/customgpt-vs-qefro',
+        'compare/copilot-studio-vs-qefro',
+      ],
+    },
+  ],
+};
+
+export default sidebars;
