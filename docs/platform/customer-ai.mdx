@@ -1,11 +1,12 @@
 ---
 title: "Customer AI"
-description: "External assistants on the website widget and WhatsApp, grounded in a workspace."
+description: "External assistants on the website widget and WhatsApp, grounded in a Support workspace with optional Business Tools and identify()."
 sidebar_label: "Customer AI"
 ---
 
 import {
   InfoBox,
+  Warning,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
@@ -15,71 +16,72 @@ import {
 
 **Customer AI** is Qefro’s external assistant experience for end customers — primarily the **Website Widget** and **WhatsApp** (Growth+), bound to a workspace’s knowledge and Business Tools.
 
-## Introduction
+## Short definition (citation-ready)
 
-Configure once in the Admin Console:
+> Customer AI serves external users on public channels using a publishable widget token (and Meta WhatsApp webhooks), retrieving only from the bound AI Workspace.
 
-- Knowledge + instructions on a Customer Support workspace
-- Widget embed (`cdn.qefro.com/widget.js`) with `data-workspace-id`
-- Optional WhatsApp Cloud API webhook at `POST /api/v1/whatsapp/webhook`
-- Optional lead capture, handoff, and CRM hooks under tenant settings
+## Channels
 
-## Why it exists
+| Channel | Host / entry | Guide |
+| --- | --- | --- |
+| Website widget | `cdn.qefro.com/widget.js` | [Deploy Website Widget](/docs/guides/deploy-website-widget) |
+| WhatsApp | Meta → `api.qefro.com` webhook | [Deploy WhatsApp AI](/docs/guides/deploy-whatsapp-ai) |
 
-Support teams need consistent answers across website and messaging without maintaining separate bots per channel.
-
-## Concepts
-
-- **Channel** — widget or WhatsApp → same workspace knowledge plane
-- **Lead capture** — `POST /api/v1/widget/leads`
-- **Handoff** — `POST /api/v1/widget/conversations/:id/handoff` (+ tenant handoff config)
-- **Feedback** — `POST /api/v1/widget/messages/:id/feedback`
+Compare audiences: [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  W[Website Widget] --> WS[Support Workspace]
-  WA[WhatsApp] --> WS
-  WS --> RAG[Knowledge Platform]
-  WS --> ACT[Business Actions]
+  Visitor --> Widget[Website widget]
+  Visitor --> WA[WhatsApp]
+  Widget --> API[api.qefro.com]
+  WA --> API
+  API --> WS[Support workspace]
+  WS --> RAG[Hybrid RAG]
+  WS --> Tools[Business Tools]
 ```
+
+## Configure once
+
+1. Create a **Support** workspace (customer-safe docs only).
+2. Ingest FAQs; validate citations.
+3. Embed the widget with token + workspace id.
+4. Optionally add WhatsApp on Growth+.
+5. Optionally add read-only Business Tools + [`identify()`](/docs/platform/identity-forwarding).
+
+Playbook: [Build AI Customer Support](/docs/guides/build-ai-customer-support).
 
 ## Workflow
 
 <WorkflowCard
-  title="Launch Customer AI"
+  title="Ship Customer AI"
   steps={[
-    {title: 'Workspace + knowledge', description: 'Upload FAQs, policies, product docs.'},
-    {title: 'Widget', description: 'Embed and test anonymous chat.'},
-    {title: 'Optional tools', description: 'Add read-only Business Tools + identify() if needed.'},
-    {title: 'WhatsApp', description: 'Growth+ — map phone number to workspace.'},
+    {title: 'Support workspace', description: 'No HR content.'},
+    {title: 'Cite-test', description: 'Top intents + refusals.'},
+    {title: 'Website widget', description: 'Production embed.'},
+    {title: 'Optional WhatsApp', description: 'Same workspace preferred.'},
+    {title: 'Optional tools', description: 'Secure Business Actions guide.'},
   ]}
 />
 
-## Code examples
-
-See [Website Widget](/docs/platform/website-widget) for embed and `identify()` examples.
-
-## Best practices
-
-- Keep Internal HR knowledge out of the Customer Support workspace
-- Enable handoff when the assistant should escalate to humans
-- Review analytics and feedbacks weekly after launch
-
-## Security notes
-
-<InfoBox>
-Widget traffic is rate-limited and message-quota enforced (`check_messages_limit_widget`). Plan conversation limits apply.
-</InfoBox>
+<Warning>
+Never bind a public channel to an internal HR/IT workspace. Isolation failures become public disclosures.
+</Warning>
 
 ## FAQ
 
 <FaqAccordion
   items={[
     {
-      question: 'Is WhatsApp on Free?',
-      answer: 'WhatsApp is available on Growth and above.',
+      question: 'Is the widget token secret?',
+      answer:
+        'It is publishable by design (ships in HTML). It authenticates the channel, not an end user. Protect admin and CRM secrets separately.',
+    },
+    {
+      question: 'Can Customer AI use Employee AI workspaces?',
+      answer:
+        'Technically a workspace id can be set, but you must not point public channels at internal corpora.',
     },
   ]}
 />
@@ -90,7 +92,9 @@ Widget traffic is rate-limited and message-quota enforced (`check_messages_limit
   topics={[
     {label: 'Website Widget', to: '/docs/platform/website-widget'},
     {label: 'WhatsApp', to: '/docs/platform/whatsapp'},
-    {label: 'Build AI Customer Support', to: '/docs/guides/build-ai-customer-support'},
     {label: 'Employee AI', to: '/docs/platform/employee-ai'},
+    {label: 'Customer AI vs Employee AI', to: '/docs/concepts/customer-ai-vs-employee-ai'},
+    {label: 'Build AI Customer Support', to: '/docs/guides/build-ai-customer-support'},
+    {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
   ]}
 />

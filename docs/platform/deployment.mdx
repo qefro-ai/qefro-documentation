@@ -1,95 +1,89 @@
 ---
 title: "Deployment"
-description: "Qefro cloud hosts vs Enterprise private deployment options."
+description: "Qefro cloud is fully managed — production hosts, what you configure, and when Enterprise private deployment applies."
 sidebar_label: "Deployment"
 ---
 
 import {
   InfoBox,
-  Warning,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
-  ApiEndpointCard,
 } from '@site/src/components';
 
 # Deployment
 
+For most customers, **deployment** means configuring your tenant on Qefro cloud — not operating vector databases or LLM gateways yourself.
 
-**Deployment** for most customers is fully managed:
+## Short definition (citation-ready)
 
-| Component | Production host |
+> Qefro cloud hosts the Admin Console, API, widget CDN, and Internal Portal. Customers deploy by configuring workspaces, channels, and RBAC; Enterprise private deployment is a separate packaging discussion.
+
+## Production hosts
+
+| Component | Host |
 | --- | --- |
+| Marketing | https://qefro.com |
 | Admin Console | https://app.qefro.com |
 | API | https://api.qefro.com |
 | Widget CDN | https://cdn.qefro.com/widget.js |
 | Internal Portal | `your-company.qefro.com` or custom domain |
-| Docs | https://docs.qefro.com / Cloudflare Pages |
+| Docs | https://docs.qefro.com |
 
-Private / VPC deployment is an **Enterprise** option — contact Sales.
+## What you configure vs what Qefro runs
 
-## Introduction
+| You configure | Qefro operates |
+| --- | --- |
+| Workspaces + knowledge | RAG infrastructure |
+| Business Tools + secrets | Tool egress + encryption |
+| Widget / WhatsApp binding | Channel runtimes |
+| Teams / RBAC | Auth service |
+| Branding / domains | Portal edge / TLS |
 
-You configure product behavior in the Admin Console; Qefro operates API, RAG, and tool-execution infrastructure.
-
-## Why it exists
-
-Teams want AI Workspaces without staffing platform SRE for LLM gateways and vector stores.
-
-## Concepts
-
-- Managed cloud tenant
-- Enterprise private deploy
-- Static docs site (this repository)
-
-## Architecture
-
-```mermaid
-flowchart TB
-  Cloud[Qefro Cloud] --> Tenants
-  Private[Enterprise private] --> VPC
-```
+Go-live checklist: [Production Deployment](/docs/guides/production-deployment).
 
 ## Workflow
 
-<WorkflowCard title="Production checklist" steps={[
-  {title: 'Knowledge QA', description: 'Citations and refusals look right.'},
-  {title: 'Channels', description: 'Widget/WhatsApp/portal tested.'},
-  {title: 'Tools', description: 'Least privilege + logs.'},
-  {title: 'RBAC', description: 'Members scoped correctly.'},
-  {title: 'Billing', description: 'Plan limits match expected traffic.'},
-]} />
+<WorkflowCard
+  title="Cloud launch path"
+  steps={[
+    {title: 'Create org', description: 'app.qefro.com signup.'},
+    {title: 'Ship Support workspace', description: 'Knowledge + widget.'},
+    {title: 'Optional Employee AI', description: 'Portal + Teams.'},
+    {title: 'Optional tools', description: 'Read-only first.'},
+    {title: 'Monitor', description: 'Analytics + tool logs.'},
+  ]}
+/>
 
-## Code examples
+## Enterprise / private options
 
-```bash
-curl -sS https://api.qefro.com/health
-curl -sS https://api.qefro.com/ready
-```
-
-## Best practices
-
-- Maintain a staging organization for experiments
-- Track widget token rotations in your release notes
-
-## Security notes
-
-<InfoBox>
-SOC 2 is on the roadmap — ask Sales for the current timeline. SSO/SAML is on the Enterprise roadmap.
-</InfoBox>
+If you need VPC-style or private packaging, contact Sales. Controls and tenancy concepts still apply; only the hosting boundary changes. See [Compliance](/docs/security/compliance).
 
 ## FAQ
 
-<FaqAccordion items={[
-  {question: 'Can I self-host the open components?', answer: 'Cloud is the default product. Discuss private deployment with Sales for Enterprise needs.'},
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Do I run Docker on my laptop for production?',
+      answer:
+        'No for Qefro cloud. Local Docker stacks may exist for Qefro engineering; customers use the hosted consoles.',
+    },
+    {
+      question: 'Where is data hosted?',
+      answer:
+        'Confirm current regions and subprocessors with Sales — infrastructure details can change.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Production Deployment guide', to: '/docs/guides/production-deployment'},
-  {label: 'Security Overview', to: '/docs/security/overview'},
-  {label: 'Installation', to: '/docs/getting-started/installation'},
-]} />
-
-
+<RelatedTopics
+  topics={[
+    {label: 'Production Deployment', to: '/docs/guides/production-deployment'},
+    {label: 'Installation', to: '/docs/getting-started/installation'},
+    {label: 'Custom Domains', to: '/docs/platform/custom-domains'},
+    {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'Organizations', to: '/docs/platform/organizations'},
+  ]}
+/>

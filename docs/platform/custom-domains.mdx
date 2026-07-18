@@ -1,6 +1,6 @@
 ---
 title: "Custom Domains"
-description: "Serve the Internal Portal on your hostname via Cloudflare custom hostnames."
+description: "Serve the Internal Portal on your hostname using Cloudflare custom hostnames — DNS CNAME, TLS status, and tenant mapping."
 sidebar_label: "Custom Domains"
 ---
 
@@ -10,73 +10,82 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
-  ApiEndpointCard,
 } from '@site/src/components';
 
 # Custom Domains
 
+**Custom domains** let employees open the Internal Portal on a hostname you own (for example `ai.yourcompany.com`) instead of only `your-company.qefro.com`.
 
-**Custom Domains** map a hostname you control to the Internal Portal. In product settings the CNAME target defaults to `org.qefro.com` (see Admin Console → Custom Domain). Your `your-company.qefro.com` subdomain continues to work.
+## Short definition (citation-ready)
 
-## Introduction
+> Qefro portal custom domains use Cloudflare custom hostnames so your DNS CNAME terminates TLS and routes to your organization’s Internal Portal.
 
-Typical flow: add hostname → create DNS CNAME → wait for certificate → verify in console. Remove unused hostnames promptly.
+## Default vs custom
 
-## Why it exists
+| Mode | Example |
+| --- | --- |
+| Default | `acme.qefro.com` |
+| Custom | `ai.acme.com` → CNAME to console-provided target (commonly an `org.qefro.com`-style host) |
 
-Enterprises often require `portal.company.com` instead of `company.qefro.com`.
-
-## Concepts
-
-- Custom hostname
-- CNAME target
-- TLS via Cloudflare
+Step-by-step: [Enable Custom Domains](/docs/guides/enable-custom-domains).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  DNS[CNAME portal.company.com] --> CF[Cloudflare]
-  CF --> Portal[Internal Portal]
+  Browser --> DNS[CNAME on your DNS]
+  DNS --> CF[Cloudflare custom hostname]
+  CF --> Portal[Internal Portal for your tenant]
 ```
 
 ## Workflow
 
-<WorkflowCard title="Attach a domain" steps={[
-  {title: 'Add domain in Settings', description: 'Custom Domain section.'},
-  {title: 'Create CNAME', description: 'Point to the shown target (e.g. org.qefro.com).'},
-  {title: 'Wait for TLS', description: 'Complete verification in console.'},
-]} />
-
-## Code examples
-
-```text
-portal.example.com  CNAME  org.qefro.com
-```
+<WorkflowCard
+  title="Attach a custom domain"
+  steps={[
+    {title: 'Confirm portal works on *.qefro.com', description: 'RBAC first.'},
+    {title: 'Add hostname in Admin Console', description: 'Copy CNAME target.'},
+    {title: 'Create DNS CNAME', description: 'Wait for propagation.'},
+    {title: 'Wait for TLS active', description: 'Then smoke-test Member login.'},
+    {title: 'Announce URL', description: 'Update internal bookmarks.'},
+  ]}
+/>
 
 ## Best practices
 
-- Use a dedicated subdomain (`portal.` / `ai.`)
-- Document DNS owners in your runbook
-
-## Security notes
+- Prefer a subdomain over apex (`@`) records
+- Treat domain changes as security-sensitive (phishing risk if misconfigured)
+- Keep branding aligned ([Branding](/docs/platform/branding))
 
 <Warning>
-Only attach domains you control. Remove domains when contracts end.
+A custom domain still maps to **one tenant**. Do not point multiple customers at one organization.
 </Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {question: 'Does custom domain affect the API?', answer: 'No — API remains api.qefro.com. Domain is for the employee portal host.'},
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Does this affect docs.qefro.com or the marketing site?',
+      answer:
+        'No. Custom domains here are for the Internal Portal only.',
+    },
+    {
+      question: 'Can I use the apex domain?',
+      answer:
+        'Possible at some DNS providers, but subdomains are strongly preferred.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
-  {label: 'Enable Custom Domains', to: '/docs/guides/enable-custom-domains'},
-  {label: 'Branding', to: '/docs/platform/branding'},
-]} />
-
-
+<RelatedTopics
+  topics={[
+    {label: 'Enable Custom Domains', to: '/docs/guides/enable-custom-domains'},
+    {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
+    {label: 'Branding', to: '/docs/platform/branding'},
+    {label: 'Employee AI', to: '/docs/platform/employee-ai'},
+    {label: 'Tenant Isolation', to: '/docs/security/tenant-isolation'},
+  ]}
+/>

@@ -31,23 +31,23 @@ Canonical product hosts:
 ## Platform
 
 - [AI Workspaces](https://docs.qefro.com/docs/platform/ai-workspaces/): Isolated AI contexts in a Qefro organization — knowledge, instructions, Business Tools, and conversations.
-- [Customer AI](https://docs.qefro.com/docs/platform/customer-ai/): External assistants on the website widget and WhatsApp, grounded in a workspace.
-- [Employee AI](https://docs.qefro.com/docs/platform/employee-ai/): Internal assistants on the branded Internal Portal for organization members.
+- [Customer AI](https://docs.qefro.com/docs/platform/customer-ai/): External assistants on the website widget and WhatsApp, grounded in a Support workspace with optional Business Tools and identify().
+- [Employee AI](https://docs.qefro.com/docs/platform/employee-ai/): Internal assistants on the branded Internal Portal for organization members — Teams, RBAC, and workspace-scoped knowledge.
 - [Knowledge Platform](https://docs.qefro.com/docs/platform/knowledge-platform/): Document ingest, crawl, OCR, hybrid BM25+vector retrieval, citations, and workspace isolation.
 - [Business Actions](https://docs.qefro.com/docs/platform/business-actions/): Runtime AI invocation of Business Tools under authorization, SSRF controls, and execution logs.
 - [Business Tools](https://docs.qefro.com/docs/platform/business-tools/): REST connectors and OpenAPI import that power Business Actions — encrypted credentials, test, logs.
-- [Internal Portal](https://docs.qefro.com/docs/platform/internal-portal/): Branded employee experience on your-company.qefro.com or a custom domain.
+- [Internal Portal](https://docs.qefro.com/docs/platform/internal-portal/): The employee web app for Employee AI — default *.qefro.com host, branding bootstrap, RBAC-scoped workspaces, and optional custom domains.
 - [Website Widget](https://docs.qefro.com/docs/platform/website-widget/): Embed Customer AI with cdn.qefro.com/widget.js, workspace binding, WebSocket chat, and identify().
-- [WhatsApp](https://docs.qefro.com/docs/platform/whatsapp/): Customer AI over Meta Cloud API — webhook verify/incoming at /api/v1/whatsapp/webhook.
+- [WhatsApp](https://docs.qefro.com/docs/platform/whatsapp/): Customer AI over Meta Cloud API — webhook verify/incoming on api.qefro.com, Growth+ entitlement, and Support workspace binding.
 - [Platform Authentication](https://docs.qefro.com/docs/platform/authentication/): How Admin Console users, Internal Portal members, widget tokens, and APIs authenticate to Qefro.
 - [Identity Forwarding](https://docs.qefro.com/docs/platform/identity-forwarding/): Forward verified end-user identity into Business Tools with widget.identify().
-- [Organizations](https://docs.qefro.com/docs/platform/organizations/): Tenant boundary for billing, users, workspaces, and branding.
-- [Teams](https://docs.qefro.com/docs/platform/teams/): Group members and grant workspace access for Employee AI.
+- [Organizations](https://docs.qefro.com/docs/platform/organizations/): The organization (tenant) is Qefro’s top-level account boundary for members, workspaces, billing, branding, and channels.
+- [Teams](https://docs.qefro.com/docs/platform/teams/): Organize Members into Teams and grant AI Workspace access for Employee AI least-privilege access control.
 - [RBAC](https://docs.qefro.com/docs/platform/rbac/): Owner, Admin, and Member roles — teams, workspace grants, and document write flags.
-- [Analytics](https://docs.qefro.com/docs/platform/analytics/): Tenant analytics, feedbacks, and conversation insights in the Admin Console.
-- [Branding](https://docs.qefro.com/docs/platform/branding/): Logos, colors, and portal/widget appearance for your organization.
-- [Custom Domains](https://docs.qefro.com/docs/platform/custom-domains/): Serve the Internal Portal on your hostname via Cloudflare custom hostnames.
-- [Deployment](https://docs.qefro.com/docs/platform/deployment/): Qefro cloud hosts vs Enterprise private deployment options.
+- [Analytics](https://docs.qefro.com/docs/platform/analytics/): Use tenant analytics and feedbacks on app.qefro.com to find knowledge gaps, tool failures, and channel performance after go-live.
+- [Branding](https://docs.qefro.com/docs/platform/branding/): Customize Internal Portal and website widget appearance — logo, colors, theme, and welcome message — via Admin Console and public branding bootstrap.
+- [Custom Domains](https://docs.qefro.com/docs/platform/custom-domains/): Serve the Internal Portal on your hostname using Cloudflare custom hostnames — DNS CNAME, TLS status, and tenant mapping.
+- [Deployment](https://docs.qefro.com/docs/platform/deployment/): Qefro cloud is fully managed — production hosts, what you configure, and when Enterprise private deployment applies.
 
 ## Guides
 
@@ -66,11 +66,11 @@ Canonical product hosts:
 
 - [API Authentication](https://docs.qefro.com/docs/api/authentication/): Authenticate to api.qefro.com with user JWTs, widget tokens, or admin credentials.
 - [REST APIs](https://docs.qefro.com/docs/api/rest-apis/): Versioned REST surface on api.qefro.com — uploads, billing, tools, widget, org RBAC, WhatsApp.
-- [SDKs](https://docs.qefro.com/docs/api/sdks/): Official widget package and HTTP examples for server integrations.
-- [Examples](https://docs.qefro.com/docs/api/examples/): cURL, TypeScript, and Python examples against production hosts.
-- [Rate Limits](https://docs.qefro.com/docs/api/rate-limits/): Abuse controls and runtime rate limits in the Qefro API.
-- [Error Codes](https://docs.qefro.com/docs/api/error-codes/): API error shape and common failure modes.
-- [Webhooks](https://docs.qefro.com/docs/api/webhooks/): Razorpay billing webhooks and WhatsApp Meta webhooks.
+- [SDKs](https://docs.qefro.com/docs/api/sdks/): Official widget package (@qefro-ai/widget / cdn.qefro.com) and how to call api.qefro.com from server HTTPS clients.
+- [Examples](https://docs.qefro.com/docs/api/examples/): Copy-paste cURL, TypeScript, and Python examples against api.qefro.com and the website widget.
+- [Rate Limits](https://docs.qefro.com/docs/api/rate-limits/): Auth, widget, WebSocket, and tool-test rate limits that protect api.qefro.com from abuse — how to handle HTTP 429.
+- [Error Codes](https://docs.qefro.com/docs/api/error-codes/): How Qefro API errors look — HTTP status, machine-readable code, and what to check for 401, 403, 404, 409, 422, and 429.
+- [Webhooks](https://docs.qefro.com/docs/api/webhooks/): Inbound webhooks Qefro consumes — Razorpay billing (including payment.failed) and WhatsApp Meta Cloud API verification and messages.
 
 ## Security
 
@@ -93,7 +93,7 @@ Canonical product hosts:
 
 - [FAQ](https://docs.qefro.com/docs/faq/): Frequently asked questions about the Qefro AI Workspace Platform — workspaces, Customer AI, Employee AI, Business Actions, and RBAC.
 - [Glossary](https://docs.qefro.com/docs/glossary/): Canonical Qefro terminology aligned with the product, with links to detailed documentation.
-- [Release Notes](https://docs.qefro.com/docs/release-notes/): Documentation and platform notes.
+- [Release Notes](https://docs.qefro.com/docs/release-notes/): Notable documentation and platform documentation updates for docs.qefro.com.
 
 ## Optional
 

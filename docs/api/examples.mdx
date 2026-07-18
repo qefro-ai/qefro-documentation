@@ -1,22 +1,18 @@
 ---
 title: "Examples"
-description: "cURL, TypeScript, and Python examples against production hosts."
+description: "Copy-paste cURL, TypeScript, and Python examples against api.qefro.com and the website widget."
 sidebar_label: "Examples"
 ---
 
 import {
   InfoBox,
-  Warning,
   RelatedTopics,
   FaqAccordion,
-  WorkflowCard,
-  ApiEndpointCard,
 } from '@site/src/components';
 
 # Examples
 
-
-**Examples** for common calls.
+Practical snippets against production hosts. Prefer [API Authentication](/docs/api/authentication) for credential types and [REST APIs](/docs/api/rest-apis) for route maps.
 
 ## Health
 
@@ -24,35 +20,68 @@ import {
 curl -sS https://api.qefro.com/health
 ```
 
-## List plans
+## Login (user JWT)
+
+```bash
+curl -sS -X POST https://api.qefro.com/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"you@company.com","password":"YOUR_PASSWORD"}'
+```
+
+Store the returned JWT as `USER_JWT` for subsequent calls.
+
+## List billing plans
 
 ```bash
 curl -sS -H "Authorization: Bearer $USER_JWT" \
   https://api.qefro.com/api/v1/billing/plans
 ```
 
+## List workspaces
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/org/workspaces
+```
+
 ## Upload a document
 
 ```bash
 curl -sS -X POST -H "Authorization: Bearer $USER_JWT" \
-  -F "file=@faq.pdf" -F "workspace_id=$WORKSPACE_ID" \
+  -F "file=@faq.pdf" \
+  -F "workspace_id=$WORKSPACE_ID" \
   https://api.qefro.com/api/v1/documents
 ```
 
-## TypeScript widget identify
+## Test a Business Tool
+
+```bash
+curl -sS -X POST \
+  -H "Authorization: Bearer $USER_JWT" \
+  -H "Content-Type: application/json" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/test \
+  -d '{"arguments":{"order_id":"123"}}'
+```
+
+## TypeScript — widget identify
 
 ```typescript
+// After your app session is established:
 widget.identify({
   id: user.id,
   email: user.email,
-  auth: { mode: 'jwt', token: userJwt },
+  auth: {mode: 'jwt', token: userJwt},
 });
 ```
 
-## Python plans
+See [Identity Forwarding](/docs/platform/identity-forwarding) and [SDKs](/docs/api/sdks).
+
+## Python — authenticated GET
 
 ```python
-import os, urllib.request
+import os
+import urllib.request
+
 req = urllib.request.Request(
     "https://api.qefro.com/api/v1/billing/plans",
     headers={"Authorization": f"Bearer {os.environ['QEFRO_TOKEN']}"},
@@ -60,11 +89,42 @@ req = urllib.request.Request(
 print(urllib.request.urlopen(req).read().decode())
 ```
 
+## GraphQL (console operations)
+
+```bash
+curl -sS -X POST https://api.qefro.com/graphql \
+  -H "Authorization: Bearer $USER_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ __typename }"}'
+```
+
+Exact console queries evolve with the Admin Console — use the network tab while clicking UI actions when exploring.
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Why do I get 401?',
+      answer:
+        'Missing/expired user JWT, or using the widget token on an Admin API. See API Authentication.',
+    },
+    {
+      question: 'Why do I get 403?',
+      answer:
+        'RBAC — Members cannot call Admin configuration APIs. Use an Owner/Admin JWT.',
+    },
+  ]}
+/>
+
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'REST APIs', to: '/docs/api/rest-apis'},
-  {label: 'Authentication', to: '/docs/api/authentication'},
-]} />
-
-
+<RelatedTopics
+  topics={[
+    {label: 'REST APIs', to: '/docs/api/rest-apis'},
+    {label: 'API Authentication', to: '/docs/api/authentication'},
+    {label: 'Error Codes', to: '/docs/api/error-codes'},
+    {label: 'SDKs', to: '/docs/api/sdks'},
+    {label: 'Webhooks', to: '/docs/api/webhooks'},
+  ]}
+/>

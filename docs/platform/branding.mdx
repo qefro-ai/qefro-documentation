@@ -1,6 +1,6 @@
 ---
 title: "Branding"
-description: "Logos, colors, and portal/widget appearance for your organization."
+description: "Customize Internal Portal and website widget appearance — logo, colors, theme, and welcome message — via Admin Console and public branding bootstrap."
 sidebar_label: "Branding"
 ---
 
@@ -10,73 +10,93 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
-  ApiEndpointCard,
 } from '@site/src/components';
 
 # Branding
 
+**Branding** makes Employee AI and Customer AI feel like your product — logos, primary color, theme, and welcome copy — without changing model behavior.
 
-**Branding** customizes the Internal Portal and widget chrome (primary color, theme, welcome message). Public bootstrap uses `GET /api/v1/public/tenant-branding`.
+## Short definition (citation-ready)
 
-## Introduction
+> Qefro tenant branding controls portal and widget presentation. Public clients bootstrap appearance via `GET /api/v1/public/tenant-branding`, while Admins configure assets in the Admin Console.
 
-Configure in Admin Console → Settings (Employee branding / Widget appearance). Widget embeds also accept `data-primary-color`, `data-theme`, and `data-welcome-message`.
+## What you can customize
 
-## Why it exists
+| Surface | Typical controls |
+| --- | --- |
+| Internal Portal | Logo, colors, theme |
+| Website widget | Primary color, theme, welcome message (`data-*` overrides) |
+| Custom domain portal | Same branding on your hostname |
 
-Employees and customers should recognize your brand, not a generic chat bubble.
+Public bootstrap:
 
-## Concepts
+```bash
+curl -sS "https://api.qefro.com/api/v1/public/tenant-branding?slug=YOUR_SLUG"
+```
 
-- Tenant branding payload
-- Widget appearance overrides
-- Portal share link
+Widget embed overrides (examples):
 
-## Architecture
-
-```mermaid
-flowchart LR
-  Settings[Tenant settings] --> Portal
-  Settings --> Widget
+```html
+<script
+  src="https://cdn.qefro.com/widget.js"
+  data-token="YOUR_WIDGET_TOKEN"
+  data-endpoint="https://api.qefro.com"
+  data-workspace-id="YOUR_WORKSPACE_ID"
+  data-primary-color="#7c3aed"
+  data-theme="light"
+  data-welcome-message="Hi — how can we help?">
+</script>
 ```
 
 ## Workflow
 
-<WorkflowCard title="Apply branding" steps={[
-  {title: 'Upload logo', description: 'Employee branding section.'},
-  {title: 'Set colors', description: 'Match brand guidelines.'},
-  {title: 'Preview', description: 'Portal + Widget live preview.'},
-]} />
-
-## Code examples
-
-```bash
-curl -sS "https://api.qefro.com/api/v1/public/tenant-branding?slug=acme"
-```
+<WorkflowCard
+  title="Apply branding"
+  steps={[
+    {title: 'Upload logo', description: 'Admin Console → branding / appearance.'},
+    {title: 'Set colors', description: 'Match website guidelines; check contrast.'},
+    {title: 'Preview portal', description: 'Sign in as a Member on *.qefro.com.'},
+    {title: 'Preview widget', description: 'Staging page with embed overrides.'},
+    {title: 'Publish', description: 'Update production HTML if overrides are used.'},
+  ]}
+/>
 
 ## Best practices
 
-- Keep contrast accessible in light and dark themes
-- Align widget primary color with website CTAs
+- Keep WCAG-minded contrast for text on primary colors
+- Align widget color with your site CTA color
+- Do not put secrets in welcome messages
+- Branding ≠ instructions — tone still lives in workspace instructions
 
-## Security notes
-
-<InfoBox>
-Only allow HTTPS logo URLs from trusted origins.
-</InfoBox>
+<Warning>
+Only use HTTPS logo URLs from origins you control. Untrusted image hosts are a supply-chain risk.
+</Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {question: 'Does branding change model behavior?', answer: 'No — instructions and knowledge do. Branding is presentation.'},
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Does branding change answers?',
+      answer:
+        'No. Knowledge, instructions, and tools drive answers. Branding is presentation.',
+    },
+    {
+      question: 'Can each workspace have different branding?',
+      answer:
+        'Tenant branding is organization-level; widget data attributes can still tweak appearance per embed.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
-  {label: 'Website Widget', to: '/docs/platform/website-widget'},
-  {label: 'Custom Domains', to: '/docs/platform/custom-domains'},
-]} />
-
-
+<RelatedTopics
+  topics={[
+    {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
+    {label: 'Website Widget', to: '/docs/platform/website-widget'},
+    {label: 'Custom Domains', to: '/docs/platform/custom-domains'},
+    {label: 'Create Employee AI', to: '/docs/guides/create-employee-ai'},
+    {label: 'Deploy Website Widget', to: '/docs/guides/deploy-website-widget'},
+  ]}
+/>

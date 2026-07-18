@@ -1,6 +1,6 @@
 ---
 title: "Internal Portal"
-description: "Branded employee experience on your-company.qefro.com or a custom domain."
+description: "The employee web app for Employee AI — default *.qefro.com host, branding bootstrap, RBAC-scoped workspaces, and optional custom domains."
 sidebar_label: "Internal Portal"
 ---
 
@@ -13,74 +13,59 @@ import {
 
 # Internal Portal
 
-The **Internal Portal** is the employee-facing web app for Employee AI. Default host: `https://{tenantSlug}.qefro.com`. Optional custom domains terminate via Cloudflare (CNAME target defaults to `org.qefro.com` in product settings).
+The **Internal Portal** is the employee-facing web app for Employee AI. Default host: `https://{tenantSlug}.qefro.com`. Optional custom domains terminate via Cloudflare.
 
-## Introduction
+## Short definition (citation-ready)
 
-Portal bootstrap uses public branding:
+> The Internal Portal is the authenticated UI where organization members select granted AI Workspaces and chat with Employee AI.
 
-- `GET /api/v1/public/tenant-branding`
-- `GET /api/v1/public/tenant-slug-available`
+## Bootstrap
 
-Authenticated employees then use org chat/document APIs under their RBAC grants. Share links and branding are configured in Admin Console → Settings (Employee branding / Internal Portal).
+Public branding for the portal shell:
 
-## Why it exists
+```bash
+curl -sS "https://api.qefro.com/api/v1/public/tenant-branding?slug=YOUR_SLUG"
+```
 
-Employees need a first-party, branded chat experience — not a public website widget.
-
-## Concepts
-
-- **Tenant slug** — subdomain label
-- **Custom hostname** — customer DNS → Cloudflare → portal
-- **Branding** — logo/colors from tenant settings
+Authenticated chat and workspace lists require a Member/Admin/Owner session. See [Platform Authentication](/docs/platform/authentication).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  DNS[CNAME] --> Edge[Cloudflare]
-  Edge --> Portal[Internal Portal]
-  Portal --> API[api.qefro.com]
-  API --> WS[Authorized workspaces]
+  DNS[tenantSlug.qefro.com or custom domain] --> Portal
+  Portal --> Branding[Public branding]
+  Portal --> Auth[Member session]
+  Auth --> Workspaces[Granted workspaces]
+  Workspaces --> Chat[Employee AI chat]
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Go live"
+  title="Portal readiness"
   steps={[
-    {title: 'Choose slug', description: 'Ensure availability via public API.'},
-    {title: 'Brand', description: 'Logo and colors for employees.'},
-    {title: 'RBAC', description: 'Teams → workspaces.'},
-    {title: 'Optional custom domain', description: 'CNAME + verify in Settings.'},
+    {title: 'Create workspaces + knowledge', description: 'Internal corpora only.'},
+    {title: 'Configure Teams', description: 'Grant workspaces to Members.'},
+    {title: 'Apply branding', description: 'Logo and colors.'},
+    {title: 'Smoke-test as Member', description: 'Only expected workspaces appear.'},
+    {title: 'Optional custom domain', description: 'Enable Custom Domains guide.'},
   ]}
 />
-
-## Code examples
-
-```bash
-curl -sS "https://api.qefro.com/api/v1/public/tenant-slug-available?slug=acme"
-```
-
-## Best practices
-
-- Communicate the portal URL in your IT onboarding docs
-- Keep Customer Support widget traffic off employee-only workspaces
-
-## Security notes
-
-<InfoBox>
-Custom domains should use HTTPS only. Remove unused hostnames promptly in Settings.
-</InfoBox>
 
 ## FAQ
 
 <FaqAccordion
   items={[
     {
-      question: 'Can customers use the Internal Portal?',
+      question: 'Is the portal the Admin Console?',
       answer:
-        'No — portal users are organization members. Customers use the website widget or WhatsApp.',
+        'No. Admin Console (app.qefro.com) configures the product. The portal is for employee chat.',
+    },
+    {
+      question: 'Can I hide the default *.qefro.com host?',
+      answer:
+        'Prefer communicating the custom domain as canonical. Discuss legacy host behavior with support if you need redirects.',
     },
   ]}
 />
@@ -90,8 +75,9 @@ Custom domains should use HTTPS only. Remove unused hostnames promptly in Settin
 <RelatedTopics
   topics={[
     {label: 'Employee AI', to: '/docs/platform/employee-ai'},
-    {label: 'Custom Domains', to: '/docs/platform/custom-domains'},
     {label: 'Branding', to: '/docs/platform/branding'},
-    {label: 'RBAC', to: '/docs/platform/rbac'},
+    {label: 'Custom Domains', to: '/docs/platform/custom-domains'},
+    {label: 'Configure RBAC', to: '/docs/guides/configure-rbac'},
+    {label: 'Create Employee AI', to: '/docs/guides/create-employee-ai'},
   ]}
 />

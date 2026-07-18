@@ -1,6 +1,6 @@
 ---
 title: "Webhooks"
-description: "Razorpay billing webhooks and WhatsApp Meta webhooks."
+description: "Inbound webhooks Qefro consumes — Razorpay billing (including payment.failed) and WhatsApp Meta Cloud API verification and messages."
 sidebar_label: "Webhooks"
 ---
 
@@ -10,90 +10,91 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
-  ApiEndpointCard,
 } from '@site/src/components';
 
 # Webhooks
 
+Qefro **consumes** webhooks from billing and messaging providers. Configure secrets in the Admin Console and always verify signatures / challenges.
 
-**Webhooks** Qefro consumes:
+## Short definition (citation-ready)
 
-### Billing (Razorpay)
-- `POST /api/v1/billing/webhook`
-- Verifies Razorpay signature
-- Handles events including `payment.captured`, `payment.failed`, subscription lifecycle events
-- Failed payments stored with `error_code` / `error_reason` / `error_description`
-- Activation is idempotent on `payment_id` and order-level capture
+> Qefro billing webhooks verify Razorpay signatures and update entitlements; WhatsApp webhooks verify Meta challenges and ingest inbound customer messages into a bound workspace.
 
-### WhatsApp (Meta)
-- `GET /api/v1/whatsapp/webhook` — verification
-- `POST /api/v1/whatsapp/webhook` — inbound messages
+## Billing (Razorpay)
 
-## Introduction
+| Item | Detail |
+| --- | --- |
+| Endpoint | `POST /api/v1/billing/webhook` |
+| Auth | Razorpay signature verification |
+| Important events | `payment.captured`, `payment.failed`, subscription lifecycle |
+| Failures | Stored with `error_code` / `error_reason` / `error_description` when present |
+| Idempotency | Order-level guards against duplicate captures |
 
-Configure Razorpay to send events to `https://api.qefro.com/api/v1/billing/webhook` and enable `payment.failed` for support visibility.
+Enable `payment.failed` in the Razorpay Dashboard webhook settings or failures may not appear in-product.
 
-## Why it exists
+## WhatsApp (Meta Cloud API)
 
-Async payment and messaging systems must notify Qefro without polling.
+| Item | Detail |
+| --- | --- |
+| Verify | `GET /api/v1/whatsapp/webhook` |
+| Inbound | `POST /api/v1/whatsapp/webhook` |
+| Config | Encrypted tokens + workspace binding in Admin Console |
+| Plan | Growth+ |
 
-## Concepts
-
-- Signature verification
-- Idempotent processing
-- Acknowledge-even-on-unknown (where safe)
+Guide: [Deploy WhatsApp AI](/docs/guides/deploy-whatsapp-ai).
 
 ## Architecture
 
 ```mermaid
-sequenceDiagram
-  participant R as Razorpay/Meta
-  participant WH as Qefro webhook
-  participant DB as Postgres
-  R->>WH: POST signed payload
-  WH->>WH: Verify
-  WH->>DB: Upsert state
-  WH-->>R: 200
+flowchart TB
+  RZ[Razorpay] -->|signed POST| Billing[/billing/webhook]
+  Meta[Meta] -->|verify + POST| WA[/whatsapp/webhook]
+  Billing --> Entitlements[Plan entitlements]
+  WA --> WS[Support workspace chat]
 ```
 
 ## Workflow
 
-<WorkflowCard title="Enable billing webhooks" steps={[
-  {title: 'Dashboard', description: 'Razorpay → Webhooks → api.qefro.com/api/v1/billing/webhook.'},
-  {title: 'Subscribe events', description: 'Include payment.captured and payment.failed.'},
-  {title: 'Test', description: 'Complete a test payment; confirm /billing/payments.'},
-]} />
-
-## Code examples
-
-```text
-https://api.qefro.com/api/v1/billing/webhook
-https://api.qefro.com/api/v1/whatsapp/webhook
-```
-
-## Best practices
-
-- Keep webhook secrets only in server env
-- Treat duplicate deliveries as normal (idempotency)
-
-## Security notes
+<WorkflowCard
+  title="Operate webhooks safely"
+  steps={[
+    {title: 'Copy endpoint URLs from docs/console', description: 'HTTPS only.'},
+    {title: 'Set secrets in provider + Qefro', description: 'Never commit them.'},
+    {title: 'Send a test event', description: 'Confirm 2xx and in-app effect.'},
+    {title: 'Monitor failures', description: 'payment.failed + Meta delivery errors.'},
+    {title: 'Rotate secrets on staff change', description: 'Update both sides.'},
+  ]}
+/>
 
 <Warning>
-Reject unsigned payloads. Do not expose webhook URLs that skip verification.
+Do not expose unverified webhook handlers. Signature/challenge failures must 4xx — never process the body first.
 </Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {question: 'Do you send outbound webhooks to customers?', answer: 'Handoff/CRM webhooks can be configured per tenant and are SSRF-validated before egress.'},
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Can I push outbound webhooks from Qefro to my server?',
+      answer:
+        'Prefer Business Tools for request/response integrations. Outbound event webhooks may expand later — check Release Notes.',
+    },
+    {
+      question: 'Why is my plan not upgrading after payment?',
+      answer:
+        'Confirm Razorpay webhook delivery, signature secret, and that captured events reached /billing/webhook. Check Billing UI and support.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'REST APIs', to: '/docs/api/rest-apis'},
-  {label: 'Security Overview', to: '/docs/security/overview'},
-  {label: 'WhatsApp', to: '/docs/platform/whatsapp'},
-]} />
-
-
+<RelatedTopics
+  topics={[
+    {label: 'WhatsApp', to: '/docs/platform/whatsapp'},
+    {label: 'Deploy WhatsApp AI', to: '/docs/guides/deploy-whatsapp-ai'},
+    {label: 'REST APIs', to: '/docs/api/rest-apis'},
+    {label: 'Error Codes', to: '/docs/api/error-codes'},
+    {label: 'Security Overview', to: '/docs/security/overview'},
+  ]}
+/>

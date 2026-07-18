@@ -1,6 +1,6 @@
 ---
 title: "Teams"
-description: "Group members and grant workspace access for Employee AI."
+description: "Organize Members into Teams and grant AI Workspace access for Employee AI least-privilege access control."
 sidebar_label: "Teams"
 ---
 
@@ -10,74 +10,97 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
-  ApiEndpointCard,
 } from '@site/src/components';
 
 # Teams
 
+**Teams** group organization Members and grant them access to specific [AI Workspaces](/docs/platform/ai-workspaces). They are the practical mechanism behind Employee AI least privilege.
 
-**Teams** organize Members inside an organization and grant access to workspaces. Owners/Admins manage teams; Members only see teams they belong to.
+## Short definition (citation-ready)
 
-## Introduction
+> A Team is an organization-scoped group of Members with attached workspaces. Members only see Internal Portal assistants for workspaces their Teams grant.
 
-REST: `GET/POST /api/v1/org/teams`, `PUT .../members`, `PUT .../workspaces`, and per-member write flags.
+## How Teams relate to RBAC
 
-## Why it exists
+| Concept | Role |
+| --- | --- |
+| Owner / Admin / Member | Who can configure vs who only chats |
+| Team | Which workspaces a Member may use |
+| Workspace | Isolated knowledge + tools |
 
-Employee AI needs scalable access control without making everyone an Admin.
+See [RBAC](/docs/platform/rbac) and [Configure RBAC](/docs/guides/configure-rbac).
 
-## Concepts
+## API surfaces (org)
 
-- Team membership
-- Workspace grants
-- Document write permission
+Typical REST routes (Owner/Admin JWT):
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET/POST | `/api/v1/org/teams` | List / create teams |
+| PUT | `/api/v1/org/teams/:id/members` | Set membership |
+| PUT | `/api/v1/org/teams/:id/workspaces` | Grant workspaces |
+
+Exact payloads: Admin Console + [REST APIs](/docs/api/rest-apis).
 
 ## Architecture
 
 ```mermaid
-flowchart LR
-  Team --> Members
-  Team --> Workspaces
+flowchart TB
+  Org[Organization]
+  Org --> T1[Team: People Ops]
+  Org --> T2[Team: IT]
+  Org --> HR[Workspace HR]
+  Org --> IT[Workspace IT]
+  T1 --> HR
+  T2 --> IT
+  Member[Member] --> Portal[Internal Portal]
+  Portal --> HR
+  Portal --> IT
 ```
 
 ## Workflow
 
-<WorkflowCard title="Team setup" steps={[
-  {title: 'Create team', description: 'Name by department.'},
-  {title: 'Add members', description: 'Invite then assign.'},
-  {title: 'Attach workspaces', description: 'Least privilege.'},
-]} />
+<WorkflowCard
+  title="Grant Employee AI access"
+  steps={[
+    {title: 'Create Team', description: 'Name by function, not by person.'},
+    {title: 'Add Members', description: 'Contractors get temporary membership.'},
+    {title: 'Attach workspaces', description: 'Only what that function needs.'},
+    {title: 'Verify as Member', description: 'Confirm portal list is minimal.'},
+    {title: 'Review leavers', description: 'Remove Team membership promptly.'},
+  ]}
+/>
 
-## Code examples
-
-```bash
-curl -sS -H "Authorization: Bearer $USER_JWT" \
-  https://api.qefro.com/api/v1/org/teams
-```
-
-## Best practices
-
-- Mirror real departments (Support, HR, IT)
-- Avoid putting all Members on one mega-team
-
-## Security notes
-
-<InfoBox>
-Granting a team a workspace also grants its Business Tools in that workspace.
-</InfoBox>
+<Warning>
+Putting everyone on one mega-team defeats least privilege. Prefer function-based Teams.
+</Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {question: 'Do Owners need team membership?', answer: 'Owners/Admins already access all workspaces; teams primarily gate Members.'},
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Do Teams affect the website widget?',
+      answer:
+        'No. The widget uses a workspace id + widget token. Teams gate Employee AI portal access.',
+    },
+    {
+      question: 'Can a Member belong to multiple Teams?',
+      answer:
+        'Yes. They see the union of granted workspaces.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'RBAC', to: '/docs/platform/rbac'},
-  {label: 'Employee AI', to: '/docs/platform/employee-ai'},
-  {label: 'Configure RBAC', to: '/docs/guides/configure-rbac'},
-]} />
-
-
+<RelatedTopics
+  topics={[
+    {label: 'RBAC', to: '/docs/platform/rbac'},
+    {label: 'Organizations', to: '/docs/platform/organizations'},
+    {label: 'Employee AI', to: '/docs/platform/employee-ai'},
+    {label: 'Configure RBAC', to: '/docs/guides/configure-rbac'},
+    {label: 'Create Employee AI', to: '/docs/guides/create-employee-ai'},
+    {label: 'Tenant Isolation', to: '/docs/security/tenant-isolation'},
+  ]}
+/>

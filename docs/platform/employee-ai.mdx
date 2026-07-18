@@ -1,11 +1,12 @@
 ---
 title: "Employee AI"
-description: "Internal assistants on the branded Internal Portal for organization members."
+description: "Internal assistants on the branded Internal Portal for organization members — Teams, RBAC, and workspace-scoped knowledge."
 sidebar_label: "Employee AI"
 ---
 
 import {
   InfoBox,
+  Warning,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
@@ -13,79 +14,67 @@ import {
 
 # Employee AI
 
-**Employee AI** is Qefro’s internal assistant experience. Employees sign in to the **Internal Portal** (`your-company.qefro.com` or a custom domain) and chat with workspaces their **teams** grant them access to.
+**Employee AI** is Qefro’s internal assistant experience. Employees sign in to the **Internal Portal** (`your-company.qefro.com` or a custom domain) and chat with workspaces their **Teams** grant.
 
-## Introduction
+## Short definition (citation-ready)
 
-Unlike the public widget:
+> Employee AI authenticates organization members and authorizes workspace access through RBAC and Teams, unlike Customer AI which uses public channel tokens.
 
-- Users authenticate as org members (Owner / Admin / Member)
-- Access is RBAC + team → workspace mapping
-- Chat uses authenticated APIs (`POST /api/v1/chat`, `/api/v1/chat/stream`, WebSocket patterns for portal clients)
-- Branding comes from tenant settings (`GET /api/v1/public/tenant-branding`)
+## How it differs from Customer AI
 
-## Why it exists
+| | Customer AI | Employee AI |
+| --- | --- | --- |
+| Users | External | Org members |
+| Surface | Widget / WhatsApp | Internal Portal |
+| Auth | Widget token (+ optional identify) | Session JWT |
+| Access | Workspace id in embed | Team grants |
 
-Employees need the same knowledge platform and Business Actions with stronger identity and tighter workspace grants than anonymous website visitors.
-
-## Concepts
-
-- **Internal Portal** — employee web app
-- **Tenant slug** — `your-company.qefro.com`
-- **Team workspace grants** — Members only see authorized workspaces
-- **Document write** — Members need team write permission to upload
+Concept: [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai).
 
 ## Architecture
 
 ```mermaid
-flowchart LR
-  Emp[Employee] --> Portal[Internal Portal]
-  Portal --> Auth[Org session / JWT]
-  Auth --> Teams[Team membership]
-  Teams --> WS[Authorized workspaces]
-  WS --> RAG[Knowledge]
-  WS --> Tools[Business Tools]
+flowchart TB
+  Member[Member login] --> Portal[Internal Portal]
+  Portal --> RBAC[Role + Teams]
+  RBAC --> HR[HR workspace]
+  RBAC --> IT[IT workspace]
+  Admin[Admin Console] --> HR
+  Admin --> IT
 ```
 
 ## Workflow
 
 <WorkflowCard
-  title="Enable Employee AI"
+  title="Stand up Employee AI"
   steps={[
-    {title: 'Set slug / domain', description: 'Settings → portal URL and optional custom domain.'},
-    {title: 'Create internal workspaces', description: 'HR, IT, Finance — separate from Customer Support.'},
-    {title: 'Configure teams', description: 'Organization → Teams → members + workspaces.'},
-    {title: 'Invite employees', description: 'Team invite APIs / Admin Console invitations.'},
+    {title: 'Create internal workspaces', description: 'Separate from Support.'},
+    {title: 'Ingest internal docs', description: 'Cite-test with staff.'},
+    {title: 'Configure Teams/RBAC', description: 'Least privilege grants.'},
+    {title: 'Brand portal', description: 'Logo and colors.'},
+    {title: 'Optional custom domain', description: 'ai.yourcompany.com.'},
   ]}
 />
 
-## Code examples
+Playbooks: [Create Employee AI](/docs/guides/create-employee-ai), [Configure RBAC](/docs/guides/configure-rbac).
 
-```bash
-# Public branding for portal bootstrap
-curl -sS "https://api.qefro.com/api/v1/public/tenant-branding?slug=your-company"
-```
-
-## Best practices
-
-- Never reuse the Customer Support workspace for HR
-- Grant Members least workspace access
-- Use org audit logs for sensitive membership changes
-
-## Security notes
-
-<InfoBox>
-Owners/Admins can access all workspaces. Members cannot invite users, manage billing, or see secrets.
-</InfoBox>
+<Warning>
+Employee AI is not merely “Customer AI behind login.” Without Teams/grants, you either overshare workspaces or block users incorrectly.
+</Warning>
 
 ## FAQ
 
 <FaqAccordion
   items={[
     {
-      question: 'Is the portal a separate product?',
+      question: 'Can customers use the portal?',
       answer:
-        'No — same organization, knowledge platform, and Business Tools. Different experience and auth path.',
+        'No. Invite only organization members. Customers use widget/WhatsApp.',
+    },
+    {
+      question: 'Can Employees use Business Tools?',
+      answer:
+        'Yes, when tools are attached to their granted workspaces — still apply Secure Business Actions practices.',
     },
   ]}
 />
@@ -95,8 +84,10 @@ Owners/Admins can access all workspaces. Members cannot invite users, manage bil
 <RelatedTopics
   topics={[
     {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
+    {label: 'Teams', to: '/docs/platform/teams'},
     {label: 'RBAC', to: '/docs/platform/rbac'},
-    {label: 'Custom Domains', to: '/docs/platform/custom-domains'},
     {label: 'Create Employee AI', to: '/docs/guides/create-employee-ai'},
+    {label: 'Branding', to: '/docs/platform/branding'},
+    {label: 'Custom Domains', to: '/docs/platform/custom-domains'},
   ]}
 />

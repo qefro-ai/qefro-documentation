@@ -1,6 +1,6 @@
 ---
 title: "Rate Limits"
-description: "Abuse controls and runtime rate limits in the Qefro API."
+description: "Auth, widget, WebSocket, and tool-test rate limits that protect api.qefro.com from abuse — how to handle HTTP 429."
 sidebar_label: "Rate Limits"
 ---
 
@@ -10,83 +10,77 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
-  ApiEndpointCard,
 } from '@site/src/components';
 
 # Rate Limits
 
+**Rate limits** protect authentication and runtime surfaces from credential stuffing and runaway clients.
 
-**Rate limits** protect auth and runtime surfaces:
+## Short definition (citation-ready)
 
-| Area | Behavior (implementation) |
+> Qefro applies per-route rate limits (especially auth and widget/chat paths). Clients should honor HTTP 429 with exponential backoff and avoid parallel login storms.
+
+## Areas (implementation-oriented)
+
+| Area | Behavior |
 | --- | --- |
-| Login / OTP / forgot / reset | Per-email Redis limits (e.g. login ~20/15m) |
-| Widget HTTP | `rate_limit_middleware` on widget routes |
-| WebSocket | ~30 messages / 60s style checks |
-| Tool test | Limited per tenant (e.g. 60 window) |
-| Plan quotas | Messages/documents/users/business tools |
+| Login / OTP / forgot / reset | Per-email Redis-style limits (e.g. login on the order of tens per 15 minutes) |
+| Widget HTTP | Middleware limits on widget routes |
+| WebSocket chat | Message-rate checks (on the order of tens per minute) |
+| Tool test endpoints | Limited to prevent abuse of egress |
 
-Exceeding limits returns a rate-limited API error.
+Exact numbers can change — treat the table as order-of-magnitude guidance and design clients defensively.
 
-## Introduction
+## Client guidance
 
-Quotas (`messages_limit`, `documents_limit`, …) are plan-level and enforced in middleware (`check_messages_limit_*`, `check_documents_limit`).
-
-## Why it exists
-
-Public widget endpoints and auth forms are internet-facing.
-
-## Concepts
-
-- Abuse rate limit
-- Plan quota
-- Tool test throttle
-
-## Architecture
-
-```mermaid
-flowchart LR
-  Req --> Middleware
-  Middleware --> Redis[(Redis counters)]
-  Middleware --> Handler
-```
+| Do | Don't |
+| --- | --- |
+| Back off on 429 | Hammer `/auth/login` in a loop |
+| Cache JWTs until expiry | Mint a new session per API call |
+| Batch admin scripts politely | Parallelize thousands of tool tests |
+| Reuse one widget connection | Open unbounded WebSockets per page |
 
 ## Workflow
 
-<WorkflowCard title="If you are limited" steps={[
-  {title: 'Backoff', description: 'Retry with jitter.'},
-  {title: 'Check plan', description: 'Upgrade if messages quota exhausted.'},
-  {title: 'Contact support', description: 'support@qefro.com for sustained Enterprise needs.'},
-]} />
+<WorkflowCard
+  title="Handle 429 in production"
+  steps={[
+    {title: 'Detect 429 + Retry-After if present', description: 'Sleep before retry.'},
+    {title: 'Exponential backoff + jitter', description: 'Cap total retries.'},
+    {title: 'Reduce concurrency', description: 'Especially for auth and tool tests.'},
+    {title: 'Escalate if persistent', description: 'May be misbehaving client or shared NAT.'},
+  ]}
+/>
 
-## Code examples
-
-```bash
-# Expect 429-style errors when limited — reduce chat spam in tests
-```
-
-## Best practices
-
-- Cache plan list responses
-- Don’t hammer `/tools/:id/test` in CI loops
-
-## Security notes
-
-<InfoBox>
-Auth rate limits intentionally avoid account enumeration (constant responses on some flows).
-</InfoBox>
+<Warning>
+If you are load-testing, coordinate with support. Synthetic auth floods look like attacks.
+</Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {question: 'Are limits identical for all plans?', answer: 'Abuse limits are platform-wide; conversation/document quotas vary by plan.'},
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Are plan quotas the same as rate limits?',
+      answer:
+        'No. Plan quotas (messages/documents) are entitlement limits. Rate limits are abuse controls on HTTP/WS routes.',
+    },
+    {
+      question: 'Do Business Actions to my API count toward Qefro rate limits?',
+      answer:
+        'Egress calls are separate from your API’s limits. Still design your API for bursty assistant traffic.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Error Codes', to: '/docs/api/error-codes'},
-  {label: 'Deployment', to: '/docs/platform/deployment'},
-]} />
-
-
+<RelatedTopics
+  topics={[
+    {label: 'Error Codes', to: '/docs/api/error-codes'},
+    {label: 'API Authentication', to: '/docs/api/authentication'},
+    {label: 'Examples', to: '/docs/api/examples'},
+    {label: 'Website Widget', to: '/docs/platform/website-widget'},
+    {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
+  ]}
+/>

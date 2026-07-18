@@ -1,6 +1,6 @@
 ---
 title: "WhatsApp"
-description: "Customer AI over Meta Cloud API — webhook verify/incoming at /api/v1/whatsapp/webhook."
+description: "Customer AI over Meta Cloud API — webhook verify/incoming on api.qefro.com, Growth+ entitlement, and Support workspace binding."
 sidebar_label: "WhatsApp"
 ---
 
@@ -16,64 +16,52 @@ import {
 
 **WhatsApp** connects Meta Cloud API messaging to a Qefro Customer AI workspace. Availability: **Growth+**.
 
-## Introduction
+## Short definition (citation-ready)
 
-API routes:
+> Qefro WhatsApp Customer AI receives Meta Cloud API webhooks at `api.qefro.com`, runs the bound workspace’s RAG/tools, and sends replies back through Meta.
 
-- `GET /api/v1/whatsapp/webhook` — Meta verification challenge
-- `POST /api/v1/whatsapp/webhook` — inbound messages
+## API routes
 
-Tenant WhatsApp configuration is managed in the Admin Console (and platform admin WhatsApp config endpoints for operators). Phone numbers map into workspace-scoped assistants like other Customer AI channels.
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/v1/whatsapp/webhook` | Meta verification challenge |
+| POST | `/api/v1/whatsapp/webhook` | Inbound messages |
 
-## Why it exists
-
-Customers already message businesses on WhatsApp. Reusing the same knowledge + Business Actions avoids a second bot stack.
-
-## Concepts
-
-- **Webhook verify token** — Meta subscription handshake
-- **Phone number ID** — Cloud API sender identity
-- **Workspace binding** — which knowledge/tools answer
+Tenant credentials and workspace mapping are configured in Admin Console (encrypted). Confirm exact field names in the console UI.
 
 ## Architecture
 
 ```mermaid
-flowchart LR
-  User --> Meta[Meta Cloud API]
-  Meta --> WH["GET/POST /api/v1/whatsapp/webhook"]
-  WH --> WS[Workspace]
-  WS --> RAG[Knowledge]
-  WS --> Meta
+sequenceDiagram
+  participant U as WhatsApp user
+  participant M as Meta Cloud API
+  participant Q as api.qefro.com
+  participant W as Support workspace
+  U->>M: Message
+  M->>Q: Webhook POST
+  Q->>W: RAG / tools
+  W-->>Q: Reply
+  Q->>M: Send message
+  M-->>U: Delivery
 ```
 
 ## Workflow
 
+Follow the full playbook: [Deploy WhatsApp AI](/docs/guides/deploy-whatsapp-ai).
+
 <WorkflowCard
-  title="Enable WhatsApp"
+  title="WhatsApp readiness"
   steps={[
-    {title: 'Upgrade to Growth+', description: 'WhatsApp is not on Free/Starter.'},
-    {title: 'Configure Meta app', description: 'Cloud API + webhook pointing at api.qefro.com.'},
-    {title: 'Map to workspace', description: 'Admin Console WhatsApp settings.'},
-    {title: 'Test', description: 'Send a real message; verify citations/actions.'},
+    {title: 'Website quality first', description: 'Same Support workspace preferred.'},
+    {title: 'Confirm Growth+', description: 'Plan entitlement.'},
+    {title: 'Meta app + tokens', description: 'Store secrets in Qefro.'},
+    {title: 'Verify webhook', description: 'GET challenge must succeed.'},
+    {title: 'Pilot users', description: 'Compare answers to widget.'},
   ]}
 />
 
-## Code examples
-
-```bash
-# Webhook URL (configure in Meta)
-# https://api.qefro.com/api/v1/whatsapp/webhook
-```
-
-## Best practices
-
-- Use the same Customer Support workspace as the website widget when you want one brain
-- Keep write tools tightly scoped on messaging channels
-
-## Security notes
-
 <Warning>
-Protect verify tokens and Cloud API secrets like production credentials. Rotate if exposed.
+WhatsApp threads often contain PII. Align retention, tools, and human escalation with your privacy policy before broad rollout.
 </Warning>
 
 ## FAQ
@@ -81,8 +69,14 @@ Protect verify tokens and Cloud API secrets like production credentials. Rotate 
 <FaqAccordion
   items={[
     {
-      question: 'Same knowledge as the widget?',
-      answer: 'Yes — if both channels bind to the same workspace.',
+      question: 'Can WhatsApp use a different workspace than the website?',
+      answer:
+        'Yes, but answer consistency usually suffers. Prefer one Support workspace.',
+    },
+    {
+      question: 'Where do failed sends appear?',
+      answer:
+        'Check Meta delivery errors and Qefro conversation/tool logs for the tenant.',
     },
   ]}
 />
@@ -91,8 +85,10 @@ Protect verify tokens and Cloud API secrets like production credentials. Rotate 
 
 <RelatedTopics
   topics={[
-    {label: 'Customer AI', to: '/docs/platform/customer-ai'},
     {label: 'Deploy WhatsApp AI', to: '/docs/guides/deploy-whatsapp-ai'},
+    {label: 'Customer AI', to: '/docs/platform/customer-ai'},
+    {label: 'Webhooks', to: '/docs/api/webhooks'},
     {label: 'Website Widget', to: '/docs/platform/website-widget'},
+    {label: 'Production Deployment', to: '/docs/guides/production-deployment'},
   ]}
 />

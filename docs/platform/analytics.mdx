@@ -1,12 +1,11 @@
 ---
 title: "Analytics"
-description: "Tenant analytics, feedbacks, and conversation insights in the Admin Console."
+description: "Use tenant analytics and feedbacks on app.qefro.com to find knowledge gaps, tool failures, and channel performance after go-live."
 sidebar_label: "Analytics"
 ---
 
 import {
   InfoBox,
-  Warning,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
@@ -15,69 +14,100 @@ import {
 
 # Analytics
 
+**Analytics** in Qefro shows how Customer AI and Employee AI are used in your organization — conversations, messages, feedback, and related signals — so you can improve knowledge and tools with evidence.
 
-**Analytics** summarizes usage for a tenant — conversations, messages, and related signals exposed via `GET /api/v1/tenant/analytics` and feedbacks via `GET /api/v1/tenant/feedbacks`. Platform operators have additional `/api/v1/admin/analytics/*` and LLM usage endpoints.
+## Short definition (citation-ready)
 
-## Introduction
+> Tenant analytics aggregates conversation and feedback signals for an organization; platform operators have separate admin analytics for fleet-wide usage.
 
-Use analytics after launch to spot deflection, low-citation answers, and handoff volume.
+## What you can see
 
-## Why it exists
+| Signal | Why it matters |
+| --- | --- |
+| Conversation / message volume | Capacity and channel adoption |
+| Feedback scores | Answer quality perception |
+| Tool errors (via tool logs) | Broken Business Actions |
+| Low-citation chats (spot check) | Knowledge gaps |
 
-Without metrics, teams cannot tell if knowledge gaps or tool failures are driving escalations.
+Admin Console exposes tenant views. APIs:
 
-## Concepts
+<ApiEndpointCard
+  method="GET"
+  path="/api/v1/tenant/analytics"
+  description="Tenant-scoped usage analytics for the authenticated organization."
+/>
 
-- Tenant analytics dashboard
-- Message feedback
-- Platform usage (super admin)
+<ApiEndpointCard
+  method="GET"
+  path="/api/v1/tenant/feedbacks"
+  description="User feedback entries tied to conversations."
+/>
+
+Platform Super Admin surfaces also exist under `/api/v1/admin/analytics/*` (not for tenant Admins).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  Events[Chat / tool / feedback events] --> Store
-  Store --> TenantDash[Tenant analytics]
-  Store --> AdminDash[Platform analytics]
+  Widget[Website widget] --> Events
+  Portal[Internal Portal] --> Events
+  WA[WhatsApp] --> Events
+  Events --> Store[(Analytics store)]
+  Store --> TenantUI[Admin Console analytics]
+  Store --> API[tenant analytics APIs]
 ```
 
-## Workflow
+## Weekly review workflow
 
-<WorkflowCard title="Weekly review" steps={[
-  {title: 'Open analytics', description: 'Admin Console analytics views.'},
-  {title: 'Sample failures', description: 'Read conversations with poor feedback.'},
-  {title: 'Fix knowledge/tools', description: 'Reindex or tighten tool scopes.'},
-]} />
-
-## Code examples
-
-```bash
-curl -sS -H "Authorization: Bearer $USER_JWT" \
-  https://api.qefro.com/api/v1/tenant/analytics
-```
+<WorkflowCard
+  title="Weekly quality loop"
+  steps={[
+    {title: 'Open analytics', description: 'Compare channels and workspaces.'},
+    {title: 'Sample poor feedback', description: 'Read 5–10 conversations.'},
+    {title: 'Classify root cause', description: 'Missing doc vs wrong workspace vs tool error.'},
+    {title: 'Fix', description: 'Reingest, split workspaces, or repair tools.'},
+    {title: 'Retest', description: 'Ask the same questions again.'},
+  ]}
+/>
 
 ## Best practices
 
-- Pair analytics with citation spot-checks
-- Track tool error rates via tool logs
+- Pair dashboards with manual citation spot-checks
+- Track tool error rates in [Audit Logs](/docs/security/audit-logs) / tool logs
+- Do not chase vanity message counts without quality review
+- Keep Support and HR analytics interpreted separately (different workspaces)
 
 ## Security notes
 
 <InfoBox>
-Analytics endpoints require authenticated tenant membership — not the public widget token.
+Analytics APIs require an authenticated org user JWT — not the publishable widget token.
 </InfoBox>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {question: 'Are analytics real-time?', answer: 'Near real-time depending on traffic; refresh the console after test chats.'},
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Are analytics real-time?',
+      answer:
+        'Near real-time depending on traffic. Refresh after test chats before drawing conclusions.',
+    },
+    {
+      question: 'Can Members see analytics?',
+      answer:
+        'Analytics are intended for Owners/Admins operating the tenant. Members use the Internal Portal for chat.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'AI Workspaces', to: '/docs/platform/ai-workspaces'},
-  {label: 'Customer AI', to: '/docs/platform/customer-ai'},
-]} />
-
-
+<RelatedTopics
+  topics={[
+    {label: 'AI Workspaces', to: '/docs/platform/ai-workspaces'},
+    {label: 'Customer AI', to: '/docs/platform/customer-ai'},
+    {label: 'Employee AI', to: '/docs/platform/employee-ai'},
+    {label: 'Production Deployment', to: '/docs/guides/production-deployment'},
+    {label: 'Audit Logs', to: '/docs/security/audit-logs'},
+  ]}
+/>
