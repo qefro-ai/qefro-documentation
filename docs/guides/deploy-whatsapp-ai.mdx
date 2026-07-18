@@ -1,6 +1,6 @@
 ---
 title: "Deploy WhatsApp AI"
-description: "Connect Meta Cloud API to /api/v1/whatsapp/webhook on Growth+."
+description: "Connect Meta Cloud API to Qefro WhatsApp webhooks on Growth+, bind a Support workspace, and validate the same grounded answers as your website widget."
 sidebar_label: "Deploy WhatsApp AI"
 ---
 
@@ -14,50 +14,116 @@ import {
 
 # Deploy WhatsApp AI
 
+This guide enables **Customer AI on WhatsApp** using Meta Cloud API and Qefro’s WhatsApp webhook endpoints.
 
-**Deploy WhatsApp AI** — Connect Meta Cloud API to /api/v1/whatsapp/webhook on Growth+.
+## Outcome
 
-## Introduction
+- WhatsApp channel configured for your organization
+- Webhook verification succeeding against `api.qefro.com`
+- Conversations bound to your Support workspace
+- Parity checks against website widget answers
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+## Prerequisites
 
-## Why it exists
+- **Growth plan or higher** (WhatsApp is plan-gated)
+- Meta Business / Cloud API app with a phone number
+- Support workspace already cite-tested on the website
+- Owner/Admin access
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
-
-## Concepts
-
-See linked platform pages for definitions used in this guide.
+Platform: [WhatsApp](/docs/platform/whatsapp).
 
 ## Architecture
 
 ```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
+sequenceDiagram
+  participant User as WhatsApp user
+  participant Meta as Meta Cloud API
+  participant Qefro as api.qefro.com
+  participant WS as Support workspace
+  User->>Meta: Message
+  Meta->>Qefro: Webhook
+  Qefro->>WS: RAG / tools
+  WS-->>Qefro: Reply
+  Qefro->>Meta: Send response
+  Meta-->>User: WhatsApp message
 ```
 
+## Step 1 — Confirm plan and workspace
 
-## Workflow
+1. Confirm WhatsApp is available on your plan in Billing.
+2. Choose the **same** Support workspace used by the website widget (recommended for consistency).
 
-<WorkflowCard title="WhatsApp" steps={[
-  {title: 'Growth+ plan', description: 'Required for WhatsApp.'},
-  {title: 'Meta app', description: 'Cloud API + webhook URL.'},
-  {title: 'Verify GET webhook', description: 'Meta challenge.'},
-  {title: 'Map workspace', description: 'Admin Console WhatsApp settings.'},
-]} />
+## Step 2 — Configure Meta Cloud API
 
-```text
-https://api.qefro.com/api/v1/whatsapp/webhook
-```
+1. Create/select a Meta app with WhatsApp product.
+2. Note phone number id, business account id, and access token (store the token as a secret in Qefro — not in git).
+3. Prepare the webhook callback URL and verify token as shown in Admin Console → WhatsApp (source of truth for the exact path).
+
+Typical Qefro webhook base: `https://api.qefro.com/api/v1/whatsapp/webhook` (confirm in console if paths evolve).
+
+## Step 3 — Connect in Admin Console
+
+1. Open WhatsApp settings for the organization/workspace mapping.
+2. Paste Meta credentials into encrypted fields.
+3. Complete webhook verification (Meta challenges Qefro; Qefro responds with the verify token).
+
+## Step 4 — Send test messages
+
+| Test | Expected |
+| --- | --- |
+| Known FAQ | Grounded answer + consistent with website |
+| Unknown topic | Refusal / safe fallback |
+| Tool-backed question | Only if tools enabled; check logs |
+
+## Step 5 — Operational readiness
+
+- Train support staff on escalation paths
+- Monitor conversation analytics and tool logs
+- Document opt-out / business hours policy for WhatsApp
+
+## Workflow checklist
+
+<WorkflowCard
+  title="WhatsApp launch"
+  steps={[
+    {title: 'Website quality first', description: 'Do not multiply a weak corpus.'},
+    {title: 'Confirm Growth+', description: 'WhatsApp entitlement.'},
+    {title: 'Meta + webhook verify', description: 'Encrypted tokens in Qefro.'},
+    {title: 'Bind Support workspace', description: 'Same as widget when possible.'},
+    {title: 'Pilot users', description: 'Then expand marketing CTAs.'},
+  ]}
+/>
+
+<Warning>
+WhatsApp messages may include PII. Align retention and tool design with your privacy policy before broad rollout.
+</Warning>
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Can WhatsApp use a different workspace than the website?',
+      answer:
+        'Yes, but consistency usually suffers. Prefer one Support workspace unless you have a deliberate split.',
+    },
+    {
+      question: 'Why is verification failing?',
+      answer:
+        'Check verify token match, HTTPS URL exactness, and that the Meta app points at the Qefro webhook path from the console.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'WhatsApp', to: '/docs/platform/whatsapp'},
-  {label: 'Customer AI', to: '/docs/platform/customer-ai'},
-]} />
-
-
-
+<RelatedTopics
+  topics={[
+    {label: 'WhatsApp', to: '/docs/platform/whatsapp'},
+    {label: 'Deploy Website Widget', to: '/docs/guides/deploy-website-widget'},
+    {label: 'Webhooks', to: '/docs/api/webhooks'},
+    {label: 'Customer AI', to: '/docs/platform/customer-ai'},
+    {label: 'Production Deployment', to: '/docs/guides/production-deployment'},
+    {label: 'Tutorial: widget to WhatsApp', to: '/blog/widget-to-whatsapp'},
+  ]}
+/>

@@ -1,6 +1,6 @@
 ---
 title: "Import OpenAPI"
-description: "Preview and apply OpenAPI into integrations/tools."
+description: "Preview and apply an OpenAPI document into workspace integrations/tools — review operations, auth, and least privilege before enabling chat."
 sidebar_label: "Import OpenAPI"
 ---
 
@@ -14,53 +14,95 @@ import {
 
 # Import OpenAPI
 
+This guide imports an **OpenAPI** document so Qefro can create or update Business Tools from your API spec — instead of hand-defining every operation.
 
-**Import OpenAPI** — Preview and apply OpenAPI into integrations/tools.
+## Outcome
 
-## Introduction
+- OpenAPI uploaded/previewed for a workspace
+- Operations reviewed (especially writes)
+- Tools applied with encrypted auth
+- Chat enablement deferred until tests pass
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+## Prerequisites
 
-## Why it exists
+- OpenAPI 3.x document (URL or file) that describes **HTTPS** APIs
+- Scoped API credentials for the environments you will call
+- Owner/Admin role
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+## Why preview matters
 
-## Concepts
+OpenAPI imports can expose dozens of operations, including `DELETE` and admin paths. Always **preview**, deselect dangerous operations, then apply.
 
-See linked platform pages for definitions used in this guide.
+## Step 1 — Prepare the spec
 
-## Architecture
+- Prefer a trimmed spec for the assistant (order read APIs ≠ full admin API)
+- Remove internal-only servers you cannot expose
+- Confirm security schemes match credentials you will store
 
-```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
-```
+## Step 2 — Preview in Admin Console
 
+1. Open the target workspace → integrations / OpenAPI import.
+2. Provide the spec URL or upload.
+3. Review the operation list Qefro proposes.
 
-Use:
+## Step 3 — Apply selectively
 
-1. `POST /api/v1/workspaces/:id/integrations/import/preview` (URL)
-2. or `.../preview/upload` (file)
-3. `POST .../import/apply`
-4. Later `POST /api/v1/integrations/:id/reimport`
+1. Keep read operations first.
+2. Attach encrypted credentials.
+3. Apply/create tools.
+4. Run per-tool tests (see [Connect REST APIs](/docs/guides/connect-rest-apis)).
 
-## Workflow
+## Step 4 — Reimport discipline
 
-<WorkflowCard title="OpenAPI import" steps={[
-  {title: 'Preview', description: 'Review operations before apply.'},
-  {title: 'Apply', description: 'Create integration + tools.'},
-  {title: 'Disable dangerous ops', description: 'Remove writes you do not want the AI to call.'},
-  {title: 'Reimport', description: 'When upstream spec changes.'},
-]} />
+When the upstream API changes:
+
+1. Re-preview the new spec.
+2. Diff newly added write operations.
+3. Rotate credentials if the vendor rotated keys.
+4. Re-test before production chat.
+
+## Workflow checklist
+
+<WorkflowCard
+  title="OpenAPI import"
+  steps={[
+    {title: 'Trim the spec', description: 'Assistant-safe operations only.'},
+    {title: 'Preview', description: 'Reject admin/delete unless required.'},
+    {title: 'Apply + encrypt auth', description: 'Store secrets in Qefro.'},
+    {title: 'Test each enabled op', description: 'Fix 401/404/5xx before chat.'},
+    {title: 'Monitor logs', description: 'Watch for unexpected calls.'},
+  ]}
+/>
+
+<Warning>
+An OpenAPI import is a security change. Treat it like granting a new OAuth scope to an automation user.
+</Warning>
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Does import auto-enable every operation for the model?',
+      answer:
+        'You should assume you must review and limit what the assistant may call. Prefer explicit allowlists of tools.',
+    },
+    {
+      question: 'What if my API is GraphQL only?',
+      answer:
+        'Expose a small HTTPS REST façade for the actions you want, or define REST tools manually for those mutations/queries.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Business Tools', to: '/docs/platform/business-tools'},
-  {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
-]} />
-
-
-
+<RelatedTopics
+  topics={[
+    {label: 'Connect REST APIs', to: '/docs/guides/connect-rest-apis'},
+    {label: 'Business Tools', to: '/docs/platform/business-tools'},
+    {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
+    {label: 'Secrets', to: '/docs/security/secrets'},
+    {label: 'REST APIs reference', to: '/docs/api/rest-apis'},
+  ]}
+/>

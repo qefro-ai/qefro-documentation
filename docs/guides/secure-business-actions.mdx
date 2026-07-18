@@ -1,6 +1,6 @@
 ---
 title: "Secure Business Actions"
-description: "Least privilege tools, encrypted secrets, identify(), SSRF, logs."
+description: "Production checklist for AI tool calling: least privilege, encrypted secrets, SSRF awareness, identify(), and execution log review."
 sidebar_label: "Secure Business Actions"
 ---
 
@@ -14,54 +14,105 @@ import {
 
 # Secure Business Actions
 
+This guide hardens **Business Actions** so assistants can call your APIs without becoming an over-privileged backdoor.
 
-**Secure Business Actions** — Least privilege tools, encrypted secrets, identify(), SSRF, logs.
+## Outcome
 
-## Introduction
+- Tools scoped to the right workspace
+- Read-only pilot completed
+- Secrets encrypted and rotatable
+- `identify()` used where end-user authz matters
+- Log review cadence defined
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+## Threats to design for
 
-## Why it exists
+| Risk | Mitigation |
+| --- | --- |
+| Public chat triggers refunds | No write tools on Customer Support until justified |
+| Stolen widget token | Token ≠ admin secret; still bind workspace carefully |
+| Prompt injection | Validate args on your API; least privilege |
+| SSRF | HTTPS only; blocked private targets |
+| Confused deputy | Forward end-user identity |
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+Concepts: [AI Agent Security](/docs/concepts/ai-agent-security), [What are Business Actions?](/docs/concepts/business-actions).
 
-## Concepts
+## Step 1 — Split audiences
 
-See linked platform pages for definitions used in this guide.
+Customer tools on Support workspace. Internal tools on Employee workspaces. Never mix.
 
-## Architecture
+## Step 2 — Start read-only
 
-```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
+Create one `GET` tool ([Connect REST APIs](/docs/guides/connect-rest-apis)). Test and log before chat enablement.
+
+## Step 3 — Encrypt and scope secrets
+
+Follow [Secrets](/docs/security/secrets). Issue vendor keys that cannot delete data.
+
+## Step 4 — Add identity forwarding for customer tools
+
+```text
+User logs into your site
+  → your app issues JWT/session
+  → widget identify()
+  → Business Action sends end-user headers to your API
+  → your API authorizes the user
 ```
 
+Details: [Identity Forwarding](/docs/platform/identity-forwarding).
 
-## Workflow
+## Step 5 — Review logs weekly (then continuously)
 
-<WorkflowCard title="Harden tools" steps={[
-  {title: 'Least privilege', description: 'Read-only first.'},
-  {title: 'Encrypt secrets', description: 'Never in frontend.'},
-  {title: 'identify() when needed', description: 'Per-user APIs.'},
-  {title: 'Review logs', description: 'GET /api/v1/tools/:id/logs.'},
-  {title: 'Separate workspaces', description: 'Customer vs internal tools.'},
-]} />
+Use tool execution logs and org audit logs ([Audit Logs](/docs/security/audit-logs)). Unexpected calls are incidents.
 
-## Security notes
+## Step 6 — Introduce writes carefully
+
+- Idempotent operations
+- Human approval for irreversible money movement
+- Rate limits on your API
+
+## Workflow checklist
+
+<WorkflowCard
+  title="Secure actions rollout"
+  steps={[
+    {title: 'Workspace split', description: 'Customer vs employee tools.'},
+    {title: 'Read-only tool', description: 'Test + logs.'},
+    {title: 'identify() if needed', description: 'End-user authz on your side.'},
+    {title: 'Pilot traffic', description: 'Watch failures and odd args.'},
+    {title: 'Optional writes', description: 'Idempotency + approvals.'},
+  ]}
+/>
 
 <Warning>
-Outbound calls are SSRF-validated. Do not weaken DNS pinning for convenience.
+Prompt injection is not solved by better wording alone. Assume hostile content in user messages and uploaded docs whenever tools are enabled.
 </Warning>
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Can I disable all tools quickly?',
+      answer:
+        'Remove or disable tools on the workspace in Admin Console, and rotate credentials at the vendor if you suspect abuse.',
+    },
+    {
+      question: 'Are OpenAPI imports safe by default?',
+      answer:
+        'No. Preview and strip admin/delete operations. See Import OpenAPI.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Business Actions', to: '/docs/platform/business-actions'},
-  {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
-  {label: 'Security Overview', to: '/docs/security/overview'},
-]} />
-
-
-
+<RelatedTopics
+  topics={[
+    {label: 'Connect REST APIs', to: '/docs/guides/connect-rest-apis'},
+    {label: 'Import OpenAPI', to: '/docs/guides/import-openapi'},
+    {label: 'Secrets', to: '/docs/security/secrets'},
+    {label: 'Audit Logs', to: '/docs/security/audit-logs'},
+    {label: 'AI Agent Security', to: '/docs/concepts/ai-agent-security'},
+    {label: 'Blog: Securing Business Actions', to: '/blog/securing-business-actions'},
+  ]}
+/>

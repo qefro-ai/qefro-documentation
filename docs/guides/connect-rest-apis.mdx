@@ -1,6 +1,6 @@
 ---
 title: "Connect REST APIs"
-description: "Create workspace Business Tools that call your HTTPS APIs."
+description: "Create a workspace Business Tool that calls your HTTPS API — method, URL, encrypted auth, test, and execution logs."
 sidebar_label: "Connect REST APIs"
 ---
 
@@ -10,58 +10,136 @@ import {
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
+  ApiEndpointCard,
 } from '@site/src/components';
 
 # Connect REST APIs
 
+This guide creates a **Business Tool** that calls your HTTPS API so the assistant can run **Business Actions** during chat.
 
-**Connect REST APIs** — Create workspace Business Tools that call your HTTPS APIs.
+## Outcome
 
-## Introduction
+- A REST tool bound to one workspace
+- Credentials stored encrypted (not in the browser)
+- A successful console test
+- Awareness of SSRF limits and logging
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+## Prerequisites
 
-## Why it exists
-
-Guides encode the recommended path so teams avoid insecure shortcuts.
+- Owner/Admin access
+- An HTTPS endpoint you control (or vendor API with a scoped key)
+- Decision: which workspace may use this tool (Support vs HR, etc.)
 
 ## Concepts
 
-See linked platform pages for definitions used in this guide.
+| Term | Meaning |
+| --- | --- |
+| Business Tool | Connector definition |
+| Business Action | One runtime invocation |
+
+Read: [What are Business Actions?](/docs/concepts/business-actions), [Business Tools](/docs/platform/business-tools).
 
 ## Architecture
 
 ```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
+sequenceDiagram
+  participant User
+  participant Qefro
+  participant API as Your HTTPS API
+  User->>Qefro: Chat in workspace
+  Qefro->>Qefro: Select allowed tool
+  Qefro->>API: HTTPS + secrets + optional end-user headers
+  API-->>Qefro: JSON result
+  Qefro-->>User: Grounded reply
 ```
 
+## Step 1 — Pick a safe first endpoint
 
-In Admin Console, open a workspace → create a REST Business Tool (method, URL template, encrypted auth). Test via `POST /api/v1/tools/:id/test`.
+Prefer **read-only** `GET` (order status, ticket status). Avoid refunds, deletes, or bulk exports on day one.
 
-## Workflow
+## Step 2 — Create the tool in the workspace
 
-<WorkflowCard title="REST tool" steps={[
-  {title: 'HTTPS endpoint', description: 'Public or allowlisted API.'},
-  {title: 'Create tool', description: 'Workspace tools API/UI.'},
-  {title: 'Store secret', description: 'Encrypted credentials.'},
-  {title: 'Test + logs', description: '/test and /logs.'},
-]} />
+In Admin Console → workspace → Business Tools / integrations:
 
-## Security notes
+1. Choose REST.
+2. Set method + URL template.
+3. Add encrypted auth (Bearer, header API key, etc.).
+4. Describe parameters the model may fill.
+
+## Step 3 — Test
+
+Use the console test action or:
+
+<ApiEndpointCard
+  method="POST"
+  path="/api/v1/tools/:id/test"
+  description="Execute a dry-run / test invocation for a Business Tool."
+/>
+
+```bash
+curl -sS -X POST \
+  -H "Authorization: Bearer $USER_JWT" \
+  -H "Content-Type: application/json" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/test \
+  -d '{"arguments":{"order_id":"123"}}'
+```
+
+## Step 4 — Review logs
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/logs
+```
+
+See [Audit Logs](/docs/security/audit-logs).
+
+## Step 5 — Enable for chat carefully
+
+- Customer AI: add [`identify()`](/docs/platform/identity-forwarding) if your API authorizes end users
+- Employee AI: ensure only internal workspaces have internal tools
+
+## Workflow checklist
+
+<WorkflowCard
+  title="REST tool launch"
+  steps={[
+    {title: 'Choose read-only HTTPS API', description: 'Scoped vendor key.'},
+    {title: 'Create tool in one workspace', description: 'Encrypt credentials.'},
+    {title: 'Test + fix errors', description: 'Do not enable chat yet.'},
+    {title: 'Enable for assistants', description: 'Monitor logs for a week.'},
+    {title: 'Consider writes later', description: 'Idempotency + human approval.'},
+  ]}
+/>
 
 <Warning>
-URLs are SSRF-checked. Private IPs and link-local targets are blocked.
+Tool URLs are SSRF-checked. Private IPs, link-local, and many metadata endpoints are blocked. Use public HTTPS APIs or approved allowlisted destinations.
 </Warning>
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'REST vs OpenAPI import?',
+      answer:
+        'Use this guide for one-off endpoints. Use Import OpenAPI when you have a spec with many operations to preview/apply.',
+    },
+    {
+      question: 'Where do secrets live?',
+      answer: 'Encrypted in Qefro tool config — never in widget JavaScript. See Secrets.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Business Tools', to: '/docs/platform/business-tools'},
-  {label: 'Import OpenAPI', to: '/docs/guides/import-openapi'},
-]} />
-
-
-
+<RelatedTopics
+  topics={[
+    {label: 'Import OpenAPI', to: '/docs/guides/import-openapi'},
+    {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
+    {label: 'Business Tools', to: '/docs/platform/business-tools'},
+    {label: 'Secrets', to: '/docs/security/secrets'},
+    {label: 'AI Agent Security', to: '/docs/concepts/ai-agent-security'},
+    {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
+  ]}
+/>

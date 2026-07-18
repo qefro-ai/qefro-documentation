@@ -1,6 +1,6 @@
 ---
 title: "Configure RBAC"
-description: "Owners, Admins, Members, teams, and workspace grants."
+description: "Set Owner, Admin, and Member roles; create Teams; grant workspace access so Employee AI stays least-privilege."
 sidebar_label: "Configure RBAC"
 ---
 
@@ -14,47 +14,99 @@ import {
 
 # Configure RBAC
 
+This guide configures **role-based access control** for your Qefro organization so the right people can administer vs chat.
 
-**Configure RBAC** — Owners, Admins, Members, teams, and workspace grants.
+## Outcome
 
-## Introduction
+- Clear Owner / Admin / Member assignments
+- Teams that grant workspace access to Members
+- Employee AI portal showing only allowed workspaces
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+## Role summary
 
-## Why it exists
+| Role | Typical powers |
+| --- | --- |
+| **Owner** | Full control including billing-sensitive actions |
+| **Admin** | Configure workspaces, knowledge, tools, members/teams |
+| **Member** | Use Internal Portal for granted workspaces |
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+Exact permissions can evolve — treat Admin Console as authoritative and keep Owners few.
 
-## Concepts
+Platform: [RBAC](/docs/platform/rbac), [Teams](/docs/platform/teams), [Organizations](/docs/platform/organizations).
 
-See linked platform pages for definitions used in this guide.
+## Step 1 — Assign Owners and Admins carefully
 
-## Architecture
+1. Keep a primary Owner account secured (unique email, strong password).
+2. Promote only trusted operators to Admin.
+3. Do not make every employee an Admin “for convenience.”
 
-```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
-```
+## Step 2 — Invite Members
 
+1. Invite employees with their work email.
+2. Complete verification / signup.
+3. Leave them as Members unless they must configure the product.
 
-## Workflow
+## Step 3 — Create Teams
 
-<WorkflowCard title="RBAC" steps={[
-  {title: 'Invite users', description: '/api/v1/team/invite.'},
-  {title: 'Assign roles', description: 'Owner/Admin/Member.'},
-  {title: 'Create teams', description: '/api/v1/org/teams.'},
-  {title: 'Grant workspaces', description: 'Team ↔ workspace mapping.'},
-  {title: 'Optional write', description: 'Document write per member.'},
-]} />
+Examples:
+
+- **People Ops** → HR workspace
+- **IT Support** → IT workspace
+- **All Staff** → company handbook workspace (if appropriate)
+
+## Step 4 — Attach workspaces to Teams
+
+1. Open the Team.
+2. Grant access to the relevant workspace(s).
+3. Sign in as a Member and confirm the portal list matches grants.
+
+## Step 5 — Separate customer configuration
+
+Widget tokens and Support workspace tools are Admin concerns. Members should not need Admin to talk to Employee AI.
+
+## Workflow checklist
+
+<WorkflowCard
+  title="RBAC hardening"
+  steps={[
+    {title: 'Minimize Owners/Admins', description: 'Break-glass Owner documented.'},
+    {title: 'Invite Members', description: 'Default least privilege.'},
+    {title: 'Create Teams by function', description: 'Not one mega-team if avoidable.'},
+    {title: 'Grant workspaces', description: 'Verify as a Member.'},
+    {title: 'Review quarterly', description: 'Remove leavers; rotate admins.'},
+  ]}
+/>
+
+<Warning>
+RBAC does not fix a mixed public/internal knowledge workspace. Still split Customer Support vs HR corpora.
+</Warning>
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Can Members upload documents?',
+      answer:
+        'Document write rights are restricted; assume Admins manage knowledge unless your tenant explicitly enables broader flags.',
+    },
+    {
+      question: 'How do contractors get temporary access?',
+      answer:
+        'Member + Team with only the needed workspace; remove the Team membership when the engagement ends.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'RBAC', to: '/docs/platform/rbac'},
-  {label: 'Teams', to: '/docs/platform/teams'},
-]} />
-
-
-
+<RelatedTopics
+  topics={[
+    {label: 'RBAC', to: '/docs/platform/rbac'},
+    {label: 'Teams', to: '/docs/platform/teams'},
+    {label: 'Create Employee AI', to: '/docs/guides/create-employee-ai'},
+    {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
+    {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'Tenant Isolation', to: '/docs/security/tenant-isolation'},
+  ]}
+/>

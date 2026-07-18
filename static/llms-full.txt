@@ -2087,51 +2087,99 @@ SOC 2 is on the roadmap — ask Sales for the current timeline. SSO/SAML is on t
 
 Source: https://docs.qefro.com/docs/guides/build-ai-customer-support/
 
-> Ship a Support workspace with knowledge, widget, and optional tools.
+> Step-by-step: create a Support workspace, ingest FAQs, validate citations, embed the website widget, then optionally add WhatsApp and Business Tools.
 
-**Build AI Customer Support** — Ship a Support workspace with knowledge, widget, and optional tools.
+This guide ships **Customer AI** for support: one Support workspace, grounded answers with citations, a website widget, and optional WhatsApp / Business Tools.
 
-## Introduction
+## Outcome
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+When you finish, you will have:
 
-## Why it exists
+- A **Customer Support** AI Workspace on [app.qefro.com](https://app.qefro.com)
+- Knowledge ingested and citation-checked
+- The [website widget](/docs/platform/website-widget) bound to that workspace
+- A clear path to WhatsApp (Growth+) and read-only tools
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+## Prerequisites
 
-## Concepts
-
-See linked platform pages for definitions used in this guide.
+- Organization account at [app.qefro.com](https://app.qefro.com)
+- Owner or Admin role
+- Customer-safe documents (FAQs, policies, product docs) — **not** HR/payroll files
 
 ## Architecture
 
 ```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
+flowchart LR
+  Docs[FAQs / policies] --> WS[Support workspace]
+  WS --> RAG[Hybrid RAG]
+  WS --> Widget[Website widget]
+  WS --> WA[WhatsApp optional]
+  WS --> Tools[Business Tools optional]
+  Visitor --> Widget
+  Visitor --> WA
 ```
 
-Build a **Customer Support** workspace, ingest FAQs, embed the widget, then optionally add Business Tools.
+## Step 1 — Create the Support workspace
 
-## Workflow
+1. Open Admin Console → Workspaces.
+2. Create a workspace named **Customer Support** (or similar).
+3. Set instructions: tone, language, and “refuse when sources are missing.”
 
-## Code examples
+Platform background: [AI Workspaces](/docs/platform/ai-workspaces), [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace).
+
+## Step 2 — Ingest knowledge
+
+1. Upload PDFs/docs or crawl approved public URLs.
+2. Prefer canonical sources over stale wiki dumps.
+3. Wait for indexing to finish; reindex if you replace a file.
+
+Platform: [Knowledge Platform](/docs/platform/knowledge-platform), [Hybrid RAG](/docs/concepts/hybrid-rag).
+
+## Step 3 — Validate answers
+
+Ask at least ten real support questions in the console:
+
+| Check | Pass criteria |
+| --- | --- |
+| Citations | Answer points at the right doc |
+| Identifiers | SKUs / error codes resolve |
+| Unknown topics | Assistant refuses instead of inventing policy |
+| Isolation | HR canaries (if any) never appear |
+
+## Step 4 — Embed the website widget
 
 ```html
 <script
   src="https://cdn.qefro.com/widget.js"
   data-token="YOUR_WIDGET_TOKEN"
   data-endpoint="https://api.qefro.com"
-  data-workspace-id="YOUR_WORKSPACE_ID">
+  data-workspace-id="YOUR_SUPPORT_WORKSPACE_ID">
 </script>
 ```
 
-## Security notes
+Copy the token and workspace id from Admin Console → Widget. Full guide: [Deploy Website Widget](/docs/guides/deploy-website-widget).
 
-Keep HR knowledge out of this workspace.
+## Step 5 — Optional: WhatsApp
+
+On Growth+, bind the **same** Support workspace to WhatsApp so answers stay consistent. Guide: [Deploy WhatsApp AI](/docs/guides/deploy-whatsapp-ai).
+
+## Step 6 — Optional: Business Tools
+
+Only after citations are solid:
+
+1. Add a **read-only** tool (e.g. order status).
+2. Use [`identify()`](/docs/platform/identity-forwarding) when the API needs the logged-in customer.
+3. Monitor tool logs for a week before enabling writes.
+
+Guides: [Connect REST APIs](/docs/guides/connect-rest-apis), [Secure Business Actions](/docs/guides/secure-business-actions).
+
+## Workflow checklist
+
+Keep HR, payroll, and internal incident docs out of this workspace. Use a separate Employee AI workspace for those.
 
 ## FAQ
+
+Next: [Production Deployment](/docs/guides/production-deployment) before inviting real traffic.
 
 ## Related topics
 
@@ -2141,38 +2189,73 @@ Keep HR knowledge out of this workspace.
 
 Source: https://docs.qefro.com/docs/guides/create-employee-ai/
 
-> Stand up Internal Portal with RBAC-scoped workspaces.
+> Stand up Employee AI on the Internal Portal: workspaces, Teams, RBAC grants, branding, and optional internal Business Tools.
 
-**Create Employee AI** — Stand up Internal Portal with RBAC-scoped workspaces.
+This guide ships **Employee AI**: authenticated organization members use the [Internal Portal](/docs/platform/internal-portal) to chat with workspaces they are granted — not the public widget.
 
-## Introduction
+## Outcome
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+- One or more internal workspaces (HR, IT, Ops, …)
+- Members invited and placed in Teams
+- Workspace grants so Members only see allowed assistants
+- Portal reachable on `your-company.qefro.com` (or a custom domain later)
 
-## Why it exists
+## Prerequisites
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
-
-## Concepts
-
-See linked platform pages for definitions used in this guide.
+- Owner or Admin on [app.qefro.com](https://app.qefro.com)
+- Internal documents approved for employee access
+- Decision on who may configure tools (usually Admins only)
 
 ## Architecture
 
 ```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
+flowchart TB
+  Org[Organization]
+  Org --> HR[Workspace HR]
+  Org --> IT[Workspace IT]
+  Org --> Team[Team: People Ops]
+  Team --> HR
+  Member[Member login] --> Portal[Internal Portal]
+  Portal --> HR
+  Portal --> IT
 ```
 
-Create internal workspaces (HR/IT), configure teams, and share `your-company.qefro.com`.
+## Step 1 — Create internal workspaces
 
-## Workflow
+Create separate workspaces per audience (HR vs IT). Do **not** reuse the public Support workspace.
 
-## Security notes
+Background: [Employee AI](/docs/platform/employee-ai), [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace).
 
-Members only see granted workspaces; Owners/Admins see all.
+## Step 2 — Ingest internal knowledge
+
+Upload runbooks and policies that employees are allowed to see. Re-test citations and refusals the same way you would for Customer AI.
+
+## Step 3 — Configure RBAC
+
+1. Invite users (email/password signup + verification flow).
+2. Create a Team (e.g. People Ops).
+3. Add Members to the Team.
+4. Attach the HR workspace to that Team.
+
+Owners and Admins can typically access all workspaces; Members only see grants. Guide: [Configure RBAC](/docs/guides/configure-rbac). Platform: [RBAC](/docs/platform/rbac), [Teams](/docs/platform/teams).
+
+## Step 4 — Brand and open the portal
+
+1. Set logo/colors under Branding.
+2. Note your `*.qefro.com` portal hostname.
+3. Have a Member sign in and confirm they only see granted workspaces.
+
+Optional later: [Enable Custom Domains](/docs/guides/enable-custom-domains).
+
+## Step 5 — Optional internal tools
+
+Attach internal Business Tools only to internal workspaces. Prefer read-only first. Never attach payroll-write tools to a Customer AI workspace.
+
+See [Secure Business Actions](/docs/guides/secure-business-actions).
+
+## Workflow checklist
+
+Employee AI is not “Customer AI behind a login.” It requires membership, Teams, and workspace grants. See Customer AI vs Employee AI.
 
 ## FAQ
 
@@ -2184,38 +2267,90 @@ Members only see granted workspaces; Owners/Admins see all.
 
 Source: https://docs.qefro.com/docs/guides/connect-rest-apis/
 
-> Create workspace Business Tools that call your HTTPS APIs.
+> Create a workspace Business Tool that calls your HTTPS API — method, URL, encrypted auth, test, and execution logs.
 
-**Connect REST APIs** — Create workspace Business Tools that call your HTTPS APIs.
+This guide creates a **Business Tool** that calls your HTTPS API so the assistant can run **Business Actions** during chat.
 
-## Introduction
+## Outcome
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+- A REST tool bound to one workspace
+- Credentials stored encrypted (not in the browser)
+- A successful console test
+- Awareness of SSRF limits and logging
 
-## Why it exists
+## Prerequisites
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+- Owner/Admin access
+- An HTTPS endpoint you control (or vendor API with a scoped key)
+- Decision: which workspace may use this tool (Support vs HR, etc.)
 
 ## Concepts
 
-See linked platform pages for definitions used in this guide.
+| Term | Meaning |
+| --- | --- |
+| Business Tool | Connector definition |
+| Business Action | One runtime invocation |
+
+Read: [What are Business Actions?](/docs/concepts/business-actions), [Business Tools](/docs/platform/business-tools).
 
 ## Architecture
 
 ```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
+sequenceDiagram
+  participant User
+  participant Qefro
+  participant API as Your HTTPS API
+  User->>Qefro: Chat in workspace
+  Qefro->>Qefro: Select allowed tool
+  Qefro->>API: HTTPS + secrets + optional end-user headers
+  API-->>Qefro: JSON result
+  Qefro-->>User: Grounded reply
 ```
 
-In Admin Console, open a workspace → create a REST Business Tool (method, URL template, encrypted auth). Test via `POST /api/v1/tools/:id/test`.
+## Step 1 — Pick a safe first endpoint
 
-## Workflow
+Prefer **read-only** `GET` (order status, ticket status). Avoid refunds, deletes, or bulk exports on day one.
 
-## Security notes
+## Step 2 — Create the tool in the workspace
 
-URLs are SSRF-checked. Private IPs and link-local targets are blocked.
+In Admin Console → workspace → Business Tools / integrations:
+
+1. Choose REST.
+2. Set method + URL template.
+3. Add encrypted auth (Bearer, header API key, etc.).
+4. Describe parameters the model may fill.
+
+## Step 3 — Test
+
+Use the console test action or:
+
+```bash
+curl -sS -X POST \
+  -H "Authorization: Bearer $USER_JWT" \
+  -H "Content-Type: application/json" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/test \
+  -d '{"arguments":{"order_id":"123"}}'
+```
+
+## Step 4 — Review logs
+
+```bash
+curl -sS -H "Authorization: Bearer $USER_JWT" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/logs
+```
+
+See [Audit Logs](/docs/security/audit-logs).
+
+## Step 5 — Enable for chat carefully
+
+- Customer AI: add [`identify()`](/docs/platform/identity-forwarding) if your API authorizes end users
+- Employee AI: ensure only internal workspaces have internal tools
+
+## Workflow checklist
+
+Tool URLs are SSRF-checked. Private IPs, link-local, and many metadata endpoints are blocked. Use public HTTPS APIs or approved allowlisted destinations.
+
+## FAQ
 
 ## Related topics
 
@@ -2225,39 +2360,60 @@ URLs are SSRF-checked. Private IPs and link-local targets are blocked.
 
 Source: https://docs.qefro.com/docs/guides/import-openapi/
 
-> Preview and apply OpenAPI into integrations/tools.
+> Preview and apply an OpenAPI document into workspace integrations/tools — review operations, auth, and least privilege before enabling chat.
 
-**Import OpenAPI** — Preview and apply OpenAPI into integrations/tools.
+This guide imports an **OpenAPI** document so Qefro can create or update Business Tools from your API spec — instead of hand-defining every operation.
 
-## Introduction
+## Outcome
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+- OpenAPI uploaded/previewed for a workspace
+- Operations reviewed (especially writes)
+- Tools applied with encrypted auth
+- Chat enablement deferred until tests pass
 
-## Why it exists
+## Prerequisites
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+- OpenAPI 3.x document (URL or file) that describes **HTTPS** APIs
+- Scoped API credentials for the environments you will call
+- Owner/Admin role
 
-## Concepts
+## Why preview matters
 
-See linked platform pages for definitions used in this guide.
+OpenAPI imports can expose dozens of operations, including `DELETE` and admin paths. Always **preview**, deselect dangerous operations, then apply.
 
-## Architecture
+## Step 1 — Prepare the spec
 
-```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
-```
+- Prefer a trimmed spec for the assistant (order read APIs ≠ full admin API)
+- Remove internal-only servers you cannot expose
+- Confirm security schemes match credentials you will store
 
-Use:
+## Step 2 — Preview in Admin Console
 
-1. `POST /api/v1/workspaces/:id/integrations/import/preview` (URL)
-2. or `.../preview/upload` (file)
-3. `POST .../import/apply`
-4. Later `POST /api/v1/integrations/:id/reimport`
+1. Open the target workspace → integrations / OpenAPI import.
+2. Provide the spec URL or upload.
+3. Review the operation list Qefro proposes.
 
-## Workflow
+## Step 3 — Apply selectively
+
+1. Keep read operations first.
+2. Attach encrypted credentials.
+3. Apply/create tools.
+4. Run per-tool tests (see [Connect REST APIs](/docs/guides/connect-rest-apis)).
+
+## Step 4 — Reimport discipline
+
+When the upstream API changes:
+
+1. Re-preview the new spec.
+2. Diff newly added write operations.
+3. Rotate credentials if the vendor rotated keys.
+4. Re-test before production chat.
+
+## Workflow checklist
+
+An OpenAPI import is a security change. Treat it like granting a new OAuth scope to an automation user.
+
+## FAQ
 
 ## Related topics
 
@@ -2267,36 +2423,80 @@ Use:
 
 Source: https://docs.qefro.com/docs/guides/deploy-whatsapp-ai/
 
-> Connect Meta Cloud API to /api/v1/whatsapp/webhook on Growth+.
+> Connect Meta Cloud API to Qefro WhatsApp webhooks on Growth+, bind a Support workspace, and validate the same grounded answers as your website widget.
 
-**Deploy WhatsApp AI** — Connect Meta Cloud API to /api/v1/whatsapp/webhook on Growth+.
+This guide enables **Customer AI on WhatsApp** using Meta Cloud API and Qefro’s WhatsApp webhook endpoints.
 
-## Introduction
+## Outcome
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+- WhatsApp channel configured for your organization
+- Webhook verification succeeding against `api.qefro.com`
+- Conversations bound to your Support workspace
+- Parity checks against website widget answers
 
-## Why it exists
+## Prerequisites
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+- **Growth plan or higher** (WhatsApp is plan-gated)
+- Meta Business / Cloud API app with a phone number
+- Support workspace already cite-tested on the website
+- Owner/Admin access
 
-## Concepts
-
-See linked platform pages for definitions used in this guide.
+Platform: [WhatsApp](/docs/platform/whatsapp).
 
 ## Architecture
 
 ```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
+sequenceDiagram
+  participant User as WhatsApp user
+  participant Meta as Meta Cloud API
+  participant Qefro as api.qefro.com
+  participant WS as Support workspace
+  User->>Meta: Message
+  Meta->>Qefro: Webhook
+  Qefro->>WS: RAG / tools
+  WS-->>Qefro: Reply
+  Qefro->>Meta: Send response
+  Meta-->>User: WhatsApp message
 ```
 
-## Workflow
+## Step 1 — Confirm plan and workspace
 
-```text
-https://api.qefro.com/api/v1/whatsapp/webhook
-```
+1. Confirm WhatsApp is available on your plan in Billing.
+2. Choose the **same** Support workspace used by the website widget (recommended for consistency).
+
+## Step 2 — Configure Meta Cloud API
+
+1. Create/select a Meta app with WhatsApp product.
+2. Note phone number id, business account id, and access token (store the token as a secret in Qefro — not in git).
+3. Prepare the webhook callback URL and verify token as shown in Admin Console → WhatsApp (source of truth for the exact path).
+
+Typical Qefro webhook base: `https://api.qefro.com/api/v1/whatsapp/webhook` (confirm in console if paths evolve).
+
+## Step 3 — Connect in Admin Console
+
+1. Open WhatsApp settings for the organization/workspace mapping.
+2. Paste Meta credentials into encrypted fields.
+3. Complete webhook verification (Meta challenges Qefro; Qefro responds with the verify token).
+
+## Step 4 — Send test messages
+
+| Test | Expected |
+| --- | --- |
+| Known FAQ | Grounded answer + consistent with website |
+| Unknown topic | Refusal / safe fallback |
+| Tool-backed question | Only if tools enabled; check logs |
+
+## Step 5 — Operational readiness
+
+- Train support staff on escalation paths
+- Monitor conversation analytics and tool logs
+- Document opt-out / business hours policy for WhatsApp
+
+## Workflow checklist
+
+WhatsApp messages may include PII. Align retention and tool design with your privacy policy before broad rollout.
+
+## FAQ
 
 ## Related topics
 
@@ -2306,41 +2506,77 @@ https://api.qefro.com/api/v1/whatsapp/webhook
 
 Source: https://docs.qefro.com/docs/guides/deploy-website-widget/
 
-> Embed cdn.qefro.com/widget.js with token and workspace id.
+> Embed cdn.qefro.com/widget.js with token, API endpoint, and workspace id — then optionally add identify() for authenticated customers.
 
-**Deploy Website Widget** — Embed cdn.qefro.com/widget.js with token and workspace id.
+This guide embeds **Customer AI** on your website using the Qefro widget script.
 
-## Introduction
+## Outcome
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+- Widget loads from `https://cdn.qefro.com/widget.js`
+- Conversations hit `https://api.qefro.com`
+- Chat is bound to a specific Support workspace
+- Optional `identify()` for logged-in users
 
-## Why it exists
+## Prerequisites
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+- Support workspace with validated knowledge ([Build AI Customer Support](/docs/guides/build-ai-customer-support))
+- Widget token from Admin Console
+- Ability to edit your site HTML / tag manager
 
-## Concepts
+## Step 1 — Copy embed values
 
-See linked platform pages for definitions used in this guide.
+From Admin Console → Widget:
 
-## Architecture
+| Attribute | Purpose |
+| --- | --- |
+| `data-token` | Publishable widget token |
+| `data-endpoint` | `https://api.qefro.com` |
+| `data-workspace-id` | Support workspace id |
 
-```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
-```
+Platform: [Website Widget](/docs/platform/website-widget).
 
-## Workflow
+## Step 2 — Add the script
 
 ```html
 <script
   src="https://cdn.qefro.com/widget.js"
   data-token="YOUR_WIDGET_TOKEN"
   data-endpoint="https://api.qefro.com"
-  data-workspace-id="YOUR_WORKSPACE_ID">
+  data-workspace-id="YOUR_SUPPORT_WORKSPACE_ID"
+  async>
 </script>
 ```
+
+Place it before `</body>` on pages where chat should appear (or load via your tag manager).
+
+## Step 3 — Verify in production-like preview
+
+1. Open the page in a private window.
+2. Ask a known FAQ; confirm citations.
+3. Ask an unknown topic; confirm refusal.
+4. Confirm the widget is **not** bound to an HR workspace.
+
+## Step 4 — Optional identify()
+
+When Business Tools must act as the logged-in customer:
+
+```html
+<script>
+  // After your app session is ready:
+  window.QefroWidget?.identify?.({
+    token: 'END_USER_JWT_OR_SESSION',
+    // follow current widget docs for exact payload fields
+  });
+</script>
+```
+
+Exact helper names/fields: see [Identity Forwarding](/docs/platform/identity-forwarding) and the embed snippet in Admin Console (source of truth as the widget evolves).
+
+## Workflow checklist
+
+The widget token is publishable (it appears in HTML). It authenticates the channel, not an end user. Never put CRM admin secrets in the page.
+
+## FAQ
 
 ## Related topics
 
@@ -2350,32 +2586,63 @@ flowchart TD
 
 Source: https://docs.qefro.com/docs/guides/configure-rbac/
 
-> Owners, Admins, Members, teams, and workspace grants.
+> Set Owner, Admin, and Member roles; create Teams; grant workspace access so Employee AI stays least-privilege.
 
-**Configure RBAC** — Owners, Admins, Members, teams, and workspace grants.
+This guide configures **role-based access control** for your Qefro organization so the right people can administer vs chat.
 
-## Introduction
+## Outcome
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+- Clear Owner / Admin / Member assignments
+- Teams that grant workspace access to Members
+- Employee AI portal showing only allowed workspaces
 
-## Why it exists
+## Role summary
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+| Role | Typical powers |
+| --- | --- |
+| **Owner** | Full control including billing-sensitive actions |
+| **Admin** | Configure workspaces, knowledge, tools, members/teams |
+| **Member** | Use Internal Portal for granted workspaces |
 
-## Concepts
+Exact permissions can evolve — treat Admin Console as authoritative and keep Owners few.
 
-See linked platform pages for definitions used in this guide.
+Platform: [RBAC](/docs/platform/rbac), [Teams](/docs/platform/teams), [Organizations](/docs/platform/organizations).
 
-## Architecture
+## Step 1 — Assign Owners and Admins carefully
 
-```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
-```
+1. Keep a primary Owner account secured (unique email, strong password).
+2. Promote only trusted operators to Admin.
+3. Do not make every employee an Admin “for convenience.”
 
-## Workflow
+## Step 2 — Invite Members
+
+1. Invite employees with their work email.
+2. Complete verification / signup.
+3. Leave them as Members unless they must configure the product.
+
+## Step 3 — Create Teams
+
+Examples:
+
+- **People Ops** → HR workspace
+- **IT Support** → IT workspace
+- **All Staff** → company handbook workspace (if appropriate)
+
+## Step 4 — Attach workspaces to Teams
+
+1. Open the Team.
+2. Grant access to the relevant workspace(s).
+3. Sign in as a Member and confirm the portal list matches grants.
+
+## Step 5 — Separate customer configuration
+
+Widget tokens and Support workspace tools are Admin concerns. Members should not need Admin to talk to Employee AI.
+
+## Workflow checklist
+
+RBAC does not fix a mixed public/internal knowledge workspace. Still split Customer Support vs HR corpora.
+
+## FAQ
 
 ## Related topics
 
@@ -2385,36 +2652,69 @@ flowchart TD
 
 Source: https://docs.qefro.com/docs/guides/secure-business-actions/
 
-> Least privilege tools, encrypted secrets, identify(), SSRF, logs.
+> Production checklist for AI tool calling: least privilege, encrypted secrets, SSRF awareness, identify(), and execution log review.
 
-**Secure Business Actions** — Least privilege tools, encrypted secrets, identify(), SSRF, logs.
+This guide hardens **Business Actions** so assistants can call your APIs without becoming an over-privileged backdoor.
 
-## Introduction
+## Outcome
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+- Tools scoped to the right workspace
+- Read-only pilot completed
+- Secrets encrypted and rotatable
+- `identify()` used where end-user authz matters
+- Log review cadence defined
 
-## Why it exists
+## Threats to design for
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+| Risk | Mitigation |
+| --- | --- |
+| Public chat triggers refunds | No write tools on Customer Support until justified |
+| Stolen widget token | Token ≠ admin secret; still bind workspace carefully |
+| Prompt injection | Validate args on your API; least privilege |
+| SSRF | HTTPS only; blocked private targets |
+| Confused deputy | Forward end-user identity |
 
-## Concepts
+Concepts: [AI Agent Security](/docs/concepts/ai-agent-security), [What are Business Actions?](/docs/concepts/business-actions).
 
-See linked platform pages for definitions used in this guide.
+## Step 1 — Split audiences
 
-## Architecture
+Customer tools on Support workspace. Internal tools on Employee workspaces. Never mix.
 
-```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
+## Step 2 — Start read-only
+
+Create one `GET` tool ([Connect REST APIs](/docs/guides/connect-rest-apis)). Test and log before chat enablement.
+
+## Step 3 — Encrypt and scope secrets
+
+Follow [Secrets](/docs/security/secrets). Issue vendor keys that cannot delete data.
+
+## Step 4 — Add identity forwarding for customer tools
+
+```text
+User logs into your site
+  → your app issues JWT/session
+  → widget identify()
+  → Business Action sends end-user headers to your API
+  → your API authorizes the user
 ```
 
-## Workflow
+Details: [Identity Forwarding](/docs/platform/identity-forwarding).
 
-## Security notes
+## Step 5 — Review logs weekly (then continuously)
 
-Outbound calls are SSRF-validated. Do not weaken DNS pinning for convenience.
+Use tool execution logs and org audit logs ([Audit Logs](/docs/security/audit-logs)). Unexpected calls are incidents.
+
+## Step 6 — Introduce writes carefully
+
+- Idempotent operations
+- Human approval for irreversible money movement
+- Rate limits on your API
+
+## Workflow checklist
+
+Prompt injection is not solved by better wording alone. Assume hostile content in user messages and uploaded docs whenever tools are enabled.
+
+## FAQ
 
 ## Related topics
 
@@ -2424,32 +2724,71 @@ Outbound calls are SSRF-validated. Do not weaken DNS pinning for convenience.
 
 Source: https://docs.qefro.com/docs/guides/enable-custom-domains/
 
-> CNAME your portal hostname to Cloudflare (org.qefro.com target).
+> Serve the Internal Portal on your hostname via Cloudflare custom hostnames — DNS CNAME, TLS, and Admin Console domain setup.
 
-**Enable Custom Domains** — CNAME your portal hostname to Cloudflare (org.qefro.com target).
+This guide puts the **Internal Portal** on a hostname you own (for example `ai.yourcompany.com`) instead of only `your-company.qefro.com`.
 
-## Introduction
+## Outcome
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+- Custom hostname registered for your tenant portal
+- DNS CNAME in place
+- TLS healthy
+- Employees sign in on your domain
 
-## Why it exists
+## Prerequisites
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+- Employee AI portal already working on the default `*.qefro.com` host ([Create Employee AI](/docs/guides/create-employee-ai))
+- Ability to create DNS records for your domain
+- Owner/Admin access
 
-## Concepts
+Platform: [Custom Domains](/docs/platform/custom-domains).
 
-See linked platform pages for definitions used in this guide.
+## How it works (conceptual)
 
-## Architecture
+Qefro uses Cloudflare custom hostnames so your domain terminates TLS and routes to the Internal Portal for your tenant.
 
 ```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
+flowchart LR
+  User[Employee browser] --> DNS[Your DNS CNAME]
+  DNS --> CF[Cloudflare custom hostname]
+  CF --> Portal[Internal Portal for your tenant]
 ```
 
-## Workflow
+## Step 1 — Choose the hostname
+
+Examples: `ai.example.com`, `portal.example.com`. Avoid overlapping with marketing apex if that complicates DNS.
+
+## Step 2 — Start domain setup in Admin Console
+
+1. Open Custom Domains (or Portal domains) settings.
+2. Enter the hostname.
+3. Copy the **CNAME target** shown in the console (often a Qefro / Cloudflare target such as an `org.qefro.com`-style hostname — use the value the console displays).
+
+## Step 3 — Create DNS
+
+At your DNS provider:
+
+```text
+ai.example.com  CNAME  <target-from-admin-console>
+```
+
+Wait for propagation.
+
+## Step 4 — Complete verification / TLS
+
+1. Return to Admin Console and refresh status.
+2. Wait until the domain shows active / TLS ready.
+3. Open `https://ai.example.com` and sign in as a Member.
+
+## Step 5 — Communicate the URL
+
+Update internal bookmarks and IdP “app” links (when you use SSO in the future) to the custom host.
+
+## Workflow checklist
+
+A custom domain still maps to **one tenant**. Do not point multiple customers’ brands at a shared org.
+
+## FAQ
 
 ## Related topics
 
@@ -2459,37 +2798,93 @@ flowchart TD
 
 Source: https://docs.qefro.com/docs/guides/production-deployment/
 
-> Checklist before inviting real customers and employees.
+> Go-live checklist for Qefro cloud: knowledge quality, channels, RBAC, Business Actions, billing, monitoring, and security review.
 
-**Production Deployment** — Checklist before inviting real customers and employees.
+This guide is the **go-live checklist** before real customers and employees rely on Qefro. Qefro cloud is already hosted — “deployment” means production readiness of *your* tenant configuration.
 
-## Introduction
+## Outcome
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+- Support and/or Employee workspaces cite-tested
+- Channels bound correctly (widget / WhatsApp / portal)
+- RBAC least-privilege
+- Tools (if any) hardened
+- Billing and monitoring understood
+- Rollback / disable plan documented
 
-## Why it exists
-
-Guides encode the recommended path so teams avoid insecure shortcuts.
-
-## Concepts
-
-See linked platform pages for definitions used in this guide.
-
-## Architecture
+## Architecture reminder
 
 ```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
+flowchart TB
+  Admin[Admin Console] --> WS[Workspaces]
+  WS --> K[Knowledge]
+  WS --> T[Tools]
+  WS --> Ch[Channels]
+  Ch --> Widget[Website]
+  Ch --> WA[WhatsApp]
+  Ch --> Portal[Internal Portal]
 ```
+
+Platform: [Deployment](/docs/platform/deployment).
+
+## Checklist
+
+### Knowledge
+
+- [ ] Customer vs employee corpora are in **separate** workspaces
+- [ ] Top 20 questions cite correctly; unknowns refuse
+- [ ] Stale docs removed or reindexed
+
+### Customer AI
+
+- [ ] Widget embed uses production token + Support workspace id
+- [ ] Staging site tested on mobile
+- [ ] WhatsApp only if Growth+ and webhook verified
+- Guides: [Deploy Website Widget](/docs/guides/deploy-website-widget), [Deploy WhatsApp AI](/docs/guides/deploy-whatsapp-ai)
+
+### Employee AI
+
+- [ ] Members invited; Teams grant only needed workspaces
+- [ ] Portal branding acceptable
+- [ ] Custom domain optional but planned
+- Guides: [Create Employee AI](/docs/guides/create-employee-ai), [Configure RBAC](/docs/guides/configure-rbac)
+
+### Business Actions
+
+- [ ] No write tools on public workspaces without review
+- [ ] Secrets encrypted; rotation owner assigned
+- [ ] `identify()` used when APIs need end users
+- [ ] Tool logs reviewed for pilot traffic
+- Guide: [Secure Business Actions](/docs/guides/secure-business-actions)
+
+### Security & compliance
+
+- [ ] Security Overview reviewed with stakeholders
+- [ ] DPA / questionnaire completed if required
+- [ ] Staging org used for experiments when possible
+- Docs: [Security Overview](/docs/security/overview), [Compliance](/docs/security/compliance)
+
+### Billing & ops
+
+- [ ] Plan limits understood (messages, docs, WhatsApp)
+- [ ] Payment method valid; webhook-driven entitlements confirmed in Billing UI
+- [ ] Owner contact + support escalation path documented
 
 ## Workflow
 
-```bash
-curl -sS https://api.qefro.com/health
-curl -sS https://api.qefro.com/ready
-```
+## Rollback
+
+If something goes wrong:
+
+1. Remove or comment out the website widget script.
+2. Disable WhatsApp in Admin Console / Meta routing.
+3. Disable Business Tools on the affected workspace.
+4. Rotate tool credentials at the vendor if abuse is suspected.
+
+Do not launch write-capable tools and WhatsApp on the same day as the first public widget embed. Sequence reduces blast radius.
+
+## FAQ
+
+When the checklist is green, announce URLs internally and monitor Admin Console analytics daily for the first week.
 
 ## Related topics
 

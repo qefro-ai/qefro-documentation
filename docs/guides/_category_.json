@@ -1,0 +1,9 @@
+{
+  "label": "Guides",
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Guides",
+    "description": "Step-by-step playbooks to ship Customer AI, Employee AI, channels, Business Tools, RBAC, and production readiness."
+  }
+}

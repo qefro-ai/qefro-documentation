@@ -1,6 +1,6 @@
 ---
 title: "Create Employee AI"
-description: "Stand up Internal Portal with RBAC-scoped workspaces."
+description: "Stand up Employee AI on the Internal Portal: workspaces, Teams, RBAC grants, branding, and optional internal Business Tools."
 sidebar_label: "Create Employee AI"
 ---
 
@@ -14,61 +14,111 @@ import {
 
 # Create Employee AI
 
+This guide ships **Employee AI**: authenticated organization members use the [Internal Portal](/docs/platform/internal-portal) to chat with workspaces they are granted — not the public widget.
 
-**Create Employee AI** — Stand up Internal Portal with RBAC-scoped workspaces.
+## Outcome
 
-## Introduction
+- One or more internal workspaces (HR, IT, Ops, …)
+- Members invited and placed in Teams
+- Workspace grants so Members only see allowed assistants
+- Portal reachable on `your-company.qefro.com` (or a custom domain later)
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+## Prerequisites
 
-## Why it exists
-
-Guides encode the recommended path so teams avoid insecure shortcuts.
-
-## Concepts
-
-See linked platform pages for definitions used in this guide.
+- Owner or Admin on [app.qefro.com](https://app.qefro.com)
+- Internal documents approved for employee access
+- Decision on who may configure tools (usually Admins only)
 
 ## Architecture
 
 ```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
+flowchart TB
+  Org[Organization]
+  Org --> HR[Workspace HR]
+  Org --> IT[Workspace IT]
+  Org --> Team[Team: People Ops]
+  Team --> HR
+  Member[Member login] --> Portal[Internal Portal]
+  Portal --> HR
+  Portal --> IT
 ```
 
+## Step 1 — Create internal workspaces
 
-Create internal workspaces (HR/IT), configure teams, and share `your-company.qefro.com`.
+Create separate workspaces per audience (HR vs IT). Do **not** reuse the public Support workspace.
 
-## Workflow
+Background: [Employee AI](/docs/platform/employee-ai), [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace).
 
-<WorkflowCard title="Employee AI" steps={[
-  {title: 'Portal slug', description: 'Settings → ensure slug available.'},
-  {title: 'Internal workspaces', description: 'Separate from Customer Support.'},
-  {title: 'Teams + grants', description: 'Organization RBAC.'},
-  {title: 'Invite members', description: 'Team invite flow.'},
-]} />
+## Step 2 — Ingest internal knowledge
 
-## Security notes
+Upload runbooks and policies that employees are allowed to see. Re-test citations and refusals the same way you would for Customer AI.
 
-<InfoBox>
-Members only see granted workspaces; Owners/Admins see all.
-</InfoBox>
+## Step 3 — Configure RBAC
+
+1. Invite users (email/password signup + verification flow).
+2. Create a Team (e.g. People Ops).
+3. Add Members to the Team.
+4. Attach the HR workspace to that Team.
+
+Owners and Admins can typically access all workspaces; Members only see grants. Guide: [Configure RBAC](/docs/guides/configure-rbac). Platform: [RBAC](/docs/platform/rbac), [Teams](/docs/platform/teams).
+
+## Step 4 — Brand and open the portal
+
+1. Set logo/colors under Branding.
+2. Note your `*.qefro.com` portal hostname.
+3. Have a Member sign in and confirm they only see granted workspaces.
+
+Optional later: [Enable Custom Domains](/docs/guides/enable-custom-domains).
+
+## Step 5 — Optional internal tools
+
+Attach internal Business Tools only to internal workspaces. Prefer read-only first. Never attach payroll-write tools to a Customer AI workspace.
+
+See [Secure Business Actions](/docs/guides/secure-business-actions).
+
+## Workflow checklist
+
+<WorkflowCard
+  title="Employee AI launch"
+  steps={[
+    {title: 'Create HR/IT workspaces', description: 'Separate from Support.'},
+    {title: 'Ingest internal docs', description: 'Cite-test with employees.'},
+    {title: 'Teams + grants', description: 'Members only see allowed workspaces.'},
+    {title: 'Brand portal', description: 'Logo, colors, hostname.'},
+    {title: 'Optional tools', description: 'Internal APIs only; least privilege.'},
+  ]}
+/>
+
+<Warning>
+Employee AI is not “Customer AI behind a login.” It requires membership, Teams, and workspace grants. See Customer AI vs Employee AI.
+</Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {question: 'Custom domain?', answer: 'See Enable Custom Domains guide.'},
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Can customers use the Internal Portal?',
+      answer:
+        'No. The portal is for organization members. Customers use the widget or WhatsApp.',
+    },
+    {
+      question: 'How do I restrict a contractor?',
+      answer:
+        'Invite as Member, put them on a Team that only grants the workspaces they need.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Employee AI', to: '/docs/platform/employee-ai'},
-  {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
-  {label: 'RBAC', to: '/docs/platform/rbac'},
-]} />
-
-
-
+<RelatedTopics
+  topics={[
+    {label: 'Employee AI', to: '/docs/platform/employee-ai'},
+    {label: 'Internal Portal', to: '/docs/platform/internal-portal'},
+    {label: 'Customer AI vs Employee AI', to: '/docs/concepts/customer-ai-vs-employee-ai'},
+    {label: 'Configure RBAC', to: '/docs/guides/configure-rbac'},
+    {label: 'Enable Custom Domains', to: '/docs/guides/enable-custom-domains'},
+    {label: 'Branding', to: '/docs/platform/branding'},
+  ]}
+/>

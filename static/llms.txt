@@ -51,16 +51,16 @@ Canonical product hosts:
 
 ## Guides
 
-- [Build AI Customer Support](https://docs.qefro.com/docs/guides/build-ai-customer-support/): Ship a Support workspace with knowledge, widget, and optional tools.
-- [Create Employee AI](https://docs.qefro.com/docs/guides/create-employee-ai/): Stand up Internal Portal with RBAC-scoped workspaces.
-- [Connect REST APIs](https://docs.qefro.com/docs/guides/connect-rest-apis/): Create workspace Business Tools that call your HTTPS APIs.
-- [Import OpenAPI](https://docs.qefro.com/docs/guides/import-openapi/): Preview and apply OpenAPI into integrations/tools.
-- [Deploy WhatsApp AI](https://docs.qefro.com/docs/guides/deploy-whatsapp-ai/): Connect Meta Cloud API to /api/v1/whatsapp/webhook on Growth+.
-- [Deploy Website Widget](https://docs.qefro.com/docs/guides/deploy-website-widget/): Embed cdn.qefro.com/widget.js with token and workspace id.
-- [Configure RBAC](https://docs.qefro.com/docs/guides/configure-rbac/): Owners, Admins, Members, teams, and workspace grants.
-- [Secure Business Actions](https://docs.qefro.com/docs/guides/secure-business-actions/): Least privilege tools, encrypted secrets, identify(), SSRF, logs.
-- [Enable Custom Domains](https://docs.qefro.com/docs/guides/enable-custom-domains/): CNAME your portal hostname to Cloudflare (org.qefro.com target).
-- [Production Deployment](https://docs.qefro.com/docs/guides/production-deployment/): Checklist before inviting real customers and employees.
+- [Build AI Customer Support](https://docs.qefro.com/docs/guides/build-ai-customer-support/): Step-by-step: create a Support workspace, ingest FAQs, validate citations, embed the website widget, then optionally add WhatsApp and Business Tools.
+- [Create Employee AI](https://docs.qefro.com/docs/guides/create-employee-ai/): Stand up Employee AI on the Internal Portal: workspaces, Teams, RBAC grants, branding, and optional internal Business Tools.
+- [Connect REST APIs](https://docs.qefro.com/docs/guides/connect-rest-apis/): Create a workspace Business Tool that calls your HTTPS API — method, URL, encrypted auth, test, and execution logs.
+- [Import OpenAPI](https://docs.qefro.com/docs/guides/import-openapi/): Preview and apply an OpenAPI document into workspace integrations/tools — review operations, auth, and least privilege before enabling chat.
+- [Deploy WhatsApp AI](https://docs.qefro.com/docs/guides/deploy-whatsapp-ai/): Connect Meta Cloud API to Qefro WhatsApp webhooks on Growth+, bind a Support workspace, and validate the same grounded answers as your website widget.
+- [Deploy Website Widget](https://docs.qefro.com/docs/guides/deploy-website-widget/): Embed cdn.qefro.com/widget.js with token, API endpoint, and workspace id — then optionally add identify() for authenticated customers.
+- [Configure RBAC](https://docs.qefro.com/docs/guides/configure-rbac/): Set Owner, Admin, and Member roles; create Teams; grant workspace access so Employee AI stays least-privilege.
+- [Secure Business Actions](https://docs.qefro.com/docs/guides/secure-business-actions/): Production checklist for AI tool calling: least privilege, encrypted secrets, SSRF awareness, identify(), and execution log review.
+- [Enable Custom Domains](https://docs.qefro.com/docs/guides/enable-custom-domains/): Serve the Internal Portal on your hostname via Cloudflare custom hostnames — DNS CNAME, TLS, and Admin Console domain setup.
+- [Production Deployment](https://docs.qefro.com/docs/guides/production-deployment/): Go-live checklist for Qefro cloud: knowledge quality, channels, RBAC, Business Actions, billing, monitoring, and security review.
 
 ## API
 

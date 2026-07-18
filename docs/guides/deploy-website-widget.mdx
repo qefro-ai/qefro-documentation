@@ -1,6 +1,6 @@
 ---
 title: "Deploy Website Widget"
-description: "Embed cdn.qefro.com/widget.js with token and workspace id."
+description: "Embed cdn.qefro.com/widget.js with token, API endpoint, and workspace id — then optionally add identify() for authenticated customers."
 sidebar_label: "Deploy Website Widget"
 ---
 
@@ -14,55 +14,113 @@ import {
 
 # Deploy Website Widget
 
+This guide embeds **Customer AI** on your website using the Qefro widget script.
 
-**Deploy Website Widget** — Embed cdn.qefro.com/widget.js with token and workspace id.
+## Outcome
 
-## Introduction
+- Widget loads from `https://cdn.qefro.com/widget.js`
+- Conversations hit `https://api.qefro.com`
+- Chat is bound to a specific Support workspace
+- Optional `identify()` for logged-in users
 
-Follow this guide using the Admin Console at [app.qefro.com](https://app.qefro.com) and APIs on [api.qefro.com](https://api.qefro.com).
+## Prerequisites
 
-## Why it exists
+- Support workspace with validated knowledge ([Build AI Customer Support](/docs/guides/build-ai-customer-support))
+- Widget token from Admin Console
+- Ability to edit your site HTML / tag manager
 
-Guides encode the recommended path so teams avoid insecure shortcuts.
+## Step 1 — Copy embed values
 
-## Concepts
+From Admin Console → Widget:
 
-See linked platform pages for definitions used in this guide.
+| Attribute | Purpose |
+| --- | --- |
+| `data-token` | Publishable widget token |
+| `data-endpoint` | `https://api.qefro.com` |
+| `data-workspace-id` | Support workspace id |
 
-## Architecture
+Platform: [Website Widget](/docs/platform/website-widget).
 
-```mermaid
-flowchart TD
-  A[Prerequisites] --> B[Configure]
-  B --> C[Validate]
-  C --> D[Go live]
-```
-
-
-## Workflow
-
-<WorkflowCard title="Embed" steps={[
-  {title: 'Copy snippet', description: 'Admin Console → Widget.'},
-  {title: 'Set workspace', description: 'data-workspace-id.'},
-  {title: 'Optional identify', description: 'After your app login.'},
-  {title: 'Verify WS', description: 'Chat streams over /ws/chat.'},
-]} />
+## Step 2 — Add the script
 
 ```html
 <script
   src="https://cdn.qefro.com/widget.js"
   data-token="YOUR_WIDGET_TOKEN"
   data-endpoint="https://api.qefro.com"
-  data-workspace-id="YOUR_WORKSPACE_ID">
+  data-workspace-id="YOUR_SUPPORT_WORKSPACE_ID"
+  async>
 </script>
 ```
 
+Place it before `</body>` on pages where chat should appear (or load via your tag manager).
+
+## Step 3 — Verify in production-like preview
+
+1. Open the page in a private window.
+2. Ask a known FAQ; confirm citations.
+3. Ask an unknown topic; confirm refusal.
+4. Confirm the widget is **not** bound to an HR workspace.
+
+## Step 4 — Optional identify()
+
+When Business Tools must act as the logged-in customer:
+
+```html
+<script>
+  // After your app session is ready:
+  window.QefroWidget?.identify?.({
+    token: 'END_USER_JWT_OR_SESSION',
+    // follow current widget docs for exact payload fields
+  });
+</script>
+```
+
+Exact helper names/fields: see [Identity Forwarding](/docs/platform/identity-forwarding) and the embed snippet in Admin Console (source of truth as the widget evolves).
+
+## Workflow checklist
+
+<WorkflowCard
+  title="Widget go-live"
+  steps={[
+    {title: 'Validate Support workspace', description: 'Citations pass offline.'},
+    {title: 'Embed script', description: 'Token + endpoint + workspace id.'},
+    {title: 'Smoke test on staging', description: 'FAQ + refusal + mobile layout.'},
+    {title: 'Optional identify()', description: 'Only if tools need end-user authz.'},
+    {title: 'Monitor analytics/feedback', description: 'Admin Console insights.'},
+  ]}
+/>
+
+<Warning>
+The widget token is publishable (it appears in HTML). It authenticates the channel, not an end user. Never put CRM admin secrets in the page.
+</Warning>
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Can one site use multiple workspaces?',
+      answer:
+        'Yes — use different embeds or switch workspace ids per page/section. Do not point a public page at an internal workspace.',
+    },
+    {
+      question: 'Does the widget work with SPAs?',
+      answer:
+        'Yes. Load the script once; call identify() after client-side login completes.',
+    },
+  ]}
+/>
+
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Website Widget', to: '/docs/platform/website-widget'},
-  {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
-]} />
-
-
-
+<RelatedTopics
+  topics={[
+    {label: 'Website Widget', to: '/docs/platform/website-widget'},
+    {label: 'Customer AI', to: '/docs/platform/customer-ai'},
+    {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
+    {label: 'Deploy WhatsApp AI', to: '/docs/guides/deploy-whatsapp-ai'},
+    {label: 'Build AI Customer Support', to: '/docs/guides/build-ai-customer-support'},
+    {label: 'Branding', to: '/docs/platform/branding'},
+  ]}
+/>
