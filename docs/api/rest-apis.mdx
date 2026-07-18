@@ -1,6 +1,6 @@
 ---
 title: "REST APIs"
-description: "Versioned REST surface on api.qefro.com — uploads, billing, tools, widget, org RBAC, WhatsApp."
+description: "Live REST route map for api.qefro.com — health, widget, documents, chat, billing, org RBAC, business tools, WhatsApp, public, and Super Admin."
 sidebar_label: "REST APIs"
 ---
 
@@ -15,105 +15,287 @@ import {
 
 # REST APIs
 
+Qefro’s versioned HTTP API lives at **`https://api.qefro.com`**. REST covers multipart uploads, webhooks, streaming chat, widget fallbacks, billing, org RBAC, and Business Tools. Day-to-day Admin Console reads/writes also use **GraphQL** at `POST /graphql` with the same user JWT.
 
-**REST APIs** complement GraphQL. Important groups:
+## Short definition (citation-ready)
 
-### Health
-- `GET /health`, `GET /ready`
+> The Qefro REST surface under `/api/v1` is the programmatic contract for documents, conversations, billing, widget channels, organization RBAC, Business Tools, and provider webhooks — authenticated primarily with user JWTs or widget tokens.
 
-### Widget
-- `POST /api/v1/widget/chat`, settings, leads, feedback, handoff, identity/clear, STT/TTS
-- `GET /widget.js`, `GET /ws/chat`
+Auth details: [API Authentication](/docs/api/authentication). Copy-paste samples: [Examples](/docs/api/examples).
 
-### Documents
-- `POST /api/v1/documents`, `/documents/text`, `POST /documents/:id/reindex`
+## Base URL and conventions
 
-### Chat (authenticated users)
-- `POST /api/v1/chat`, `/chat/stream`
-- Conversations CRUD under `/api/v1/conversations/*`
-
-### Billing (Razorpay)
-- `GET /api/v1/billing/plans`
-- `POST /api/v1/billing/checkout`, `/confirm`, `/cancel`
-- `GET /api/v1/billing/subscription`, `/payments`
-- `POST /api/v1/billing/webhook`
-
-### Business Tools
-- `/api/v1/workspaces/:id/integrations|tools` …
-- `/api/v1/tools/:id/test|logs`
-
-### Organization RBAC
-- `/api/v1/org/*`, `/api/v1/team/*`
-
-### WhatsApp
-- `GET|POST /api/v1/whatsapp/webhook`
-
-### Public
-- `/api/v1/public/tenant-branding`, `tenant-slug-available`
-- `/chat/:tenant_slug`
-
-## Introduction
-
-OpenAPI export can be added under `static/openapi/` as the contract freezes; this page lists the live route groups from the Rust API.
-
-## Why it exists
-
-Multipart uploads, webhooks, and streaming chat are awkward in pure GraphQL — REST covers them.
-
-## Concepts
-
-- `/api/v1` version prefix
-- Tenant scoping via auth
-- Quota middleware on messages/documents
-
-## Architecture
+| Item | Value |
+| --- | --- |
+| Base | `https://api.qefro.com` |
+| Version prefix | `/api/v1/…` (plus a few top-level routes) |
+| JSON | `Content-Type: application/json` unless multipart |
+| Errors | HTTP status + `{ "code", "message" }` — see [Error Codes](/docs/api/error-codes) |
+| Quotas | Message/document limits enforced by middleware on chat/upload routes |
 
 ```mermaid
 flowchart TB
-  Clients --> REST
-  Clients --> GQL[GraphQL /graphql]
+  Clients[Admin Console / Portal / Widget / your backend]
+  Clients --> REST["REST /api/v1"]
+  Clients --> GQL["GraphQL /graphql"]
+  Clients --> WS["WebSocket /ws/chat"]
   REST --> Services[Domain services]
   GQL --> Services
+  WS --> Services
 ```
 
-## Workflow
+## Highlighted endpoints
 
-<WorkflowCard title="Discover endpoints" steps={[
-  {title: 'Auth', description: 'Obtain user JWT or widget token.'},
-  {title: 'Hit health', description: 'Confirm environment.'},
-  {title: 'Use group APIs', description: 'Documents, tools, billing as needed.'},
-]} />
-
-## Code examples
-
-<ApiEndpointCard method="GET" path="/api/v1/billing/plans" description="List sellable plans and limits (messages, documents, users, business tools)." />
+<ApiEndpointCard method="GET" path="/api/v1/billing/plans" description="List sellable plans and entitlement limits (messages, documents, users, business tools)." />
 <ApiEndpointCard method="POST" path="/api/v1/documents" description="Multipart document upload into a workspace (enforces documents quota)." />
+<ApiEndpointCard method="POST" path="/api/v1/tools/:id/test" description="Execute a Business Tool test invocation with encrypted credentials." />
 <ApiEndpointCard method="POST" path="/api/v1/billing/webhook" description="Razorpay webhook receiver (signature verified)." />
+
+## Health and ops
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/health` | Public | Liveness |
+| GET | `/ready` | Public | Readiness |
+| GET | `/metrics` | Bearer `METRICS_AUTH_TOKEN` or public flag | Prometheus metrics |
+
+## Widget and realtime chat
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/widget.js` | Public | Embeddable widget script |
+| GET | `/ws/chat` | Widget token (`?token=`) | Streaming Customer AI WebSocket |
+| POST | `/api/v1/widget/chat` | Widget token | HTTP chat fallback (message quota) |
+| GET | `/api/v1/widget/settings` | Widget token | Widget settings bootstrap |
+| POST | `/api/v1/widget/leads` | Widget token | Lead capture |
+| POST | `/api/v1/widget/messages/:id/feedback` | Widget token | Message feedback |
+| POST | `/api/v1/widget/conversations/:id/handoff` | Widget token | Human handoff trigger |
+| GET | `/api/v1/widget/conversations/:id/messages` | Widget token | Conversation messages |
+| POST | `/api/v1/widget/identity/clear` | Widget token | Clear identify() state |
+| POST | `/api/v1/widget/stt` | User JWT or widget token | Speech-to-text |
+| POST | `/api/v1/widget/tts` | User JWT or widget token | Text-to-speech |
+
+Guides: [Deploy Website Widget](/docs/guides/deploy-website-widget), [Identity Forwarding](/docs/platform/identity-forwarding).
+
+## Documents (knowledge)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/v1/documents` | User JWT | Multipart upload (`workspace_id` + file); documents quota |
+| POST | `/api/v1/documents/text` | User JWT | Create document from raw text; documents quota |
+| POST | `/api/v1/documents/:id/reindex` | User JWT | Rebuild index for a document |
+| GET | `/api/v1/documents/:id/view` | Authorized viewer | View/download document content |
+
+Additional crawl/console flows may use GraphQL. Concept: [Knowledge Platform](/docs/platform/knowledge-platform).
+
+## Authenticated chat and conversations
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/v1/chat` | User JWT | Chat (message quota) |
+| POST | `/api/v1/chat/stream` | User JWT | Streaming chat (message quota) |
+| GET | `/api/v1/conversations` | User JWT | List conversations |
+| PATCH | `/api/v1/conversations/:id` | User JWT | Rename conversation |
+| DELETE | `/api/v1/conversations/:id` | User JWT | Delete conversation |
+| PUT | `/api/v1/conversations/:id/status` | User JWT | Update status |
+| GET | `/api/v1/conversations/:id/messages` | User JWT | List messages |
+| POST | `/api/v1/conversations/:id/messages` | User JWT | Send agent message |
+
+Optional end-user headers on chat: `X-End-User-Token`, `X-End-User-Session`.
+
+## Sessions (self)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/v1/me/sessions` | User JWT | List your sessions |
+| DELETE | `/api/v1/me/sessions/:jti` | User JWT | Revoke session |
+
+## Tenant analytics and integrations config
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/v1/tenant/analytics` | User JWT | Tenant analytics |
+| GET | `/api/v1/tenant/feedbacks` | User JWT | Feedback list |
+| GET/POST | `/api/v1/tenant/crm` | User JWT | CRM connector config |
+| GET/POST | `/api/v1/tenant/handoff` | User JWT | Handoff webhook config |
+
+## Billing (Razorpay)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/v1/billing/plans` | User JWT | List plans |
+| POST | `/api/v1/billing/checkout` | User JWT | Start checkout |
+| POST | `/api/v1/billing/confirm` | User JWT | Confirm payment |
+| GET | `/api/v1/billing/subscription` | User JWT | Current subscription |
+| POST | `/api/v1/billing/subscription` | User JWT | Cancel (also `POST /billing/cancel`) |
+| POST | `/api/v1/billing/cancel` | User JWT | Cancel subscription |
+| GET | `/api/v1/billing/payments` | User JWT | Payment history (incl. failures) |
+| POST | `/api/v1/billing/webhook` | Razorpay signature | Provider webhook |
+
+See [Webhooks](/docs/api/webhooks). Prefer idempotent clients on confirm/capture paths.
+
+## Team invitations (membership)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/v1/team/members` | User JWT | List members |
+| DELETE | `/api/v1/team/members/:id` | User JWT | Remove member |
+| POST | `/api/v1/team/invite` | User JWT | Invite member |
+| GET | `/api/v1/team/invitations` | User JWT | List invitations |
+| POST | `/api/v1/team/invitations/:id/revoke` | User JWT | Revoke invitation |
+| POST | `/api/v1/team/accept-invite` | User JWT / invite flow | Accept invitation |
+| GET | `/api/v1/team/invite-preview` | Public/preview | Preview invite |
+| POST | `/api/v1/team/switch-tenant` | User JWT | Switch active tenant |
+| GET | `/api/v1/team/my-tenants` | User JWT | List tenants for user |
+
+## Organization RBAC (Teams / workspaces / audit)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/v1/org/roles` | Member+ | Role catalog |
+| GET | `/api/v1/org/members` | Member+ | Member profiles |
+| GET | `/api/v1/org/members/:id` | Member+ | Member profile |
+| PUT | `/api/v1/org/members/:id/role` | Admin/Owner rules | Change role |
+| PUT | `/api/v1/org/members/:id/status` | Admin/Owner rules | Change status |
+| GET | `/api/v1/org/members/:id/sessions` | Admin | List sessions |
+| DELETE | `/api/v1/org/members/:id/sessions/:jti` | Admin | Revoke session |
+| POST | `/api/v1/org/transfer-ownership` | Owner | Transfer ownership |
+| GET/POST | `/api/v1/org/teams` | Admin patterns | List/create teams |
+| GET/PATCH/DELETE | `/api/v1/org/teams/:id` | Admin patterns | Team CRUD |
+| PUT | `/api/v1/org/teams/:id/members` | Admin | Set team members |
+| PUT | `/api/v1/org/teams/:id/members/:user_id/write` | Admin | Document write flag |
+| PUT | `/api/v1/org/teams/:id/workspaces` | Admin | Grant workspaces |
+| GET | `/api/v1/org/workspaces` | Member+ | List workspaces |
+| GET | `/api/v1/org/workspaces/:id` | Member+ | Get workspace |
+| PUT | `/api/v1/org/workspaces/:id/teams` | Admin | Set workspace teams |
+| GET | `/api/v1/org/audit-logs` | Admin/Owner | Audit trail |
+
+Guides: [Configure RBAC](/docs/guides/configure-rbac), [Teams](/docs/platform/teams).
+
+## Business Tools (integrations + OpenAPI)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET/POST | `/api/v1/workspaces/:workspace_id/integrations` | User JWT | List/create integrations |
+| POST | `/api/v1/workspaces/:workspace_id/integrations/import/preview` | User JWT | OpenAPI preview (URL) |
+| POST | `/api/v1/workspaces/:workspace_id/integrations/import/preview/upload` | User JWT | OpenAPI preview (upload) |
+| POST | `/api/v1/workspaces/:workspace_id/integrations/import/apply` | User JWT | Apply import |
+| GET/PATCH/DELETE | `/api/v1/integrations/:id` | User JWT | Integration CRUD |
+| POST | `/api/v1/integrations/:id/reimport` | User JWT | Reimport OpenAPI |
+| GET/POST | `/api/v1/workspaces/:workspace_id/tools` | User JWT | List/create tools |
+| GET/PATCH/DELETE | `/api/v1/tools/:id` | User JWT | Tool CRUD |
+| POST | `/api/v1/tools/:id/test` | User JWT | Test invocation |
+| GET | `/api/v1/tools/:id/logs` | User JWT | Execution logs |
+
+Guides: [Connect REST APIs](/docs/guides/connect-rest-apis), [Import OpenAPI](/docs/guides/import-openapi), [Secure Business Actions](/docs/guides/secure-business-actions).
+
+## WhatsApp
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/v1/whatsapp/webhook` | Meta verify token | Webhook verification |
+| POST | `/api/v1/whatsapp/webhook` | Meta signature | Inbound messages |
+
+Growth+ entitlement. Guide: [Deploy WhatsApp AI](/docs/guides/deploy-whatsapp-ai).
+
+## Public tenant helpers
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/chat/:tenant_slug` | Public | Public chat page |
+| GET | `/api/v1/public/tenant-branding` | Public | Portal/widget branding bootstrap |
+| GET | `/api/v1/public/tenant-slug-available` | Public | Slug availability |
+
+## Super Admin (platform operators)
+
+Requires JWT from `POST /api/v1/admin/auth/login`.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| POST | `/api/v1/admin/auth/login` | Admin login |
+| GET/POST | `/api/v1/admin/tenants` | List/create tenants |
+| GET/PUT/DELETE | `/api/v1/admin/tenants/:id` | Tenant CRUD |
+| POST | `/api/v1/admin/tenants/:id/suspend` | Suspend |
+| POST | `/api/v1/admin/tenants/:id/unsuspend` | Unsuspend |
+| POST | `/api/v1/admin/tenants/:id/impersonate` | Impersonate |
+| GET/PUT | `/api/v1/admin/tenants/:id/quotas` | Quotas |
+| GET | `/api/v1/admin/analytics/*` | Fleet analytics |
+| GET | `/api/v1/admin/usage/*` | LLM usage |
+| GET/POST | `/api/v1/admin/plans` | Plan admin |
+| GET/PUT/DELETE | `/api/v1/admin/plans/:id` | Plan CRUD |
+| GET/PUT | `/api/v1/admin/settings` | Platform settings |
+| GET/PUT | `/api/v1/admin/whatsapp/config` | Global WA config |
+| GET | `/api/v1/admin/whatsapp/configs` | List WA configs |
+| GET | `/api/v1/admin/emails` | Email logs |
+| GET | `/api/v1/admin/payments` | All payments |
+
+Not for tenant day-to-day integrations.
+
+## GraphQL
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| POST | `/graphql` | User JWT | Admin Console operations (workspaces, login/register/OTP, settings, …) |
+| GET | `/graphql` | Optional | Playground only when `ENABLE_GRAPHQL_PLAYGROUND=true` |
+
+User **login / register / OTP / password reset** are GraphQL mutations, not REST.
+
+## Discovery workflow
+
+<WorkflowCard
+  title="Integrate against REST"
+  steps={[
+    {title: 'Obtain the right credential', description: 'User JWT vs widget token — see Authentication.'},
+    {title: 'Hit /health', description: 'Confirm environment.'},
+    {title: 'Start with one group', description: 'Documents, tools, or billing.'},
+    {title: 'Handle errors + 429', description: 'Error Codes and Rate Limits.'},
+    {title: 'Add webhooks last', description: 'Verify signatures before processing.'},
+  ]}
+/>
 
 ## Best practices
 
-- Prefer idempotent clients on billing confirm
-- Always send `workspace_id` where required
+- Always send `workspace_id` where uploads/tools require it
+- Prefer idempotent billing confirm clients
+- Use tool `/test` before enabling chat invocation
+- Treat Admin Console network traces as a living complement until a public OpenAPI file ships
 
-## Security notes
-
-<InfoBox>
-Webhook routes verify signatures / Meta challenges before mutating state.
-</InfoBox>
+<Warning>
+Webhook routes must verify Razorpay signatures or Meta challenges before mutating state. Never process unsigned bodies.
+</Warning>
 
 ## FAQ
 
-<FaqAccordion items={[
-  {question: 'Where is the OpenAPI file?', answer: 'Structure is ready for publication; until then use this reference + Admin Console network tab.'},
-]} />
+<FaqAccordion
+  items={[
+    {
+      question: 'Where is the downloadable OpenAPI file?',
+      answer:
+        'Not published as a static artifact yet. This page mirrors the live Rust route table; OpenAPI import is for *your* APIs into Business Tools.',
+    },
+    {
+      question: 'Should I use REST or GraphQL?',
+      answer:
+        'Use REST for uploads, webhooks, widget HTTP, billing, org RBAC, and tools. Use GraphQL for console-style queries/mutations (including auth).',
+    },
+    {
+      question: 'Do route paths change?',
+      answer:
+        'Treat /api/v1 as stable; read Release Notes for additions. Confirm critical paths in a staging org before production automation.',
+    },
+  ]}
+/>
 
 ## Related topics
 
-<RelatedTopics topics={[
-  {label: 'Authentication', to: '/docs/api/authentication'},
-  {label: 'Error Codes', to: '/docs/api/error-codes'},
-  {label: 'Webhooks', to: '/docs/api/webhooks'},
-  {label: 'Examples', to: '/docs/api/examples'},
-]} />
-
-
+<RelatedTopics
+  topics={[
+    {label: 'API Authentication', to: '/docs/api/authentication'},
+    {label: 'Examples', to: '/docs/api/examples'},
+    {label: 'Error Codes', to: '/docs/api/error-codes'},
+    {label: 'Rate Limits', to: '/docs/api/rate-limits'},
+    {label: 'Webhooks', to: '/docs/api/webhooks'},
+    {label: 'SDKs', to: '/docs/api/sdks'},
+    {label: 'Business Tools', to: '/docs/platform/business-tools'},
+  ]}
+/>
