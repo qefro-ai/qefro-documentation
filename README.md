@@ -4,6 +4,22 @@ Official documentation website for **[Qefro](https://qefro.com)** — the AI Wor
 
 Built with [Docusaurus 3](https://docusaurus.io/), React, TypeScript, and MDX.
 
+## V1 Documentation Track
+
+This repository now includes a full V1 adoption track focused on:
+- onboarding speed
+- production deployment
+- security and reliability defaults
+- copy-paste examples
+
+Start at:
+- /docs/v1
+- /docs/v1/getting-started
+- /docs/v1/quick-start
+- /docs/v1/deployment
+
+Runnable examples are available under [examples](examples/README.md).
+
 ## Quick start
 
 ```bash

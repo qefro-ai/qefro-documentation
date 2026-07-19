@@ -1,0 +1,13 @@
+{
+  "name": "qefro-example",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@qefro/backend": "^1.0.0",
+    "dotenv": "^16.4.5"
+  }
+}
