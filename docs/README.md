@@ -25,6 +25,9 @@ This track is optimized for developer onboarding and production adoption.
 7. authentication
 8. deployment
 
+Step-by-step Admin Console + API guide for registering handlers as workspace tools:
+[Register SDK Business Tools](/docs/guides/register-sdk-business-tools).
+
 ## Full page index
 - Getting Started
 - Installation

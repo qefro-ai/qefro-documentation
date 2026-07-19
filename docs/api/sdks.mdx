@@ -1,6 +1,6 @@
 ---
 title: "SDKs"
-description: "Official widget package (@qefro-ai/widget / cdn.qefro.com) and how to call api.qefro.com from server HTTPS clients."
+description: "Website widget (@qefro-ai/widget), backend framework (@qefro/backend / qefro-sdk) for Business Tools, and calling api.qefro.com from HTTPS clients."
 sidebar_label: "SDKs"
 ---
 
@@ -13,13 +13,19 @@ import {
 
 # SDKs
 
-Today’s first-party client surface is the **website widget**. Server automation uses ordinary HTTPS clients against `https://api.qefro.com` (REST + GraphQL).
+Qefro ships two first-party packages plus ordinary HTTPS access to `https://api.qefro.com`:
+
+| Package | Role |
+| --- | --- |
+| `@qefro-ai/widget` / CDN `widget.js` | Embeddable Customer AI on your website |
+| `@qefro/backend` / `qefro-sdk` | Organization backend framework — register Business Tool handlers and customer auth |
+| Any HTTPS client | Admin automation against REST + GraphQL |
 
 ## Short definition (citation-ready)
 
-> Qefro’s embeddable Customer AI client is distributed as `@qefro-ai/widget` and `https://cdn.qefro.com/widget.js`. There is no required server SDK — use any HTTP stack with a user JWT or tool credentials flow.
+> Customer chat embeds use `@qefro-ai/widget`. Organization backends that expose Business Tools use `@qefro/backend` (TypeScript) or `qefro-sdk` (Rust) over a signed webhook. Admin automation can also call `https://api.qefro.com` with a user JWT.
 
-## Widget distribution
+## Website widget
 
 | Channel | Entry |
 | --- | --- |
@@ -35,7 +41,7 @@ Typical capabilities (see package README / Admin Console snippet for current nam
 
 Platform: [Website Widget](/docs/platform/website-widget), [Identity Forwarding](/docs/platform/identity-forwarding).
 
-## CDN embed
+### CDN embed
 
 ```html
 <script
@@ -47,7 +53,21 @@ Platform: [Website Widget](/docs/platform/website-widget), [Identity Forwarding]
 </script>
 ```
 
-## Server integrations
+## Backend framework (Business Tools)
+
+Install and register handlers, then connect the webhook in Admin Console and **Sync Tools**:
+
+```bash
+npm install @qefro/backend
+# or: cargo add qefro-sdk
+```
+
+Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools).  
+Reference: [SDK Framework](/docs/v1/sdk-framework), [Business Tools](/docs/v1/business-tools).
+
+Protocol messages on your webhook: `ping`, `tools.list`, `tool.invoke`, `tool.resume`.
+
+## Server integrations (Admin API)
 
 Use cURL, `fetch`, Python `requests`/`httpx`, etc.:
 
@@ -64,8 +84,9 @@ More samples: [Examples](/docs/api/examples).
   title="Choose an integration style"
   steps={[
     {title: 'Customer chat on web', description: 'CDN or npm widget.'},
+    {title: 'Business Tools in your backend', description: '@qefro/backend + SDK Connection + Sync.'},
+    {title: 'Existing HTTPS APIs', description: 'REST tools or OpenAPI import.'},
     {title: 'Admin automation', description: 'REST with Owner/Admin JWT.'},
-    {title: 'End-user tools', description: 'identify() + Business Tools.'},
     {title: 'WhatsApp', description: 'Meta webhooks — not the widget SDK.'},
   ]}
 />
@@ -75,14 +96,19 @@ More samples: [Examples](/docs/api/examples).
 <FaqAccordion
   items={[
     {
-      question: 'Is there an official Python SDK?',
+      question: 'Is there an official Python SDK for Business Tools?',
       answer:
-        'Not required. Call REST directly. If a dedicated SDK ships later, it will be announced in Release Notes.',
+        'Not yet for the signed webhook protocol. Use TypeScript (@qefro/backend) or Rust (qefro-sdk). Admin REST can be called from any language.',
     },
     {
       question: 'Can I self-host the widget JS?',
       answer:
         'Prefer the CDN URL so you receive updates. If you pin a copy, you own freshness and security patches.',
+    },
+    {
+      question: 'How do I register Business Tools from code?',
+      answer:
+        'Use app.tool(...) in @qefro/backend, create an SDK Connection, then Sync Tools into a workspace. See Register SDK Business Tools.',
     },
   ]}
 />
@@ -91,6 +117,8 @@ More samples: [Examples](/docs/api/examples).
 
 <RelatedTopics
   topics={[
+    {label: 'Register SDK Business Tools', to: '/docs/guides/register-sdk-business-tools'},
+    {label: 'SDK Framework', to: '/docs/v1/sdk-framework'},
     {label: 'Examples', to: '/docs/api/examples'},
     {label: 'REST APIs', to: '/docs/api/rest-apis'},
     {label: 'API Authentication', to: '/docs/api/authentication'},

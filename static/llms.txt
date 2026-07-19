@@ -35,7 +35,7 @@ Canonical product hosts:
 - [Employee AI](https://docs.qefro.com/docs/platform/employee-ai/): Internal assistants on the branded Internal Portal for organization members — Teams, RBAC, and workspace-scoped knowledge.
 - [Knowledge Platform](https://docs.qefro.com/docs/platform/knowledge-platform/): Document ingest, crawl, OCR, hybrid BM25+vector retrieval, citations, and workspace isolation.
 - [Business Actions](https://docs.qefro.com/docs/platform/business-actions/): Runtime AI invocation of Business Tools under authorization, SSRF controls, and execution logs.
-- [Business Tools](https://docs.qefro.com/docs/platform/business-tools/): REST connectors and OpenAPI import that power Business Actions — encrypted credentials, test, logs.
+- [Business Tools](https://docs.qefro.com/docs/platform/business-tools/): REST, OpenAPI, and SDK connectors that power Business Actions — encrypted credentials, signed webhooks, test, and logs.
 - [Internal Portal](https://docs.qefro.com/docs/platform/internal-portal/): The employee web app for Employee AI — default *.qefro.com host, branding bootstrap, RBAC-scoped workspaces, and optional custom domains.
 - [Website Widget](https://docs.qefro.com/docs/platform/website-widget/): Embed Customer AI with cdn.qefro.com/widget.js, workspace binding, WebSocket chat, and identify().
 - [WhatsApp](https://docs.qefro.com/docs/platform/whatsapp/): Customer AI over Meta Cloud API — webhook verify/incoming on api.qefro.com, Growth+ entitlement, and Support workspace binding.
@@ -66,7 +66,7 @@ Canonical product hosts:
 
 - [API Authentication](https://docs.qefro.com/docs/api/authentication/): Authenticate to api.qefro.com — user JWTs, widget tokens, end-user identity headers, Super Admin login, GraphQL, and session revocation.
 - [REST APIs](https://docs.qefro.com/docs/api/rest-apis/): Live REST route map for api.qefro.com — health, widget, documents, chat, billing, org RBAC, business tools, WhatsApp, public, and Super Admin.
-- [SDKs](https://docs.qefro.com/docs/api/sdks/): Official widget package (@qefro-ai/widget / cdn.qefro.com) and how to call api.qefro.com from server HTTPS clients.
+- [SDKs](https://docs.qefro.com/docs/api/sdks/): Website widget (@qefro-ai/widget), backend framework (@qefro/backend / qefro-sdk) for Business Tools, and calling api.qefro.com from HTTPS clients.
 - [Examples](https://docs.qefro.com/docs/api/examples/): Copy-paste cURL, TypeScript, and Python examples against api.qefro.com and the website widget.
 - [Rate Limits](https://docs.qefro.com/docs/api/rate-limits/): Auth, widget, WebSocket, and tool-test rate limits that protect api.qefro.com from abuse — how to handle HTTP 429.
 - [Error Codes](https://docs.qefro.com/docs/api/error-codes/): How Qefro API errors look — HTTP status, machine-readable code, and what to check for 401, 403, 404, 409, 422, and 429.

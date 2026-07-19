@@ -102,6 +102,7 @@ const sidebars: SidebarsConfig = {
         'guides/create-employee-ai',
         'guides/connect-rest-apis',
         'guides/import-openapi',
+        'guides/register-sdk-business-tools',
         'guides/deploy-whatsapp-ai',
         'guides/deploy-website-widget',
         'guides/configure-rbac',

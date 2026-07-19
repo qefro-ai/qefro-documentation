@@ -315,7 +315,7 @@ Deep dive: [AI Agent Security](/docs/concepts/ai-agent-security) and [Secure Bus
 
 ## How Qefro implements Business Actions
 
-1. Create a [Business Tool](/docs/platform/business-tools) under a workspace (REST or [OpenAPI import](/docs/guides/import-openapi)).
+1. Create a [Business Tool](/docs/platform/business-tools) under a workspace (REST, [OpenAPI import](/docs/guides/import-openapi), or [SDK Sync](/docs/guides/register-sdk-business-tools)).
 2. Store credentials in the Admin Console (encrypted).
 3. Test the tool before enabling it for the assistant.
 4. On Customer AI, use [`identify()`](/docs/platform/identity-forwarding) when your API needs the end user.
@@ -1137,13 +1137,20 @@ Treat every new tool like a production integration: SSRF validation, encrypted s
 
 Source: https://docs.qefro.com/docs/platform/business-tools/
 
-> REST connectors and OpenAPI import that power Business Actions — encrypted credentials, test, logs.
+> REST, OpenAPI, and SDK connectors that power Business Actions — encrypted credentials, signed webhooks, test, and logs.
 
-**Business Tools** are workspace-scoped connectors (REST APIs and OpenAPI imports) that the assistant can invoke as **Business Actions**. Credentials are stored encrypted server-side. Qefro does not become your CRM/ERP — tools call *your* systems of record.
+**Business Tools** are workspace-scoped connectors the assistant can invoke as **Business Actions**. There are two implementation paths:
+
+| Path | How you add tools | Credentials |
+| --- | --- | --- |
+| **REST / OpenAPI** | Manual tool or OpenAPI import | Encrypted API key / bearer on the tool |
+| **SDK** | `@qefro/backend` / `qefro-sdk` handlers + Sync Tools | Connection signing secret; customer auth in your code |
+
+Qefro does not become your CRM/ERP — tools call *your* systems of record.
 
 ## Introduction
 
-Admin Console → workspace → integrations/tools. REST surface (authenticated with the user’s Admin Console JWT):
+Admin Console → **Business Tools** (REST / OpenAPI / SDK Connections tabs). REST surface (authenticated with the user’s Admin Console JWT):
 
 | Method | Path |
 | --- | --- |
@@ -1157,6 +1164,10 @@ Admin Console → workspace → integrations/tools. REST surface (authenticated 
 | GET/PATCH/DELETE | `/api/v1/tools/:id` |
 | POST | `/api/v1/tools/:id/test` |
 | GET | `/api/v1/tools/:id/logs` |
+| GET/POST | `/api/v1/org/sdk-connections` |
+| PATCH/DELETE | `/api/v1/org/sdk-connections/:id` |
+| POST | `/api/v1/org/sdk-connections/:id/test` |
+| POST | `/api/v1/org/sdk-connections/:id/sync-tools` |
 
 Plan limits (from domain `PlanDefinition.business_tools_limit`):
 
@@ -1172,8 +1183,9 @@ Most chatbots only answer from documents. Qefro also executes configured actions
 
 ## Concepts
 
-- **Integration** — connector grouping (often from OpenAPI)
-- **Tool** — invocable operation (method, URL template, auth)
+- **Integration** — connector grouping (REST, OpenAPI import, or auto-created `SDK: {name}`)
+- **Tool** — invocable operation (`implementation_kind`: `rest` or `sdk`)
+- **SDK Connection** — org webhook + signing secret for `@qefro/backend` / `qefro-sdk`
 - **Execution log** — audit trail for tool runs (`/api/v1/tools/:id/logs`)
 - **Test** — `POST /api/v1/tools/:id/test` (rate-limited)
 
@@ -1197,9 +1209,13 @@ Admin Console **Test Tool** continues to work for configuring connectors — tha
 flowchart TB
   OpenAPI[OpenAPI import] --> Integration
   REST[Manual REST tool] --> Tool
+  SDK[SDK Sync Tools] --> Integration
   Integration --> Tool
-  Tool --> Secrets[Encrypted credentials]
-  Tool --> Exec[SSRF-checked HTTPS egress]
+  Tool --> Kind{implementation_kind}
+  Kind -->|rest| Secrets[Encrypted API credentials]
+  Kind -->|sdk| Webhook[Signed org webhook]
+  Secrets --> Exec[ToolExecutor]
+  Webhook --> Exec
   Exec --> Logs[Execution logs]
 ```
 
@@ -1223,13 +1239,14 @@ curl -sS -X POST -H "Authorization: Bearer $USER_JWT" \
 
 - Prefer read-only tools during pilots
 - Re-import OpenAPI after upstream API changes (`/reimport`)
+- Re-Sync SDK tools after you add or rename handlers
 - Keep customer-facing tools separate from privileged internal tools (different workspaces)
 
 ## Security notes
 
-Outbound tool URLs are SSRF-validated (HTTPS, blocked private/link-local targets, DNS pinning for webhooks). Do not disable these controls for convenience.
+Outbound tool URLs and SDK webhooks are SSRF-validated (HTTPS, blocked private/link-local targets). Do not disable these controls for convenience.
 
-MCP connectors are on the roadmap — not required for REST/OpenAPI today.
+MCP connectors are on the roadmap — not required for REST/OpenAPI/SDK today.
 
 ## FAQ
 
@@ -3157,7 +3174,18 @@ Guides: [Configure RBAC](/docs/guides/configure-rbac), [Teams](/docs/platform/te
 | POST | `/api/v1/tools/:id/test` | User JWT | Test invocation |
 | GET | `/api/v1/tools/:id/logs` | User JWT | Execution logs |
 
-Guides: [Connect REST APIs](/docs/guides/connect-rest-apis), [Import OpenAPI](/docs/guides/import-openapi), [Secure Business Actions](/docs/guides/secure-business-actions).
+Guides: [Connect REST APIs](/docs/guides/connect-rest-apis), [Import OpenAPI](/docs/guides/import-openapi), [Register SDK Business Tools](/docs/guides/register-sdk-business-tools), [Secure Business Actions](/docs/guides/secure-business-actions).
+
+## SDK Connections (backend framework)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET/POST | `/api/v1/org/sdk-connections` | Owner/Admin JWT | List / create signed webhook connections |
+| PATCH/DELETE | `/api/v1/org/sdk-connections/:id` | Owner/Admin JWT | Update / rotate secret / delete |
+| POST | `/api/v1/org/sdk-connections/:id/test` | Owner/Admin JWT | Signed `ping` health check |
+| POST | `/api/v1/org/sdk-connections/:id/sync-tools` | Owner/Admin JWT | `tools.list`; optional `auto_register` + `workspace_id` |
+
+Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools). Framework: [SDK Framework](/docs/v1/sdk-framework).
 
 ## WhatsApp
 
@@ -3231,15 +3259,21 @@ Webhook routes must verify Razorpay signatures or Meta challenges before mutatin
 
 Source: https://docs.qefro.com/docs/api/sdks/
 
-> Official widget package (@qefro-ai/widget / cdn.qefro.com) and how to call api.qefro.com from server HTTPS clients.
+> Website widget (@qefro-ai/widget), backend framework (@qefro/backend / qefro-sdk) for Business Tools, and calling api.qefro.com from HTTPS clients.
 
-Today’s first-party client surface is the **website widget**. Server automation uses ordinary HTTPS clients against `https://api.qefro.com` (REST + GraphQL).
+Qefro ships two first-party packages plus ordinary HTTPS access to `https://api.qefro.com`:
+
+| Package | Role |
+| --- | --- |
+| `@qefro-ai/widget` / CDN `widget.js` | Embeddable Customer AI on your website |
+| `@qefro/backend` / `qefro-sdk` | Organization backend framework — register Business Tool handlers and customer auth |
+| Any HTTPS client | Admin automation against REST + GraphQL |
 
 ## Short definition (citation-ready)
 
-> Qefro’s embeddable Customer AI client is distributed as `@qefro-ai/widget` and `https://cdn.qefro.com/widget.js`. There is no required server SDK — use any HTTP stack with a user JWT or tool credentials flow.
+> Customer chat embeds use `@qefro-ai/widget`. Organization backends that expose Business Tools use `@qefro/backend` (TypeScript) or `qefro-sdk` (Rust) over a signed webhook. Admin automation can also call `https://api.qefro.com` with a user JWT.
 
-## Widget distribution
+## Website widget
 
 | Channel | Entry |
 | --- | --- |
@@ -3255,7 +3289,7 @@ Typical capabilities (see package README / Admin Console snippet for current nam
 
 Platform: [Website Widget](/docs/platform/website-widget), [Identity Forwarding](/docs/platform/identity-forwarding).
 
-## CDN embed
+### CDN embed
 
 ```html
 <script
@@ -3267,7 +3301,21 @@ Platform: [Website Widget](/docs/platform/website-widget), [Identity Forwarding]
 </script>
 ```
 
-## Server integrations
+## Backend framework (Business Tools)
+
+Install and register handlers, then connect the webhook in Admin Console and **Sync Tools**:
+
+```bash
+npm install @qefro/backend
+# or: cargo add qefro-sdk
+```
+
+Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools).  
+Reference: [SDK Framework](/docs/v1/sdk-framework), [Business Tools](/docs/v1/business-tools).
+
+Protocol messages on your webhook: `ping`, `tools.list`, `tool.invoke`, `tool.resume`.
+
+## Server integrations (Admin API)
 
 Use cURL, `fetch`, Python `requests`/`httpx`, etc.:
 
@@ -4189,8 +4237,9 @@ Source: https://docs.qefro.com/docs/glossary/
 | Internal Portal | `your-company.qefro.com` employee experience — [Internal Portal](/docs/platform/internal-portal) |
 | Knowledge Platform | Ingest + hybrid retrieval + citations — [AI Knowledge Platform](/docs/concepts/ai-knowledge-platform) |
 | Hybrid RAG | Lexical + vector retrieval for grounded answers — [Hybrid RAG](/docs/concepts/hybrid-rag) |
-| Business Tool | REST/OpenAPI connector with encrypted credentials — [Business Tools](/docs/platform/business-tools) |
+| Business Tool | Workspace connector (`rest` / OpenAPI or `sdk`) the AI can invoke — [Business Tools](/docs/platform/business-tools), [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) |
 | Business Action | Runtime invocation of a Business Tool — [What are Business Actions?](/docs/concepts/business-actions) |
+| SDK Connection | Signed org webhook for `@qefro/backend` / `qefro-sdk` — [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) |
 | Identity Forwarding | `identify()` end-user JWT/session into tool calls — [Identity Forwarding](/docs/platform/identity-forwarding) |
 | Widget token | Publishable embed key for `cdn.qefro.com/widget.js` — [Website Widget](/docs/platform/website-widget) |
 | Owner / Admin / Member | Organization RBAC roles — [RBAC](/docs/platform/rbac) |

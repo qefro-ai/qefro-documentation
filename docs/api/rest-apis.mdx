@@ -187,7 +187,18 @@ Guides: [Configure RBAC](/docs/guides/configure-rbac), [Teams](/docs/platform/te
 | POST | `/api/v1/tools/:id/test` | User JWT | Test invocation |
 | GET | `/api/v1/tools/:id/logs` | User JWT | Execution logs |
 
-Guides: [Connect REST APIs](/docs/guides/connect-rest-apis), [Import OpenAPI](/docs/guides/import-openapi), [Secure Business Actions](/docs/guides/secure-business-actions).
+Guides: [Connect REST APIs](/docs/guides/connect-rest-apis), [Import OpenAPI](/docs/guides/import-openapi), [Register SDK Business Tools](/docs/guides/register-sdk-business-tools), [Secure Business Actions](/docs/guides/secure-business-actions).
+
+## SDK Connections (backend framework)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET/POST | `/api/v1/org/sdk-connections` | Owner/Admin JWT | List / create signed webhook connections |
+| PATCH/DELETE | `/api/v1/org/sdk-connections/:id` | Owner/Admin JWT | Update / rotate secret / delete |
+| POST | `/api/v1/org/sdk-connections/:id/test` | Owner/Admin JWT | Signed `ping` health check |
+| POST | `/api/v1/org/sdk-connections/:id/sync-tools` | Owner/Admin JWT | `tools.list`; optional `auto_register` + `workspace_id` |
+
+Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools). Framework: [SDK Framework](/docs/v1/sdk-framework).
 
 ## WhatsApp
 
@@ -297,5 +308,6 @@ Webhook routes must verify Razorpay signatures or Meta challenges before mutatin
     {label: 'Webhooks', to: '/docs/api/webhooks'},
     {label: 'SDKs', to: '/docs/api/sdks'},
     {label: 'Business Tools', to: '/docs/platform/business-tools'},
+    {label: 'Register SDK Business Tools', to: '/docs/guides/register-sdk-business-tools'},
   ]}
 />
