@@ -20,7 +20,7 @@ import {
 | Path | How you add tools | Credentials |
 | --- | --- | --- |
 | **REST / OpenAPI** | Manual tool or OpenAPI import | Encrypted API key / bearer on the tool |
-| **SDK** | `@qefro/backend` / `qefro-sdk` handlers + Sync Tools | Connection signing secret; customer auth in your code |
+| **SDK** | `@qefro-ai/backend` / `qefro-sdk` handlers + Sync Tools | Connection signing secret; customer auth in your code |
 
 Qefro does not become your CRM/ERP — tools call *your* systems of record.
 
@@ -61,7 +61,7 @@ Most chatbots only answer from documents. Qefro also executes configured actions
 
 - **Integration** — connector grouping (REST, OpenAPI import, or auto-created `SDK: {name}`)
 - **Tool** — invocable operation (`implementation_kind`: `rest` or `sdk`)
-- **SDK Connection** — org webhook + signing secret for `@qefro/backend` / `qefro-sdk`
+- **SDK Connection** — org webhook + signing secret for `@qefro-ai/backend` / `qefro-sdk`
 - **Execution log** — audit trail for tool runs (`/api/v1/tools/:id/logs`)
 - **Test** — `POST /api/v1/tools/:id/test` (rate-limited)
 

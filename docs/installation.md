@@ -12,7 +12,7 @@ sidebar_label: Installation
 
 ## SDK install
 ### TypeScript
-- npm install @qefro/backend
+- npm install @qefro-ai/backend
 
 ### Rust
 - cargo add qefro-sdk

@@ -10,7 +10,7 @@ Business Tools are workspace-scoped capabilities the AI can invoke during chat. 
 | Kind | How you register | Best for |
 | --- | --- | --- |
 | `rest` / OpenAPI | Admin Console or OpenAPI import | Existing HTTPS APIs |
-| `sdk` | `@qefro/backend` / `qefro-sdk` + Sync Tools | Auth, workflows, custom logic |
+| `sdk` | `@qefro-ai/backend` / `qefro-sdk` + Sync Tools | Auth, workflows, custom logic |
 
 Platform overview: [Business Tools](/docs/platform/business-tools).  
 SDK registration guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools).

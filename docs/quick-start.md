@@ -8,7 +8,7 @@ sidebar_label: Quick Start
 Smallest complete SDK backend:
 
 ```ts
-import { Qefro } from "@qefro/backend";
+import { Qefro } from "@qefro-ai/backend";
 
 const app = new Qefro({ signingSecret: process.env.QEFRO_SIGNING_SECRET! });
 

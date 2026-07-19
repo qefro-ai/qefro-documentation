@@ -1,6 +1,6 @@
 ---
 title: "SDKs"
-description: "Website widget (@qefro-ai/widget), backend framework (@qefro/backend / qefro-sdk) for Business Tools, and calling api.qefro.com from HTTPS clients."
+description: "Website widget (@qefro-ai/widget), backend framework (@qefro-ai/backend / qefro-sdk) for Business Tools, and calling api.qefro.com from HTTPS clients."
 sidebar_label: "SDKs"
 ---
 
@@ -18,12 +18,12 @@ Qefro ships two first-party packages plus ordinary HTTPS access to `https://api.
 | Package | Role |
 | --- | --- |
 | `@qefro-ai/widget` / CDN `widget.js` | Embeddable Customer AI on your website |
-| `@qefro/backend` / `qefro-sdk` | Organization backend framework — register Business Tool handlers and customer auth |
+| `@qefro-ai/backend` / `qefro-sdk` | Organization backend framework — register Business Tool handlers and customer auth |
 | Any HTTPS client | Admin automation against REST + GraphQL |
 
 ## Short definition (citation-ready)
 
-> Customer chat embeds use `@qefro-ai/widget`. Organization backends that expose Business Tools use `@qefro/backend` (TypeScript) or `qefro-sdk` (Rust) over a signed webhook. Admin automation can also call `https://api.qefro.com` with a user JWT.
+> Customer chat embeds use `@qefro-ai/widget`. Organization backends that expose Business Tools use `@qefro-ai/backend` (TypeScript) or `qefro-sdk` (Rust) over a signed webhook. Admin automation can also call `https://api.qefro.com` with a user JWT.
 
 ## Website widget
 
@@ -58,12 +58,13 @@ Platform: [Website Widget](/docs/platform/website-widget), [Identity Forwarding]
 Install and register handlers, then connect the webhook in Admin Console and **Sync Tools**:
 
 ```bash
-npm install @qefro/backend
+npm install @qefro-ai/backend
 # or: cargo add qefro-sdk
 ```
 
 Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools).  
-Reference: [SDK Framework](/docs/v1/sdk-framework), [Business Tools](/docs/v1/business-tools).
+Reference: [SDK Framework](/docs/v1/sdk-framework), [Business Tools](/docs/v1/business-tools).  
+Examples: [github.com/qefro-ai/qefro-js-backend-sdk/examples](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples) · [Examples index](/docs/v1/examples).
 
 Protocol messages on your webhook: `ping`, `tools.list`, `tool.invoke`, `tool.resume`.
 
@@ -84,7 +85,7 @@ More samples: [Examples](/docs/api/examples).
   title="Choose an integration style"
   steps={[
     {title: 'Customer chat on web', description: 'CDN or npm widget.'},
-    {title: 'Business Tools in your backend', description: '@qefro/backend + SDK Connection + Sync.'},
+    {title: 'Business Tools in your backend', description: '@qefro-ai/backend + SDK Connection + Sync.'},
     {title: 'Existing HTTPS APIs', description: 'REST tools or OpenAPI import.'},
     {title: 'Admin automation', description: 'REST with Owner/Admin JWT.'},
     {title: 'WhatsApp', description: 'Meta webhooks — not the widget SDK.'},
@@ -98,7 +99,7 @@ More samples: [Examples](/docs/api/examples).
     {
       question: 'Is there an official Python SDK for Business Tools?',
       answer:
-        'Not yet for the signed webhook protocol. Use TypeScript (@qefro/backend) or Rust (qefro-sdk). Admin REST can be called from any language.',
+        'Not yet for the signed webhook protocol. Use TypeScript (@qefro-ai/backend) or Rust (qefro-sdk). Admin REST can be called from any language.',
     },
     {
       question: 'Can I self-host the widget JS?',
@@ -108,7 +109,7 @@ More samples: [Examples](/docs/api/examples).
     {
       question: 'How do I register Business Tools from code?',
       answer:
-        'Use app.tool(...) in @qefro/backend, create an SDK Connection, then Sync Tools into a workspace. See Register SDK Business Tools.',
+        'Use app.tool(...) in @qefro-ai/backend, create an SDK Connection, then Sync Tools into a workspace. See Register SDK Business Tools.',
     },
   ]}
 />

@@ -5,12 +5,17 @@ slug: /v1/examples
 sidebar_label: Examples
 ---
 
-Qefro example workspace lives at examples/.
+Backend examples for `@qefro-ai/backend` live in the SDK repository:
+
+**[github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples)**
+
+A mirrored copy also exists under `examples/` in this docs repo for local browsing.
 
 ## Quick run
 
 ```bash
-cd examples/<example>
+git clone https://github.com/qefro-ai/qefro-js-backend-sdk.git
+cd qefro-js-backend-sdk/examples/<example>
 cp .env.example .env
 npm install
 npm start
@@ -25,6 +30,7 @@ Every example also ships with `scripts/smoke.sh` to run signed protocol checks (
 
 ## Included examples
 - `basic-sdk`: minimal framework usage with profile/context tools
+- `order-status`: public order lookup + authenticated my-orders list
 - `rest-api`: REST-shaped order tools (`orders_list`, `orders_get`)
 - `ecommerce`: order tracking, return creation, invoice link generation
 - `crm`: lead listing, note writeback, escalation ticket opening

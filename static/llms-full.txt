@@ -1144,7 +1144,7 @@ Source: https://docs.qefro.com/docs/platform/business-tools/
 | Path | How you add tools | Credentials |
 | --- | --- | --- |
 | **REST / OpenAPI** | Manual tool or OpenAPI import | Encrypted API key / bearer on the tool |
-| **SDK** | `@qefro/backend` / `qefro-sdk` handlers + Sync Tools | Connection signing secret; customer auth in your code |
+| **SDK** | `@qefro-ai/backend` / `qefro-sdk` handlers + Sync Tools | Connection signing secret; customer auth in your code |
 
 Qefro does not become your CRM/ERP — tools call *your* systems of record.
 
@@ -1185,7 +1185,7 @@ Most chatbots only answer from documents. Qefro also executes configured actions
 
 - **Integration** — connector grouping (REST, OpenAPI import, or auto-created `SDK: {name}`)
 - **Tool** — invocable operation (`implementation_kind`: `rest` or `sdk`)
-- **SDK Connection** — org webhook + signing secret for `@qefro/backend` / `qefro-sdk`
+- **SDK Connection** — org webhook + signing secret for `@qefro-ai/backend` / `qefro-sdk`
 - **Execution log** — audit trail for tool runs (`/api/v1/tools/:id/logs`)
 - **Test** — `POST /api/v1/tools/:id/test` (rate-limited)
 
@@ -3259,19 +3259,19 @@ Webhook routes must verify Razorpay signatures or Meta challenges before mutatin
 
 Source: https://docs.qefro.com/docs/api/sdks/
 
-> Website widget (@qefro-ai/widget), backend framework (@qefro/backend / qefro-sdk) for Business Tools, and calling api.qefro.com from HTTPS clients.
+> Website widget (@qefro-ai/widget), backend framework (@qefro-ai/backend / qefro-sdk) for Business Tools, and calling api.qefro.com from HTTPS clients.
 
 Qefro ships two first-party packages plus ordinary HTTPS access to `https://api.qefro.com`:
 
 | Package | Role |
 | --- | --- |
 | `@qefro-ai/widget` / CDN `widget.js` | Embeddable Customer AI on your website |
-| `@qefro/backend` / `qefro-sdk` | Organization backend framework — register Business Tool handlers and customer auth |
+| `@qefro-ai/backend` / `qefro-sdk` | Organization backend framework — register Business Tool handlers and customer auth |
 | Any HTTPS client | Admin automation against REST + GraphQL |
 
 ## Short definition (citation-ready)
 
-> Customer chat embeds use `@qefro-ai/widget`. Organization backends that expose Business Tools use `@qefro/backend` (TypeScript) or `qefro-sdk` (Rust) over a signed webhook. Admin automation can also call `https://api.qefro.com` with a user JWT.
+> Customer chat embeds use `@qefro-ai/widget`. Organization backends that expose Business Tools use `@qefro-ai/backend` (TypeScript) or `qefro-sdk` (Rust) over a signed webhook. Admin automation can also call `https://api.qefro.com` with a user JWT.
 
 ## Website widget
 
@@ -3306,7 +3306,7 @@ Platform: [Website Widget](/docs/platform/website-widget), [Identity Forwarding]
 Install and register handlers, then connect the webhook in Admin Console and **Sync Tools**:
 
 ```bash
-npm install @qefro/backend
+npm install @qefro-ai/backend
 # or: cargo add qefro-sdk
 ```
 
@@ -4239,7 +4239,7 @@ Source: https://docs.qefro.com/docs/glossary/
 | Hybrid RAG | Lexical + vector retrieval for grounded answers — [Hybrid RAG](/docs/concepts/hybrid-rag) |
 | Business Tool | Workspace connector (`rest` / OpenAPI or `sdk`) the AI can invoke — [Business Tools](/docs/platform/business-tools), [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) |
 | Business Action | Runtime invocation of a Business Tool — [What are Business Actions?](/docs/concepts/business-actions) |
-| SDK Connection | Signed org webhook for `@qefro/backend` / `qefro-sdk` — [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) |
+| SDK Connection | Signed org webhook for `@qefro-ai/backend` / `qefro-sdk` — [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) |
 | Identity Forwarding | `identify()` end-user JWT/session into tool calls — [Identity Forwarding](/docs/platform/identity-forwarding) |
 | Widget token | Publishable embed key for `cdn.qefro.com/widget.js` — [Website Widget](/docs/platform/website-widget) |
 | Owner / Admin / Member | Organization RBAC roles — [RBAC](/docs/platform/rbac) |

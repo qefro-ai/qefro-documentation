@@ -18,7 +18,7 @@ Start at:
 - /docs/v1/quick-start
 - /docs/v1/deployment
 
-Runnable examples are available under [examples](examples/README.md).
+Runnable `@qefro-ai/backend` examples: [SDK repo examples](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples) (mirrored under [examples](examples/README.md)).
 
 ## Quick start
 

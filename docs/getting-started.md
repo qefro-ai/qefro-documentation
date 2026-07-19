@@ -14,7 +14,7 @@ Get your first authenticated Business Tool running in about 10 minutes.
 
 ## 10-minute onboarding flow
 1. Install dependencies and run platform services.
-2. Create a backend app with @qefro/backend.
+2. Create a backend app with @qefro-ai/backend.
 3. Add customer provider lookup and authorize.
 4. Register one tool with auth: required.
 5. Run app.listen on POST /qefro.

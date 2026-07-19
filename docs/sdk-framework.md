@@ -5,7 +5,7 @@ slug: /v1/sdk-framework
 sidebar_label: SDK Framework
 ---
 
-The Qefro Backend Framework (`@qefro/backend` for TypeScript, `qefro-sdk` for Rust) is how organizations register **Business Tool handlers** and own customer authentication.
+The Qefro Backend Framework (`@qefro-ai/backend` for TypeScript, `qefro-sdk` for Rust) is how organizations register **Business Tool handlers** and own customer authentication.
 
 Qefro calls your backend over one signed webhook (typically `POST /qefro`). You never implement `/auth/evaluate` on Qefro — auth lives inside your handlers.
 
@@ -13,7 +13,7 @@ Qefro calls your backend over one signed webhook (typically `POST /qefro`). You 
 
 ```bash
 # TypeScript
-npm install @qefro/backend
+npm install @qefro-ai/backend
 
 # Rust
 cargo add qefro-sdk
@@ -36,7 +36,7 @@ export QEFRO_SIGNING_SECRET="your-signing-secret"
 Every `app.tool(...)` becomes discoverable via `tools.list`. After you create an **SDK Connection** in Admin Console and run **Sync Tools** with a workspace, those handlers become workspace Business Tools (`implementation_kind = sdk`).
 
 ```ts
-import { Qefro } from '@qefro/backend';
+import { Qefro } from '@qefro-ai/backend';
 
 const app = new Qefro({ signingSecret: process.env.QEFRO_SIGNING_SECRET! });
 
@@ -125,4 +125,4 @@ APIs:
 
 Expose `POST /qefro` behind HTTPS with stable secret management. Rotate secrets from Admin Console and update `QEFRO_SIGNING_SECRET` together.
 
-See also: [Business Tools](/docs/v1/business-tools), [Customer Provider](/docs/v1/customer-provider), [Examples](/docs/v1/examples).
+See also: [Business Tools](/docs/v1/business-tools), [Customer Provider](/docs/v1/customer-provider), [Examples](/docs/v1/examples) ([GitHub](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples)).

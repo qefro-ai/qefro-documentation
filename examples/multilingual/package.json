@@ -7,7 +7,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@qefro/backend": "^1.0.0",
+    "@qefro-ai/backend": "^1.0.0",
     "dotenv": "^16.4.5"
   }
 }
