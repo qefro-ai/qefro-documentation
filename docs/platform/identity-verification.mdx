@@ -14,25 +14,35 @@ import {
 
 # Identity Verification
 
-**Identity Verification** lets Business Actions declare how much trust they need. The runtime uses **channel-provided identity first** and only starts an organization challenge when you explicitly require it.
+**Identity Verification** lets Business Actions declare how much trust they need. The runtime first **resolves identity** (who the customer is), then **authenticates** (whether they may perform the action). See [Identity Resolution & Authentication](/docs/platform/identity-and-authentication) for the separation.
 
-Business Actions never contain WhatsApp-, widget-, or portal-specific auth logic — adapters build a shared [`ChannelIdentity`](/docs/platform/identity-verification) / `VerifiedIdentity`.
+Business Actions never contain WhatsApp-, widget-, or portal-specific auth logic — adapters resolve a shared `ResolvedIdentity` / `VerifiedIdentity`.
+
+## Architecture
+
+```text
+Channel → Identity Resolver → Resolved Identity → Authentication Service → Authentication Provider → Authentication Context → Business Tool
+```
+
+Identity Resolution answers **"Who?"**. Authentication answers **"May they?"**.
 
 ## Authentication requirements
 
 | Requirement | Meaning | When to use |
 | --- | --- | --- |
-| `public` | No identity required | FAQs, hours, pricing, general support |
-| `verified_channel` | Trust already provided by the channel | Order status on WhatsApp; “my orders” on a logged-in website |
-| `organization_challenge` | Extra org-defined verification | Invoices, medical records, bank changes, account deletion |
+| `public` | Anyone can execute | FAQs, hours, pricing, general support |
+| `verified_channel` | Requires an identity already verified by the communication channel (WhatsApp phone, website session, etc.) | Order status on WhatsApp; “my orders” on a logged-in website |
+| `organization_challenge` | Requires additional verification from the organization's Authentication Provider | Invoices, medical records, bank changes, account deletion |
 
-Configure on each tool:
+Configure on each Business Action (tool):
 
 ```json
 { "required_auth_level": "verified_channel" }
 ```
 
 Default: `public`. Legacy values `anonymous` / `verified_phone` / `strong` still parse for compatibility.
+
+Customer authentication (OTP, external challenge endpoints, session duration) is configured under **Organization → Authentication**, not on individual Business Tools.
 
 ## Design philosophy
 

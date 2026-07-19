@@ -42,6 +42,7 @@ const sidebars: SidebarsConfig = {
         'platform/business-actions',
         'platform/business-tools',
         'platform/identity-verification',
+        'platform/identity-and-authentication',
         'platform/internal-portal',
         'platform/website-widget',
         'platform/whatsapp',

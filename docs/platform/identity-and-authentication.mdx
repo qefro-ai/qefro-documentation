@@ -1,0 +1,117 @@
+---
+title: "Identity Resolution & Authentication"
+description: "Why Qefro separates “Who is the customer?” from “Can they perform this action?”"
+sidebar_label: "Identity & Authentication"
+---
+
+import {
+  InfoBox,
+  Warning,
+  RelatedTopics,
+  WorkflowCard,
+} from '@site/src/components';
+
+# Identity Resolution & Authentication
+
+Qefro treats **Identity Resolution** and **Authentication** as separate platform capabilities.
+
+| Concern | Question | Owner |
+| --- | --- | --- |
+| Identity Resolution | Who is this customer? | `IdentityResolver` |
+| Authentication | Is this identity trusted enough for this Business Action? | Authentication Service + Provider |
+
+They are intentionally **not** the same. Mixing them couples channels to trust rules and makes new providers hard to add.
+
+## Runtime architecture
+
+```text
+Channel
+  ↓
+Identity Resolver
+  ↓
+Resolved Identity
+  ↓
+Authentication Service
+  ↓
+Authentication Provider
+  ↓
+Authentication Context
+  ↓
+Business Tool Runtime
+```
+
+Business Tools remain unaware of identity extraction and authentication. They only consume the Authentication Context (and forwarded `X-Qefro-*` headers) supplied by the runtime.
+
+## Identity Resolution
+
+Produces a reusable [`ResolvedIdentity`](/docs/platform/identity-verification):
+
+- `organization_id`, `channel`, `identity_type`, `identifier`
+- optional `customer_id`
+- `verified_by_channel` (WhatsApp Meta phone, website JWT/session, …)
+- safe `metadata` (never OTP, tokens, cookies, or API keys)
+
+### WhatsApp
+
+```text
+Incoming Message → Meta Verified Phone → Identity Resolver → Lookup Customer → ResolvedIdentity
+```
+
+### Website Widget
+
+```text
+JWT / session → Identity Resolver → Resolve Customer → ResolvedIdentity
+```
+
+Identity Resolution **never**:
+
+- Sends or verifies OTP
+- Creates authentication sessions
+- Stores Authentication Context
+
+## Authentication
+
+Accepts `ResolvedIdentity` (not raw phone numbers or JWTs) and returns:
+
+| Result | Meaning |
+| --- | --- |
+| `Authenticated` | Trusted enough — execute the Business Tool |
+| `ChallengeRequired` | Organization provider must verify further |
+| `Denied` | Explicit denial |
+| `CustomerNotFound` | Identity has no matching customer when required |
+| `Expired` | Prior session expired |
+| `Retry` | Transient provider failure |
+
+The **Authentication Provider** owns trust rules:
+
+- **Built-in** — Email OTP + session duration / OTP expiration
+- **External** — Challenge / Refresh endpoints, credential type, API auth
+
+Configure once under **Organization → Authentication** in the Admin Console. Business Tools do not configure customer authentication.
+
+## Business Action requirements
+
+| Requirement | Meaning |
+| --- | --- |
+| `public` | Anyone can execute |
+| `verified_channel` | Requires channel-verified identity |
+| `organization_challenge` | Requires the organization's Authentication Provider |
+
+## Security
+
+<Warning>
+Identity Resolution never authenticates. Authentication never extracts identity. Business Tools never manage customer authentication. Authentication Context credentials are encrypted at rest and never exposed to the AI model. OTP values, access tokens, cookies, and API keys are never logged.
+</Warning>
+
+<InfoBox>
+Configure providers at Organization → Authentication. Declare requirements on each Business Action. Keep outbound API credentials (`auth_mode`) on the Business Tool — that is server-to-server auth, not customer identity.
+</InfoBox>
+
+## Related
+
+<RelatedTopics topics={[
+  {label: 'Identity Verification', to: '/docs/platform/identity-verification'},
+  {label: 'Authentication', to: '/docs/platform/authentication'},
+  {label: 'Business Actions', to: '/docs/platform/business-actions'},
+  {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
+]} />
