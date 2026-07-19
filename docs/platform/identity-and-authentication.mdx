@@ -1,6 +1,6 @@
 ---
 title: "Identity Resolution & Authentication"
-description: "Qefro resolves channel identity; organizations own customer authentication via their Customer Identity Service."
+description: "Qefro resolves channel identity; organizations decide access via their Customer Access Service."
 sidebar_label: "Identity & Authentication"
 ---
 
@@ -17,7 +17,7 @@ Qefro is **not** an Identity Provider for customers.
 | Concern | Question | Owner |
 | --- | --- | --- |
 | Identity Resolution | Who is this customer? | Qefro (`IdentityResolver`) |
-| Customer authentication | May they perform this action? | **Organization** Customer Identity Service |
+| Access decision | May they perform this Business Action? | **Organization** Customer Access Service |
 | Business Tool execution | Call the API with credentials | Qefro runtime (injection only) |
 
 ## Architecture
@@ -29,16 +29,22 @@ Identity Resolver
   ↓
 Resolved Identity
   ↓
-Organization Customer Identity Service
+Organization Customer Access Service
   ↓
-Authentication Result
+Authentication Decision
   ↓
-Authentication Context (encrypted)
-  ↓
-Business Tool Runtime
+Authentication Context (optional, encrypted)
   ↓
 Business Tool
 ```
+
+The Customer Access Service answers:
+
+> Given this resolved identity and requested Business Action, what should happen?
+
+Possible decisions: `authenticated`, `challenge_required`, `denied`, `customer_not_found`.
+
+That lets the organization vary policy per action without Qefro hardcoding rules — for example order status → authenticated, download invoice → challenge, delete account → denied.
 
 ## What Qefro never does
 
@@ -48,30 +54,31 @@ Business Tool
 - Authenticate customers
 - Manage customer passwords
 - Issue customer sessions or JWTs
+- Decide whether a Business Action is allowed
 
 ## What the organization owns
 
 - Customer lookup
-- Whether authentication is required
+- Whether authentication is required for a given Business Action
 - OTP / login / OAuth / passkeys
 - Token issuance, refresh, and revocation
+- Allow / deny / challenge decisions
 
-Configure under **Organization → Customer Identity Service** in the Admin Console.
+Configure under **Organization → Customer Access Service** in the Admin Console.
 
-## Identity API
+## Access API
 
-Qefro calls:
+Qefro calls your evaluate endpoint (full URL is configurable; recommended path):
 
 ```http
-POST /identity
+POST /auth/evaluate
 ```
 
 ```json
 {
-  "organization_id": "org_001",
   "conversation_id": "conv_123",
-  "channel": "whatsapp",
   "business_action": "download_invoice",
+  "channel": "whatsapp",
   "identity": {
     "type": "phone",
     "identifier": "+919876543210",
@@ -80,9 +87,30 @@ POST /identity
 }
 ```
 
-Qefro does **not** send OTP, passwords, or sessions in this request.
+`business_action` is included so your service can make action-specific decisions. Qefro does **not** send OTP, passwords, or sessions in this request.
 
 ### Responses
+
+```json
+{
+  "status": "challenge_required",
+  "challenge": {
+    "type": "email_otp",
+    "message": "We've sent a verification code."
+  }
+}
+```
+
+```json
+{
+  "status": "authenticated",
+  "authentication_context": {
+    "type": "bearer_token",
+    "access_token": "...",
+    "expires_in": 900
+  }
+}
+```
 
 | Status | Runtime behavior |
 | --- | --- |
@@ -91,7 +119,7 @@ Qefro does **not** send OTP, passwords, or sessions in this request.
 | `denied` | Return error |
 | `customer_not_found` | Return error |
 
-When the customer replies to a challenge, Qefro **forwards** the reply to the Identity API. The organization verifies it.
+When the customer replies to a challenge, Qefro **forwards** the reply to the Access API. The organization verifies it.
 
 ## Business Actions
 
@@ -110,7 +138,7 @@ Authentication Context credentials are encrypted at rest, never logged, and neve
 </Warning>
 
 <InfoBox>
-Identity Resolution answers “who?”. The organization answers “may they?”. Business Tools only consume the context the runtime injects.
+Identity Resolution answers “who?”. The Customer Access Service answers “may they?”. Business Tools only consume the context the runtime injects.
 </InfoBox>
 
 ## Related

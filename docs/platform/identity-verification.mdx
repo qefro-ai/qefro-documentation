@@ -14,14 +14,14 @@ import {
 
 # Identity Verification
 
-**Identity Verification** lets Business Actions declare how much trust they need. Qefro first **resolves identity** from the channel, then asks the organization's **Customer Identity Service** whether the customer may perform the action.
+**Identity Verification** lets Business Actions declare how much trust they need. Qefro first **resolves identity** from the channel, then asks the organization's **Customer Access Service** whether the customer may perform the action.
 
 Qefro is not a customer Identity Provider — it never sends or verifies OTP.
 
 ## Architecture
 
 ```text
-Channel → Identity Resolver → Resolved Identity → Organization Customer Identity Service → Authentication Context → Business Tool
+Channel → Identity Resolver → Resolved Identity → Organization Customer Access Service → Authentication Decision → Authentication Context (optional) → Business Tool
 ```
 
 ## Authentication requirements
@@ -30,7 +30,7 @@ Channel → Identity Resolver → Resolved Identity → Organization Customer Id
 | --- | --- |
 | `public` | Anyone can execute |
 | `verified_channel` | Requires channel-verified identity (WhatsApp phone, website session, etc.) |
-| `organization_challenge` | Requires the organization's Customer Identity Service |
+| `organization_challenge` | Requires the organization's Customer Access Service |
 
 Configure on each Business Action:
 
@@ -38,7 +38,7 @@ Configure on each Business Action:
 { "required_auth_level": "verified_channel" }
 ```
 
-Customer authentication is configured under **Organization → Customer Identity Service**, not on individual Business Tools.
+Customer authentication is configured under **Organization → Customer Access Service**, not on individual Business Tools.
 
 ## Design philosophy
 
@@ -65,9 +65,9 @@ Only when:
 { "required_auth_level": "organization_challenge" }
 ```
 
-Qefro calls your **Customer Identity Service** (`POST /identity`) with the resolved identity. Your service may return `authenticated`, `challenge_required` (OTP / login URL), `denied`, or `customer_not_found`.
+Qefro calls your **Customer Access Service** (`POST /auth/evaluate`) with the resolved identity and Business Action. Your service may return `authenticated`, `challenge_required` (OTP / login URL), `denied`, or `customer_not_found`.
 
-When a challenge is required, Qefro relays your message to the customer. When they reply, Qefro **forwards** the reply to your Identity API — your organization verifies it. Qefro never validates OTP codes.
+When a challenge is required, Qefro relays your message to the customer. When they reply, Qefro **forwards** the reply to your Access API — your organization verifies it. Qefro never validates OTP codes.
 
 A valid Authentication Context from your service is reused until it expires.
 
@@ -83,7 +83,7 @@ A valid Authentication Context from your service is reused until it expires.
 
 <WorkflowCard title="organization_challenge on WhatsApp" steps={[
   {title: 'User messages', description: 'Download my invoice (phone already verified).'},
-  {title: 'Identity API', description: 'Qefro POSTs resolved phone identity to your Customer Identity Service.'},
+  {title: 'Access API', description: 'Qefro POSTs resolved identity + business_action to your Customer Access Service.'},
   {title: 'Challenge', description: 'Your service sends OTP / asks for login; Qefro relays the message.'},
   {title: 'User replies', description: 'Qefro forwards the reply; your service verifies and returns a credential.'},
   {title: 'Execute', description: 'Runtime injects Authentication Context into the Business Tool request.'},
@@ -100,7 +100,7 @@ Local table (Admin API) for enriching WhatsApp identity:
 ## Widget endpoints
 
 - `identify()` JWT/session counts as **`verified_channel`**
-- `POST /api/v1/widget/identity/challenge` and `…/verify` forward to your Customer Identity Service (Qefro does not send or verify OTP)
+- `POST /api/v1/widget/identity/challenge` and `…/verify` forward to your Customer Access Service (Qefro does not send or verify OTP)
 
 ## Identity forwarding
 
@@ -114,7 +114,7 @@ Outbound Business Tool requests receive:
 | `X-Qefro-Channel` | `whatsapp` / `widget` / `portal` |
 | `X-Qefro-Phone` | E.164 when known |
 
-Plus org-issued Bearer / JWT / Cookie credentials when your Identity API returns them. Tokens are never sent to the LLM.
+Plus org-issued Bearer / JWT / Cookie credentials when your Access API returns them. Tokens are never sent to the LLM.
 
 ## Security notes
 
@@ -138,8 +138,8 @@ Authentication ≠ authorization. After the auth gate, tool preconditions and wo
 
 <FaqAccordion items={[
   {question: 'Do Business Actions need WhatsApp-specific code?', answer: 'No. Declare required_auth_level only; adapters resolve identity.'},
-  {question: 'Does WhatsApp trigger OTP for order status?', answer: 'Not if the tool is verified_channel. Meta-verified phone is enough. Organization challenges are owned by your Customer Identity Service.'},
-  {question: 'Who sends the OTP?', answer: 'Your organization. Qefro only relays messages and forwards replies to your Identity API.'},
-  {question: 'Does verified_channel unlock organization_challenge tools?', answer: 'No. Those tools need a successful response from your Customer Identity Service.'},
+  {question: 'Does WhatsApp trigger OTP for order status?', answer: 'Not if the tool is verified_channel. Meta-verified phone is enough. Organization challenges are owned by your Customer Access Service.'},
+  {question: 'Who sends the OTP?', answer: 'Your organization. Qefro only relays messages and forwards replies to your Access API.'},
+  {question: 'Does verified_channel unlock organization_challenge tools?', answer: 'No. Those tools need a successful response from your Customer Access Service.'},
   {question: 'Can the Internal Portal execute Business Tools?', answer: 'Not in V1. The channel gate blocks Portal before auth and HTTPS.'},
 ]} />
