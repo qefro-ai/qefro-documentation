@@ -5,7 +5,7 @@ slug: /v1/sdk-framework
 sidebar_label: SDK Framework
 ---
 
-The Qefro Backend Framework (`@qefro-ai/backend` for TypeScript, `qefro-sdk` for Rust) is how organizations register **Business Tool handlers** and own customer authentication.
+The Qefro Backend Framework (`@qefro-ai/backend` for TypeScript, `qefro-backend-sdk` for Rust) is how organizations register **Business Tool handlers** and own customer authentication.
 
 Qefro calls your backend over one signed webhook (typically `POST /qefro`). You never implement `/auth/evaluate` on Qefro — auth lives inside your handlers.
 
@@ -16,7 +16,7 @@ Qefro calls your backend over one signed webhook (typically `POST /qefro`). You 
 npm install @qefro-ai/backend
 
 # Rust
-cargo add qefro-sdk
+cargo add qefro-backend-sdk
 ```
 
 ```bash

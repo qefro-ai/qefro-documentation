@@ -1,6 +1,6 @@
 ---
 title: "Register SDK Business Tools"
-description: "Use @qefro-ai/backend or qefro-sdk to register handlers, connect your webhook in Admin Console, and sync tools into a workspace as Business Tools."
+description: "Use @qefro-ai/backend or qefro-backend-sdk to register handlers, connect your webhook in Admin Console, and sync tools into a workspace as Business Tools."
 sidebar_label: "Register SDK Business Tools"
 ---
 
@@ -15,7 +15,7 @@ import {
 
 # Register SDK Business Tools
 
-This guide registers **Business Tools** from your backend using the Qefro Backend Framework (`@qefro-ai/backend` or `qefro-sdk`). Tools live in your code; Admin Console only manages the signed connection and syncs metadata into a workspace.
+This guide registers **Business Tools** from your backend using the Qefro Backend Framework (`@qefro-ai/backend` or `qefro-backend-sdk`). Tools live in your code; Admin Console only manages the signed connection and syncs metadata into a workspace.
 
 Prefer this path when tools need **customer authentication**, stateful workflows, or logic that does not map cleanly to a single REST call. For existing HTTPS APIs, use [Connect REST APIs](/docs/guides/connect-rest-apis) or [Import OpenAPI](/docs/guides/import-openapi).
 
@@ -29,7 +29,7 @@ Prefer this path when tools need **customer authentication**, stateful workflows
 ## Prerequisites
 
 - Owner/Admin access in Admin Console
-- Node.js 18+ (TypeScript) **or** Rust for `qefro-sdk`
+- Node.js 18+ (TypeScript) **or** Rust for `qefro-backend-sdk`
 - A publicly reachable HTTPS URL Qefro can call (SSRF-checked — no private IPs)
 - Decision: which **workspace** should receive synced tools
 
@@ -82,7 +82,7 @@ npm install @qefro-ai/backend
 ### Rust
 
 ```bash
-cargo add qefro-sdk
+cargo add qefro-backend-sdk
 ```
 
 Set a strong signing secret (store in a secrets manager; never commit):
@@ -336,7 +336,7 @@ Request signing uses HMAC over timestamp + body (`X-Qefro-Signature`, `X-Qefro-T
 <WorkflowCard
   title="SDK Business Tools launch"
   steps={[
-    {title: 'Install framework', description: '@qefro-ai/backend or qefro-sdk + signing secret.'},
+    {title: 'Install framework', description: '@qefro-ai/backend or qefro-backend-sdk + signing secret.'},
     {title: 'Register tools', description: 'app.tool + customer lookup/authorize.'},
     {title: 'Expose HTTPS webhook', description: 'POST /qefro publicly reachable.'},
     {title: 'Create SDK Connection', description: 'Webhook URL + secret in Admin Console.'},

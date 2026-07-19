@@ -1,6 +1,6 @@
 ---
 title: "SDKs"
-description: "Website widget (@qefro-ai/widget), backend framework (@qefro-ai/backend / qefro-sdk) for Business Tools, and calling api.qefro.com from HTTPS clients."
+description: "Website widget (@qefro-ai/widget), backend framework (@qefro-ai/backend / qefro-backend-sdk) for Business Tools, and calling api.qefro.com from HTTPS clients."
 sidebar_label: "SDKs"
 ---
 
@@ -18,12 +18,12 @@ Qefro ships two first-party packages plus ordinary HTTPS access to `https://api.
 | Package | Role |
 | --- | --- |
 | `@qefro-ai/widget` / CDN `widget.js` | Embeddable Customer AI on your website |
-| `@qefro-ai/backend` / `qefro-sdk` | Organization backend framework — register Business Tool handlers and customer auth |
+| `@qefro-ai/backend` / `qefro-backend-sdk` | Organization backend framework — register Business Tool handlers and customer auth |
 | Any HTTPS client | Admin automation against REST + GraphQL |
 
 ## Short definition (citation-ready)
 
-> Customer chat embeds use `@qefro-ai/widget`. Organization backends that expose Business Tools use `@qefro-ai/backend` (TypeScript) or `qefro-sdk` (Rust) over a signed webhook. Admin automation can also call `https://api.qefro.com` with a user JWT.
+> Customer chat embeds use `@qefro-ai/widget`. Organization backends that expose Business Tools use `@qefro-ai/backend` (TypeScript) or `qefro-backend-sdk` (Rust) over a signed webhook. Admin automation can also call `https://api.qefro.com` with a user JWT.
 
 ## Website widget
 
@@ -59,7 +59,7 @@ Install and register handlers, then connect the webhook in Admin Console and **S
 
 ```bash
 npm install @qefro-ai/backend
-# or: cargo add qefro-sdk
+# or: cargo add qefro-backend-sdk
 ```
 
 Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools).  
@@ -99,7 +99,7 @@ More samples: [Examples](/docs/api/examples).
     {
       question: 'Is there an official Python SDK for Business Tools?',
       answer:
-        'Not yet for the signed webhook protocol. Use TypeScript (@qefro-ai/backend) or Rust (qefro-sdk). Admin REST can be called from any language.',
+        'Not yet for the signed webhook protocol. Use TypeScript (@qefro-ai/backend) or Rust (qefro-backend-sdk). Admin REST can be called from any language.',
     },
     {
       question: 'Can I self-host the widget JS?',

@@ -15,7 +15,7 @@ sidebar_label: Installation
 - npm install @qefro-ai/backend
 
 ### Rust
-- cargo add qefro-sdk
+- cargo add qefro-backend-sdk
 
 ## Verify installation
 - Portal loads
