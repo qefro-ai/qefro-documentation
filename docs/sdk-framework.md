@@ -11,13 +11,26 @@ Qefro calls your backend over one signed webhook (typically `POST /qefro`). You 
 
 ## Install
 
-```bash
-# TypeScript
-npm install @qefro-ai/backend
+### TypeScript (npm)
 
-# Rust
+```bash
+npm install @qefro-ai/backend
+```
+
+[npmjs.com/package/@qefro-ai/backend](https://www.npmjs.com/package/@qefro-ai/backend)
+
+### Rust (crates.io)
+
+```bash
 cargo add qefro-backend-sdk
 ```
+
+```toml
+[dependencies]
+qefro-backend-sdk = "1"
+```
+
+[crates.io/crates/qefro-backend-sdk](https://crates.io/crates/qefro-backend-sdk) · [docs.rs](https://docs.rs/qefro-backend-sdk)
 
 ```bash
 export QEFRO_SIGNING_SECRET="your-signing-secret"
@@ -85,6 +98,76 @@ await app.listen({ port: 8088, path: '/qefro' });
 
 Full console + API walkthrough: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools).
 
+### Rust (crates.io)
+
+```toml
+[dependencies]
+qefro-backend-sdk = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+serde_json = "1"
+anyhow = "1"
+async-trait = "0.1"
+```
+
+```rust
+use anyhow::Result;
+use async_trait::async_trait;
+use qefro_backend_sdk::{
+    AuthOutcome, AuthenticationContextPayload, CustomerAuthorizeContext, CustomerLookupContext,
+    CustomerProvider, ListenOptions, Qefro, QefroConfig, ToolAuthMode, ToolMetadata,
+};
+use serde_json::{json, Value};
+
+struct DemoCustomer;
+
+#[async_trait]
+impl CustomerProvider for DemoCustomer {
+    async fn lookup(&self, ctx: &CustomerLookupContext) -> Result<Option<Value>> {
+        Ok(Some(json!({ "id": "demo" })))
+    }
+
+    async fn authorize(&self, ctx: &CustomerAuthorizeContext) -> Result<AuthOutcome> {
+        Ok(AuthOutcome::Success {
+            customer: ctx.customer.clone(),
+            auth: AuthenticationContextPayload {
+                credential_type: Some("bearer_token".into()),
+                access_token: Some("dev".into()),
+                credential: None,
+                refresh_token: None,
+                expires_in: Some(900),
+                customer_id: Some("demo".into()),
+            },
+        })
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let mut app = Qefro::new(QefroConfig::new(std::env::var("QEFRO_SIGNING_SECRET")?));
+    app.customer(DemoCustomer);
+    app.tool(
+        ToolMetadata {
+            name: "get_orders".into(),
+            description: Some("List orders".into()),
+            auth: ToolAuthMode::Required,
+            ..Default::default()
+        },
+        |_ctx| async move { Ok(json!([{ "orderId": "ord_1" }])) },
+    );
+    let handle = app
+        .listen(ListenOptions {
+            port: 8088,
+            host: None,
+            path: Some("/qefro".into()),
+        })
+        .await?;
+    println!("{}", handle.url);
+    Ok(())
+}
+```
+
+More: [github.com/qefro-ai/qefro-rust-backend-sdk/examples](https://github.com/qefro-ai/qefro-rust-backend-sdk/tree/main/examples).
+
 ## Protocol
 
 | Type | Direction | Purpose |
@@ -125,4 +208,4 @@ APIs:
 
 Expose `POST /qefro` behind HTTPS with stable secret management. Rotate secrets from Admin Console and update `QEFRO_SIGNING_SECRET` together.
 
-See also: [Business Tools](/docs/v1/business-tools), [Customer Provider](/docs/v1/customer-provider), [Examples](/docs/v1/examples) ([GitHub](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples)).
+See also: [Business Tools](/docs/v1/business-tools), [Customer Provider](/docs/v1/customer-provider), [Examples](/docs/v1/examples) ([JS](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples) · [Rust](https://github.com/qefro-ai/qefro-rust-backend-sdk/tree/main/examples)).

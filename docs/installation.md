@@ -11,11 +11,27 @@ sidebar_label: Installation
 3. Run API and portal locally.
 
 ## SDK install
-### TypeScript
-- npm install @qefro-ai/backend
 
-### Rust
-- cargo add qefro-backend-sdk
+### TypeScript (npm)
+
+```bash
+npm install @qefro-ai/backend
+```
+
+Package: [npmjs.com/package/@qefro-ai/backend](https://www.npmjs.com/package/@qefro-ai/backend)
+
+### Rust (crates.io)
+
+```bash
+cargo add qefro-backend-sdk
+```
+
+```toml
+[dependencies]
+qefro-backend-sdk = "1"
+```
+
+Package: [crates.io/crates/qefro-backend-sdk](https://crates.io/crates/qefro-backend-sdk) · [docs.rs](https://docs.rs/qefro-backend-sdk)
 
 ## Verify installation
 - Portal loads

@@ -5,20 +5,21 @@ slug: /v1/examples
 sidebar_label: Examples
 ---
 
-Backend examples for `@qefro-ai/backend` live in the SDK repository:
+Backend examples:
 
-**[github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples)**
-
-A mirrored copy also exists under `examples/` in this docs repo for local browsing.
-
-## Quick run
+- **TypeScript** — [`@qefro-ai/backend`](https://www.npmjs.com/package/@qefro-ai/backend): [qefro-js-backend-sdk/examples](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples)
+- **Rust** — [`qefro-backend-sdk`](https://crates.io/crates/qefro-backend-sdk): [qefro-rust-backend-sdk/examples](https://github.com/qefro-ai/qefro-rust-backend-sdk/tree/main/examples)
 
 ```bash
+# TypeScript
 git clone https://github.com/qefro-ai/qefro-js-backend-sdk.git
 cd qefro-js-backend-sdk/examples/<example>
-cp .env.example .env
-npm install
-npm start
+cp .env.example .env && npm install && npm start
+
+# Rust
+cargo add qefro-backend-sdk
+# or clone https://github.com/qefro-ai/qefro-rust-backend-sdk and run:
+# cargo run --example basic
 ```
 
 All example backends expose `POST /qefro` and include:

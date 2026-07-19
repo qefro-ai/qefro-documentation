@@ -85,6 +85,13 @@ npm install @qefro-ai/backend
 cargo add qefro-backend-sdk
 ```
 
+```toml
+[dependencies]
+qefro-backend-sdk = "1"
+```
+
+Published on [crates.io](https://crates.io/crates/qefro-backend-sdk). Source: [qefro-rust-backend-sdk](https://github.com/qefro-ai/qefro-rust-backend-sdk).
+
 Set a strong signing secret (store in a secrets manager; never commit):
 
 ```bash
@@ -382,7 +389,7 @@ You can mix REST/OpenAPI and SDK tools in the same workspace.
     {
       question: 'Is there an example repo?',
       answer:
-        'Yes. Clone github.com/qefro-ai/qefro-js-backend-sdk and run examples/ (basic-sdk, order-status, ecommerce, and more). Each has scripts/smoke.sh for signed ping / tools.list / tool.invoke checks.',
+        'Yes. TypeScript: github.com/qefro-ai/qefro-js-backend-sdk (examples/). Rust: github.com/qefro-ai/qefro-rust-backend-sdk (examples/basic) — install with cargo add qefro-backend-sdk from crates.io.',
     },
   ]}
 />

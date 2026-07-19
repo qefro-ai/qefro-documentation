@@ -3307,7 +3307,7 @@ Install and register handlers, then connect the webhook in Admin Console and **S
 
 ```bash
 npm install @qefro-ai/backend
-# or: cargo add qefro-backend-sdk
+# or from crates.io: cargo add qefro-backend-sdk
 ```
 
 Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools).  

@@ -59,12 +59,22 @@ Install and register handlers, then connect the webhook in Admin Console and **S
 
 ```bash
 npm install @qefro-ai/backend
-# or: cargo add qefro-backend-sdk
+# or from crates.io:
+cargo add qefro-backend-sdk
 ```
+
+```toml
+# Cargo.toml
+[dependencies]
+qefro-backend-sdk = "1"
+```
+
+- TypeScript: [npmjs.com/package/@qefro-ai/backend](https://www.npmjs.com/package/@qefro-ai/backend)
+- Rust: [crates.io/crates/qefro-backend-sdk](https://crates.io/crates/qefro-backend-sdk)
 
 Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools).  
 Reference: [SDK Framework](/docs/v1/sdk-framework), [Business Tools](/docs/v1/business-tools).  
-Examples: [github.com/qefro-ai/qefro-js-backend-sdk/examples](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples) · [Examples index](/docs/v1/examples).
+Examples: [JS examples](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples) · [Rust examples](https://github.com/qefro-ai/qefro-rust-backend-sdk/tree/main/examples) · [Examples index](/docs/v1/examples).
 
 Protocol messages on your webhook: `ping`, `tools.list`, `tool.invoke`, `tool.resume`.
 
