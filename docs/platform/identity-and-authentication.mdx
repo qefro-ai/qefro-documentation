@@ -1,6 +1,6 @@
 ---
 title: "Identity Resolution & Authentication"
-description: "Why Qefro separates “Who is the customer?” from “Can they perform this action?”"
+description: "Qefro resolves channel identity; organizations own customer authentication via their Customer Identity Service."
 sidebar_label: "Identity & Authentication"
 ---
 
@@ -8,21 +8,19 @@ import {
   InfoBox,
   Warning,
   RelatedTopics,
-  WorkflowCard,
 } from '@site/src/components';
 
 # Identity Resolution & Authentication
 
-Qefro treats **Identity Resolution** and **Authentication** as separate platform capabilities.
+Qefro is **not** an Identity Provider for customers.
 
 | Concern | Question | Owner |
 | --- | --- | --- |
-| Identity Resolution | Who is this customer? | `IdentityResolver` |
-| Authentication | Is this identity trusted enough for this Business Action? | Authentication Service + Provider |
+| Identity Resolution | Who is this customer? | Qefro (`IdentityResolver`) |
+| Customer authentication | May they perform this action? | **Organization** Customer Identity Service |
+| Business Tool execution | Call the API with credentials | Qefro runtime (injection only) |
 
-They are intentionally **not** the same. Mixing them couples channels to trust rules and makes new providers hard to add.
-
-## Runtime architecture
+## Architecture
 
 ```text
 Channel
@@ -31,87 +29,94 @@ Identity Resolver
   ↓
 Resolved Identity
   ↓
-Authentication Service
+Organization Customer Identity Service
   ↓
-Authentication Provider
+Authentication Result
   ↓
-Authentication Context
+Authentication Context (encrypted)
   ↓
 Business Tool Runtime
+  ↓
+Business Tool
 ```
 
-Business Tools remain unaware of identity extraction and authentication. They only consume the Authentication Context (and forwarded `X-Qefro-*` headers) supplied by the runtime.
+## What Qefro never does
 
-## Identity Resolution
+- Send OTP
+- Verify OTP
+- Store OTP
+- Authenticate customers
+- Manage customer passwords
+- Issue customer sessions or JWTs
 
-Produces a reusable [`ResolvedIdentity`](/docs/platform/identity-verification):
+## What the organization owns
 
-- `organization_id`, `channel`, `identity_type`, `identifier`
-- optional `customer_id`
-- `verified_by_channel` (WhatsApp Meta phone, website JWT/session, …)
-- safe `metadata` (never OTP, tokens, cookies, or API keys)
+- Customer lookup
+- Whether authentication is required
+- OTP / login / OAuth / passkeys
+- Token issuance, refresh, and revocation
 
-### WhatsApp
+Configure under **Organization → Customer Identity Service** in the Admin Console.
 
-```text
-Incoming Message → Meta Verified Phone → Identity Resolver → Lookup Customer → ResolvedIdentity
+## Identity API
+
+Qefro calls:
+
+```http
+POST /identity
 ```
 
-### Website Widget
-
-```text
-JWT / session → Identity Resolver → Resolve Customer → ResolvedIdentity
+```json
+{
+  "organization_id": "org_001",
+  "conversation_id": "conv_123",
+  "channel": "whatsapp",
+  "business_action": "download_invoice",
+  "identity": {
+    "type": "phone",
+    "identifier": "+919876543210",
+    "verified_by_channel": true
+  }
+}
 ```
 
-Identity Resolution **never**:
+Qefro does **not** send OTP, passwords, or sessions in this request.
 
-- Sends or verifies OTP
-- Creates authentication sessions
-- Stores Authentication Context
+### Responses
 
-## Authentication
-
-Accepts `ResolvedIdentity` (not raw phone numbers or JWTs) and returns:
-
-| Result | Meaning |
+| Status | Runtime behavior |
 | --- | --- |
-| `Authenticated` | Trusted enough — execute the Business Tool |
-| `ChallengeRequired` | Organization provider must verify further |
-| `Denied` | Explicit denial |
-| `CustomerNotFound` | Identity has no matching customer when required |
-| `Expired` | Prior session expired |
-| `Retry` | Transient provider failure |
+| `authenticated` | Store Authentication Context; execute Business Tool |
+| `challenge_required` | Relay the organization's message (OTP / login URL); pause |
+| `denied` | Return error |
+| `customer_not_found` | Return error |
 
-The **Authentication Provider** owns trust rules:
+When the customer replies to a challenge, Qefro **forwards** the reply to the Identity API. The organization verifies it.
 
-- **Built-in** — Email OTP + session duration / OTP expiration
-- **External** — Challenge / Refresh endpoints, credential type, API auth
+## Business Actions
 
-Configure once under **Organization → Authentication** in the Admin Console. Business Tools do not configure customer authentication.
+Configure only:
 
-## Business Action requirements
+- `public`
+- `verified_channel`
+- `organization_challenge`
 
-| Requirement | Meaning |
-| --- | --- |
-| `public` | Anyone can execute |
-| `verified_channel` | Requires channel-verified identity |
-| `organization_challenge` | Requires the organization's Authentication Provider |
+No provider configuration on Business Actions or Business Tools.
 
 ## Security
 
 <Warning>
-Identity Resolution never authenticates. Authentication never extracts identity. Business Tools never manage customer authentication. Authentication Context credentials are encrypted at rest and never exposed to the AI model. OTP values, access tokens, cookies, and API keys are never logged.
+Authentication Context credentials are encrypted at rest, never logged, and never exposed to the AI model. OTP values and access tokens must never appear in Qefro logs.
 </Warning>
 
 <InfoBox>
-Configure providers at Organization → Authentication. Declare requirements on each Business Action. Keep outbound API credentials (`auth_mode`) on the Business Tool — that is server-to-server auth, not customer identity.
+Identity Resolution answers “who?”. The organization answers “may they?”. Business Tools only consume the context the runtime injects.
 </InfoBox>
 
 ## Related
 
 <RelatedTopics topics={[
   {label: 'Identity Verification', to: '/docs/platform/identity-verification'},
-  {label: 'Authentication', to: '/docs/platform/authentication'},
   {label: 'Business Actions', to: '/docs/platform/business-actions'},
   {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
 ]} />
