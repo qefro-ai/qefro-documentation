@@ -13,6 +13,7 @@ sidebar_label: SDK Framework
 5. listen
 
 ## Request lifecycle
+
 ```mermaid
 flowchart TD
   A[tool.invoke] --> B[lookup]

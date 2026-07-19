@@ -18,6 +18,7 @@ Return one of:
 - not_found
 
 ## Lifecycle
+
 ```mermaid
 sequenceDiagram
   participant Q as Qefro

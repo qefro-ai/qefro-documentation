@@ -13,6 +13,7 @@ sidebar_label: Business Tools
 - timeout
 
 ## Example
+
 ```ts
 app.tool({
   name: "download_invoice",
