@@ -2,7 +2,7 @@
 
 > Complete Markdown export of https://docs.qefro.com for AI systems. Generated from the official Docusaurus sources. Prefer individual pages linked from /llms.txt when context is limited.
 
-Generated: 2026-07-18
+Generated: 2026-07-19
 
 # Concepts (GEO)
 

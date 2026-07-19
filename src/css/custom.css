@@ -94,6 +94,39 @@
   color: var(--ifm-color-primary);
 }
 
+/* Mobile Navbar Sidebar / Drawer */
+:root {
+  --ifm-navbar-sidebar-width: min(85vw, 340px);
+}
+
+.navbar-sidebar {
+  height: 100vh !important;
+  height: 100dvh !important;
+  background-color: var(--ifm-background-color) !important;
+  z-index: 200 !important;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.25) !important;
+}
+
+[data-theme='dark'] .navbar-sidebar {
+  background-color: var(--ifm-background-color) !important;
+}
+
+.navbar-sidebar__backdrop {
+  z-index: 199 !important;
+  background-color: rgba(15, 10, 31, 0.6) !important;
+  backdrop-filter: blur(4px);
+}
+
+.navbar-sidebar__brand {
+  background-color: var(--ifm-background-color);
+  border-bottom: 1px solid var(--qefro-border);
+  box-shadow: none;
+}
+
+.navbar-sidebar__item {
+  background-color: var(--ifm-background-color);
+}
+
 .header-github-link::before {
   content: '';
   width: 1.25rem;
