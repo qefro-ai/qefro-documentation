@@ -2,6 +2,7 @@
 id: v1-deployment
 title: Deployment
 slug: /v1/deployment
+unlisted: true
 sidebar_label: Deployment
 ---
 

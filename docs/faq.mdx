@@ -23,7 +23,17 @@ import { FaqAccordion, RelatedTopics } from '@site/src/components';
   {question: 'How does RBAC work?', answer: <>Owner, Admin, and Member roles; Teams grant Members access to specific workspaces. See <Link to="/docs/platform/rbac">RBAC</Link>.</>},
   {question: 'Do I host the vector DB?', answer: 'Not on Qefro cloud — RAG infrastructure is managed for you.'},
   {question: 'Does Qefro replace my CRM?', answer: 'No. Business Tools call your systems of record.'},
-  {question: 'What is identify()?', answer: 'Widget API to forward your end-user JWT/session into Business Tool calls.'},
+  {question: 'What is identify()?', answer: <>Widget API to forward your end-user JWT/session into REST Business Tools. See <Link to="/docs/platform/identity-forwarding">Identity Forwarding</Link> and <Link to="/docs/business-tools/identity-forwarding">REST configuration</Link>.</>},
+]} />
+
+## Business Tools
+
+<FaqAccordion items={[
+  {question: 'REST or SDK?', answer: <>REST for existing HTTPS APIs and OpenAPI specs. Backend SDK for OTP, login, and multi-step workflows. See <Link to="/docs/business-tools/rest-vs-sdk">REST vs SDK</Link>.</>},
+  {question: 'Why does the assistant only answer from docs?', answer: 'Usually missing workspace on the widget, no tools enabled, or tools filtered by auth level. Bind workspaceId and verify tools in Test Tool.'},
+  {question: 'Does identity forwarding work with SDK?', answer: 'Raw JWT/session forward is REST only (END_USER_IDENTITY). Backend SDK receives identity attributes and uses lookup + authorize.'},
+  {question: 'Can Internal Portal run Business Tools?', answer: 'V1 Portal is knowledge-only for live tool execution. END_USER_IDENTITY is Widget/WhatsApp. Playground supports most tools for testing.'},
+  {question: 'Sync Tools did nothing?', answer: 'Pass workspace_id and auto_register:true. Sync without workspace only updates connection metadata.'},
 ]} />
 
 ## Plans
@@ -38,6 +48,7 @@ import { FaqAccordion, RelatedTopics } from '@site/src/components';
 <RelatedTopics topics={[
   {label: 'Concepts', to: '/docs/concepts/what-is-an-ai-workspace'},
   {label: 'Glossary', to: '/docs/glossary'},
+  {label: 'Troubleshooting', to: '/docs/troubleshooting'},
   {label: 'Security', to: '/docs/security/overview'},
   {label: 'Pricing', to: 'https://qefro.com/pricing'},
 ]} />

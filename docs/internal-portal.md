@@ -2,6 +2,7 @@
 id: v1-internal-portal
 title: Internal Portal
 slug: /v1/internal-portal
+unlisted: true
 sidebar_label: Internal Portal
 ---
 

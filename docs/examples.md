@@ -2,6 +2,7 @@
 id: v1-examples
 title: Examples
 slug: /v1/examples
+unlisted: true
 sidebar_label: Examples
 ---
 

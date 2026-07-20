@@ -2,6 +2,7 @@
 id: v1-migration
 title: Migration
 slug: /v1/migration
+unlisted: true
 sidebar_label: Migration
 ---
 

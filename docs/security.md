@@ -2,6 +2,7 @@
 id: v1-security
 title: Security
 slug: /v1/security
+unlisted: true
 sidebar_label: Security
 ---
 

@@ -2,6 +2,7 @@
 id: v1-kubernetes
 title: Kubernetes
 slug: /v1/kubernetes
+unlisted: true
 sidebar_label: Kubernetes
 ---
 

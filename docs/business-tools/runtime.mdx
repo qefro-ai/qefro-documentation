@@ -1,19 +1,57 @@
 ---
 title: "Business Tool Runtime"
-description: "Shared execution pipeline — tool selection, validation, authentication, preconditions, confirmation, REST/SDK execution, and AI response."
+description: "Canonical architecture and execution pipeline for REST/OpenAPI and Backend SDK Business Tools."
 sidebar_label: "Runtime"
-sidebar_position: 3
+sidebar_position: 2
 ---
 
 import { InfoBox, Warning, RelatedTopics } from '@site/src/components';
 
 # Business Tool Runtime
 
-Every Business Action — REST or SDK — passes through the same **Business Tool Runtime** before the assistant replies.
+This is the **single canonical explanation** of how Business Tools execute. REST/OpenAPI and Backend SDK share one pipeline; they diverge only at the outbound execution step.
 
-Understanding this pipeline helps you debug auth failures, missing parameters, and unexpected RAG-only answers.
+## System architecture
 
-## Execution stages
+```mermaid
+flowchart TB
+  subgraph Channels
+    W[Website Widget]
+    WA[WhatsApp]
+    PG[Playground]
+  end
+  subgraph Qefro["Qefro Platform"]
+    AI[AI Runtime / RAG]
+    BTR[Business Tool Runtime]
+    AI --> BTR
+  end
+  subgraph Integration["Integration layer"]
+    REST[REST / OpenAPI executor]
+    SDK[SDK webhook client]
+    BTR --> REST
+    BTR --> SDK
+  end
+  subgraph Org["Organization backend"]
+    HTTPS[HTTPS APIs]
+    WH[POST /qefro webhook]
+    REST --> HTTPS
+    SDK --> WH
+    HTTPS --> Systems[Business systems]
+    WH --> Systems
+  end
+  W --> AI
+  WA --> AI
+  PG --> AI
+```
+
+| Path | Qefro role | Your backend |
+| --- | --- | --- |
+| **REST / OpenAPI** | HTTP client with encrypted credentials | Existing HTTPS API |
+| **Backend SDK** | Signed webhook caller | `@qefro-ai/backend` handlers |
+
+Admin model: **Workspace** → **Integration** → **Business Tool** (`implementation_kind`: `rest` or `sdk`). SDK Connections are org-scoped until Sync Tools registers handlers into a workspace.
+
+## Execution pipeline
 
 ```mermaid
 flowchart TD
@@ -30,106 +68,82 @@ flowchart TD
   J --> K
   K --> L{implementation_kind}
   L -->|rest| M[HTTPS call]
-  L -->|sdk| N[Signed webhook invoke]
-  M --> O[Parse + validate response]
+  L -->|sdk| N[Signed tool.invoke]
+  M --> O[Parse response → ToolResult]
   N --> O
   O --> P[Log execution]
   P --> Q[LLM formats answer]
 ```
 
-## Stage reference
+### Stage reference
 
-| Stage | What happens | REST | SDK |
-| --- | --- | --- | --- |
-| **Tool selection** | LLM picks from workspace-enabled tools the user may call | Same | Same |
-| **Callable filter** | Channel, `allow_from_chat`, auth level, `END_USER_IDENTITY` rules | Same | Same |
-| **Input validation** | JSON Schema on `input_schema` | Same | Same |
-| **Variable resolution** | `{order_id}` in URL, conversation vars, identity lookup attrs | URL templates | Passed as `parameters` |
-| **Authentication** | Service credentials + optional end-user forward | API_KEY, BEARER, END_USER_IDENTITY | Signing secret on connection |
-| **Preconditions** | Org auth challenge, `lookup.required`, custom gates | Same | Same |
-| **Confirmation** | High-risk writes may require explicit user confirm | Same | Same |
-| **Execution** | Outbound call | `GET`/`POST` to your API | `tool.invoke` / `tool.resume` |
-| **Result** | Success, error, challenge, ask_user | HTTP body → ToolResult | SDK JSON response |
-| **Logging** | `tool_execution_logs` | Same | Same |
+| Stage | REST | Backend SDK |
+| --- | --- | --- |
+| Tool selection | Workspace-scoped enabled tools | Same |
+| Callable filter | Channel, auth level, `END_USER_IDENTITY` rules | Same |
+| Input validation | `input_schema` | Same |
+| Variable resolution | URL `{placeholders}`, conversation vars | `parameters` + `lookup.required` |
+| Authentication | API_KEY, BEARER_TOKEN, END_USER_IDENTITY | Connection signing secret |
+| Preconditions | `lookup.required`, org challenge | Same |
+| Confirmation | Optional explicit confirm for writes | Same |
+| Execution | HTTPS to your API | `tool.invoke` / `tool.resume` |
+| Logging | `tool_execution_logs` | Same |
 
-## Tool selection and workspace binding
-
-Tools are loaded with:
+## Workspace binding
 
 ```text
 tenant_id + workspace_id → list_enabled_tools → filter tool_callable_from_chat(auth_ctx)
 ```
 
-If the widget or playground has **no workspace**, no tools are offered — the assistant answers from the knowledge base only.
+Without a workspace on the Widget, **no Business Tools load** — answers come from the knowledge base only.
 
 <Warning>
-Always bind the Website Widget to a workspace (`data-workspace-id` / `workspaceId`) when testing Business Tools.
+Set `workspaceId` / `data-workspace-id` on the Website Widget when testing Business Tools.
 </Warning>
 
-## Authentication layers (do not confuse)
+## Authentication layers
 
-| Layer | Purpose | Example |
-| --- | --- | --- |
-| **Tool credential** | How Qefro calls your API | API key, service bearer |
-| **End-user identity** | Who the customer is | `widget.identify()` JWT → `END_USER_IDENTITY` |
-| **Organization challenge** | SDK OTP / login via your backend | `customer.authorize()` challenge |
-| **Required auth level** | Minimum trust to offer the tool | `public`, `verified_channel`, `organization_challenge` |
+Do not confuse these — full philosophy: [Authentication](/docs/business-tools/authentication).
 
-See [Authentication](/docs/business-tools/authentication).
+| Layer | Example |
+| --- | --- |
+| Tool credential | API key, service bearer, SDK signing secret |
+| End-user identity | `widget.identify()` → REST `END_USER_IDENTITY` |
+| Organization challenge | SDK `customer.authorize()` OTP |
+| Required auth level | `public`, `verified_channel`, `organization_challenge` |
 
-## Preconditions
+## Preconditions and Challenge / Resume
 
-Preconditions pause execution and return `ask_user` or an auth challenge instead of calling your backend.
+- **`lookup.required`** — Runtime resolves email/phone before SDK invoke. See [Identity resolution](/docs/business-tools/identity-resolution).
+- **Challenge / Resume** — SDK `authorize()` returns challenge → user replies → `tool.resume`. See [Challenge / Resume](/docs/business-tools/challenge-resume).
 
-Common preconditions:
+## Confirmation
 
-- **`lookup.required`** — SDK advertises required identity attributes (`email`, `phone`); runtime resolves or asks the user. See [Identity resolution](/docs/business-tools/identity-resolution).
-- **`authentication_required`** — Force org auth service path for SDK tools.
-- **Custom JSON** — Legacy gates; prefer SDK `lookup` for new integrations.
+High-risk writes may require an explicit user confirmation before execution. Prefer idempotent APIs; confirmation complements — does not replace — API-side authorization.
 
-## Challenge / resume (SDK)
+## ToolResult
 
-When your `customer.authorize()` returns a **challenge**, the runtime:
+The LLM grounds replies in structured JSON from your API or SDK handler. Return clear `found` / error codes and optional `message` fields.
 
-1. Surfaces the challenge message to the user (chat).
-2. Stores a `resume_token`.
-3. Sends the user's next message as `tool.resume`.
-
-Details: [Challenge / Resume](/docs/business-tools/challenge-resume).
-
-## Confirmation flow
-
-Sensitive writes may require an explicit confirmation token before execution resumes. See [Confirmation flow](/docs/business-tools/confirmation-flow).
-
-## ToolResult → AI response
-
-The LLM receives structured tool output (JSON). It must ground the user-facing answer in that output — not invent order IDs or statuses.
-
-Best practices:
-
-- Return `{ "found": true, ... }` or clear error codes.
-- Include a human-readable `message` field when helpful.
-- Keep responses bounded (runtime enforces max response size).
-
-## Debugging checklist
+## Debugging
 
 | Symptom | Likely cause |
 | --- | --- |
-| AI only cites knowledge base | No workspace, no tools enabled, or tool filtered by auth level |
-| “Tool not available” on Portal | `END_USER_IDENTITY` tools blocked on Portal channel |
-| 401 from REST tool | Wrong API key / bearer; test with **Test Tool** |
-| `customer_not_found` (SDK) | Identity attribute not in your directory lookup |
-| OTP never completes | Challenge/resume path; verify `tool.resume` handler |
+| Knowledge-base-only answers | Missing workspace or disabled tools |
+| Portal blocks tool | `END_USER_IDENTITY` is Widget/WhatsApp-only |
+| REST 401 | Wrong encrypted secret — use Test Tool |
+| `customer_not_found` | SDK directory lookup mismatch |
+| OTP stuck | Challenge/resume not handled |
 
-More: [Troubleshooting](/docs/business-tools/troubleshooting).
+Full table: [Troubleshooting](/docs/troubleshooting).
 
 ## Related topics
 
 <RelatedTopics
   topics={[
     {label: 'Authentication', to: '/docs/business-tools/authentication'},
-    {label: 'Challenge / Resume', to: '/docs/business-tools/challenge-resume'},
+    {label: 'REST vs SDK', to: '/docs/business-tools/rest-vs-sdk'},
     {label: 'Parameters reference', to: '/docs/business-tools/parameters-reference'},
-    {label: 'Execution logs API', to: '/docs/platform/business-tools'},
+    {label: 'Admin API endpoints', to: '/docs/api/rest-apis'},
   ]}
 />

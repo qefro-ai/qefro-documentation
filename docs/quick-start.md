@@ -2,6 +2,7 @@
 id: v1-quick-start
 title: Quick Start
 slug: /v1/quick-start
+unlisted: true
 sidebar_label: Quick Start
 ---
 

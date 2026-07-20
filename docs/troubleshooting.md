@@ -2,25 +2,9 @@
 id: v1-troubleshooting
 title: Troubleshooting
 slug: /v1/troubleshooting
-sidebar_label: Troubleshooting
+unlisted: true
 ---
 
-## SDK not connecting
-- verify webhook URL
-- verify signing secret
-- verify HTTPS reachability
+This page has moved to **[Troubleshooting](/docs/troubleshooting)**.
 
-## Signature mismatch
-- confirm secret parity
-- confirm timestamp skew window
-
-## Authentication failure
-- validate lookup and authorize logic
-- validate resume response handling
-
-## Protocol mismatch
-- align protocol headers and payload protocol version
-
-## Tool discovery missing
-- ensure tool registration before listen
-- run Sync Tools again
+For Business Tools specifically, see [Business Tool Runtime](/docs/business-tools/runtime) and [FAQ](/docs/faq).

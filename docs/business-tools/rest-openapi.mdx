@@ -17,7 +17,7 @@ import {
 
 **REST Business Tools** let Qefro call your existing HTTPS APIs. Qefro acts as the HTTP client: it applies encrypted credentials, substitutes URL parameters, validates schemas, and logs every call.
 
-For bulk import from a spec, see [OpenAPI import](/docs/business-tools/openapi-import).  
+For bulk import from a spec, see [Import OpenAPI (guide)](/docs/guides/import-openapi).  
 Step-by-step: [Connect REST APIs](/docs/guides/connect-rest-apis).
 
 ## When to use REST
@@ -147,14 +147,30 @@ curl -sS -H "Authorization: Bearer $ADMIN_JWT" \
   https://api.qefro.com/api/v1/tools/$TOOL_ID/logs
 ```
 
+## OpenAPI import
+
+Import an **OpenAPI 3.x** document to bulk-create or update REST Business Tools in a workspace.
+
+<ApiEndpointCard method="POST" path="/api/v1/workspaces/:workspace_id/integrations/import/preview" description="Preview operations from URL or upload." />
+
+<ApiEndpointCard method="POST" path="/api/v1/workspaces/:workspace_id/integrations/import/apply" description="Create/update integrations and tools from preview." />
+
+<ApiEndpointCard method="POST" path="/api/v1/integrations/:id/reimport" description="Re-import from updated spec with matching rules." />
+
+On reimport, Qefro matches by `operationId` or path+method — schemas update; secrets are preserved unless overwritten.
+
+<Warning>
+Treat OpenAPI import like granting broad API access. Always preview and deselect `DELETE`, bulk export, and admin paths before apply.
+</Warning>
+
+Full walkthrough: [Import OpenAPI](/docs/guides/import-openapi).
+
 ## OpenAPI vs manual REST
 
 | Approach | Best for |
 | --- | --- |
 | Manual REST | One endpoint, custom headers, pilots |
 | OpenAPI import | Many operations from existing spec |
-
-[OpenAPI import guide](/docs/business-tools/openapi-import).
 
 <Warning>
 OpenAPI import can expose write/delete operations. Always preview and deselect dangerous paths before apply.
@@ -182,7 +198,7 @@ OpenAPI import can expose write/delete operations. Always preview and deselect d
 <RelatedTopics
   topics={[
     {label: 'Connect REST APIs (guide)', to: '/docs/guides/connect-rest-apis'},
-    {label: 'OpenAPI import', to: '/docs/business-tools/openapi-import'},
+    {label: 'Import OpenAPI (guide)', to: '/docs/guides/import-openapi'},
     {label: 'Identity forwarding', to: '/docs/business-tools/identity-forwarding'},
     {label: 'REST vs SDK', to: '/docs/business-tools/rest-vs-sdk'},
   ]}

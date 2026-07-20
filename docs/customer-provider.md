@@ -2,6 +2,7 @@
 id: v1-customer-provider
 title: Customer Provider
 slug: /v1/customer-provider
+unlisted: true
 sidebar_label: Customer Provider
 ---
 

@@ -2,6 +2,7 @@
 id: v1-installation
 title: Installation
 slug: /v1/installation
+unlisted: true
 sidebar_label: Installation
 ---
 

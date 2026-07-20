@@ -5,7 +5,7 @@ sidebar_label: "Backend SDK"
 sidebar_position: 5
 ---
 
-import { InfoBox, Warning, RelatedTopics, FaqAccordion } from '@site/src/components';
+import { InfoBox, Warning, RelatedTopics, FaqAccordion, ApiEndpointCard } from '@site/src/components';
 
 # Backend SDK Integration
 
@@ -171,13 +171,48 @@ The SDK receives **identity attributes**, not raw end-user JWT secrets:
 For Widget **REST-style** forwarding of JWTs, use REST tools with `END_USER_IDENTITY`.  
 For SDK, use `lookup.required` + Customer Provider. See [Identity resolution](/docs/business-tools/identity-resolution).
 
-## Connect to Admin Console
+## SDK Connection and Sync Tools
+
+**SDK Connections** link Qefro to your `@qefro-ai/backend` webhook. **Sync Tools** discovers handlers via `tools.list` and registers them as workspace Business Tools.
+
+| Field | Purpose |
+| --- | --- |
+| Name | Admin label |
+| Webhook URL | Public HTTPS `POST /qefro` |
+| Signing secret | Shared HMAC (`QEFRO_SIGNING_SECRET`) |
+| Enabled | Kill switch |
+
+### Setup workflow
 
 1. **SDK Connections** → webhook URL + signing secret.
-2. **Test Connection** (`ping`).
-3. Select workspace → **Sync Tools** (`tools.list` + auto-register).
+2. **Test Connection** — signed `ping` → `pong` + `sdk_version`.
+3. Select workspace → **Sync Tools** (`tools.list` + optional auto-register).
 
-Details: [SDK synchronization](/docs/business-tools/sdk-synchronization).
+<ApiEndpointCard method="POST" path="/api/v1/org/sdk-connections/:id/test" description="Signed ping; updates connection health." />
+
+<ApiEndpointCard method="POST" path="/api/v1/org/sdk-connections/:id/sync-tools" description="tools.list + optional auto_register into workspace." />
+
+```json
+{
+  "workspace_id": "uuid",
+  "auto_register": true,
+  "enable_new_tools": true
+}
+```
+
+| Sync writes | Source |
+| --- | --- |
+| `implementation_kind` | `sdk` |
+| `sdk_handler_name` | Tool `name` from `tools.list` |
+| `description`, `input_schema` | From handler metadata |
+| `preconditions.lookup_required` | Tool `lookup.required` |
+| `required_auth_level` | `organization_challenge` when auth methods set |
+
+<Warning>
+Sync **without** `workspace_id` and `auto_register` only refreshes connection metadata — tools will not appear in chat until registered to a workspace.
+</Warning>
+
+After you add or rename handlers, deploy your backend and run **Sync Tools** again. Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools).
 
 ## Return values
 
@@ -214,7 +249,7 @@ Catalog: [Examples](/docs/business-tools/examples).
 <RelatedTopics
   topics={[
     {label: 'Register SDK (guide)', to: '/docs/guides/register-sdk-business-tools'},
-    {label: 'SDK synchronization', to: '/docs/business-tools/sdk-synchronization'},
+    {label: 'Runtime', to: '/docs/business-tools/runtime'},
     {label: 'Customer Provider', to: '/docs/v1/customer-provider'},
     {label: 'Challenge / Resume', to: '/docs/business-tools/challenge-resume'},
   ]}

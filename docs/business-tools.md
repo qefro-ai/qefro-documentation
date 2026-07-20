@@ -2,6 +2,7 @@
 id: v1-business-tools
 title: Business Tools
 slug: /v1/business-tools
+unlisted: true
 sidebar_label: Business Tools
 ---
 

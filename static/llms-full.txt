@@ -281,22 +281,9 @@ Search and AI assistants increasingly answer “can the AI *do* things, or only 
 - Internal runbook automation for Employee AI
 - Any HTTPS API your organization already trusts
 
-## Architecture
+## How execution works
 
-```mermaid
-sequenceDiagram
-  participant User
-  participant Channel as Widget / WhatsApp
-  participant Qefro as Qefro runtime
-  participant Tool as Business Tool HTTPS API
-  User->>Channel: Message
-  Channel->>Qefro: Chat + workspace context
-  Qefro->>Qefro: RAG + tool selection
-  Qefro->>Tool: Authorized HTTPS (SSRF-safe)
-  Tool-->>Qefro: Result
-  Qefro-->>User: Answer with action outcome
-  Qefro->>Qefro: Execution log
-```
+Business Actions run through the shared [Business Tool Runtime](/docs/business-tools/runtime) — tool selection, validation, authentication, and logging are identical for REST and Backend SDK paths.
 
 Business Actions are not executed from the Internal Portal. Employees use the portal as a knowledge assistant (RAG / document Q&amp;A). Live API actions remain on the Website Widget and WhatsApp until employee delegated authentication is available.
 
@@ -1208,21 +1195,7 @@ Knowledge search, RAG, document Q&A, AI assistance, and internal documentation r
 
 Admin Console **Test Tool** continues to work for configuring connectors — that path is not a chat channel.
 
-## Architecture
-
-```mermaid
-flowchart TB
-  OpenAPI[OpenAPI import] --> Integration
-  REST[Manual REST tool] --> Tool
-  SDK[SDK Sync Tools] --> Integration
-  Integration --> Tool
-  Tool --> Kind{implementation_kind}
-  Kind -->|rest| Secrets[Encrypted API credentials]
-  Kind -->|sdk| Webhook[Signed org webhook]
-  Secrets --> Exec[ToolExecutor]
-  Webhook --> Exec
-  Exec --> Logs[Execution logs]
-```
+Runtime architecture: [Business Tool Runtime](/docs/business-tools/runtime).
 
 ## Workflow
 
@@ -4235,7 +4208,16 @@ A scoped AI environment with its own knowledge, instructions, Business Tools, an
   {question: 'How does RBAC work?', answer: <>Owner, Admin, and Member roles; Teams grant Members access to specific workspaces. See RBAC.</>},
   {question: 'Do I host the vector DB?', answer: 'Not on Qefro cloud — RAG infrastructure is managed for you.'},
   {question: 'Does Qefro replace my CRM?', answer: 'No. Business Tools call your systems of record.'},
-  {question: 'What is identify()?', answer: 'Widget API to forward your end-user JWT/session into Business Tool calls.'},
+  {question: 'What is identify()?', answer: <>Widget API to forward your end-user JWT/session into REST Business Tools. See Identity Forwarding and REST configuration.</>},
+]} />
+
+## Business Tools
+
+REST for existing HTTPS APIs and OpenAPI specs. Backend SDK for OTP, login, and multi-step workflows. See REST vs SDK.</>},
+  {question: 'Why does the assistant only answer from docs?', answer: 'Usually missing workspace on the widget, no tools enabled, or tools filtered by auth level. Bind workspaceId and verify tools in Test Tool.'},
+  {question: 'Does identity forwarding work with SDK?', answer: 'Raw JWT/session forward is REST only (END_USER_IDENTITY). Backend SDK receives identity attributes and uses lookup + authorize.'},
+  {question: 'Can Internal Portal run Business Tools?', answer: 'V1 Portal is knowledge-only for live tool execution. END_USER_IDENTITY is Widget/WhatsApp. Playground supports most tools for testing.'},
+  {question: 'Sync Tools did nothing?', answer: 'Pass workspace_id and auto_register:true. Sync without workspace only updates connection metadata.'},
 ]} />
 
 ## Plans

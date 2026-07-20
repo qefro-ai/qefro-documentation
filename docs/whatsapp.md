@@ -2,6 +2,7 @@
 id: v1-whatsapp
 title: WhatsApp
 slug: /v1/whatsapp
+unlisted: true
 sidebar_label: WhatsApp
 ---
 

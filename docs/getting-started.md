@@ -2,6 +2,7 @@
 id: v1-getting-started
 title: Getting Started
 slug: /v1/getting-started
+unlisted: true
 sidebar_label: Getting Started
 ---
 

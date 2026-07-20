@@ -1,15 +1,14 @@
 ---
-title: "Business Tools Troubleshooting"
-description: "Diagnose tool selection, auth, sync, SSRF, and identity forwarding issues."
-sidebar_label: "Troubleshooting"
-sidebar_position: 19
+title: Troubleshooting
+description: Diagnose Business Tools, SDK connections, identity forwarding, and platform issues.
+sidebar_label: Troubleshooting
 ---
 
 import { RelatedTopics } from '@site/src/components';
 
-# Business Tools Troubleshooting
+# Troubleshooting
 
-## Symptom → cause
+## Business Tools
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
@@ -18,14 +17,14 @@ import { RelatedTopics } from '@site/src/components';
 | `customer_not_found` | Email not in SDK directory | Fix lookup mapping; test directory |
 | `invalid_signature` (SDK) | Secret mismatch | Align Admin secret + `QEFRO_SIGNING_SECRET` |
 | REST 401 | Wrong API key/bearer | Test Tool; rotate secret |
-| `END_USER_IDENTITY requires...` | No identify() | Call identify before account tools |
+| `END_USER_IDENTITY requires...` | No `identify()` | Call identify before account tools |
 | OTP loop | Wrong resume handling | Verify authorize on `ctx.response` |
 | Portal can't run tool | `END_USER_IDENTITY` on Portal | Test on Widget |
 | Sync lists 0 tools | Webhook down / wrong path | Test Connection; check `/qefro` |
 | SSRF blocked | Private URL | Use public HTTPS |
 | Playground works, widget doesn't | Missing identify or workspace | Match playground workspace + widget config |
 
-## Debug workflow
+### Debug workflow
 
 ```mermaid
 flowchart TD
@@ -38,32 +37,37 @@ flowchart TD
 ```
 
 ```bash
-# Execution logs
 curl -sS -H "Authorization: Bearer $ADMIN_JWT" \
   https://api.qefro.com/api/v1/tools/$TOOL_ID/logs
 ```
 
-## SDK signature debug
+Canonical runtime reference: [Business Tool Runtime](/docs/business-tools/runtime).
 
-Payload format: `v1:{timestamp}:{body}`  
-Header: `X-Qefro-Signature: v1=<hex>`
+## SDK connections
 
-Use framework `app.listen()` — do not verify manually unless debugging.
+| Symptom | Fix |
+| --- | --- |
+| Webhook unreachable | Verify HTTPS, firewall, and `/qefro` path |
+| Signature mismatch | Confirm secret parity; check `v1:{timestamp}:{body}` format |
+| Tool discovery empty | Register handlers before `listen()`; run Sync Tools with `workspace_id` |
 
-## Widget identity demo
+Use framework `app.listen()` — it handles `ping`, `tools.list`, `tool.invoke`, and `tool.resume`.
 
-Use the [rest-order-api widget-identity-demo](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/rest-order-api) page:
+## Widget identity
 
 - Widget token ≠ admin JWT
 - Global constructor: `AIWidget.Widget`
-- Green banner: “Widget OK · workspace …”
+- REST `END_USER_IDENTITY` needs `widget.identify()` with JWT or session
+
+Demo: [rest-order-api widget-identity-demo](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/rest-order-api).
 
 ## Related topics
 
 <RelatedTopics
   topics={[
-    {label: 'FAQ', to: '/docs/business-tools/faq'},
-    {label: 'Runtime', to: '/docs/business-tools/runtime'},
-    {label: 'V1 Troubleshooting', to: '/docs/v1/troubleshooting'},
+    {label: 'FAQ', to: '/docs/faq'},
+    {label: 'Business Tools overview', to: '/docs/business-tools'},
+    {label: 'Authentication', to: '/docs/business-tools/authentication'},
+    {label: 'Challenge / Resume', to: '/docs/business-tools/challenge-resume'},
   ]}
 />

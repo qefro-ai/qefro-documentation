@@ -2,6 +2,7 @@
 id: v1-sdk-framework
 title: SDK Framework
 slug: /v1/sdk-framework
+unlisted: true
 sidebar_label: SDK Framework
 ---
 

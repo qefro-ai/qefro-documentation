@@ -114,8 +114,7 @@ Runnable examples: [Examples catalog](/docs/business-tools/examples).
 
 ### Deep dives
 
-- [Architecture](/docs/business-tools/architecture)
-- [Runtime pipeline](/docs/business-tools/runtime)
+- [Business Tool Runtime](/docs/business-tools/runtime) — canonical architecture and pipeline
 - [Authentication](/docs/business-tools/authentication)
 - [Identity forwarding](/docs/business-tools/identity-forwarding) (REST)
 - [Identity resolution](/docs/business-tools/identity-resolution) (SDK)
@@ -142,7 +141,7 @@ Qefro is an **orchestration runtime**, not an identity provider. Your organizati
     {
       question: 'Where are secrets stored?',
       answer:
-        'Encrypted at rest on REST tools and SDK connections. Never in widget JavaScript. See Security.',
+        'Encrypted at rest on REST tools and SDK connections. Never in widget JavaScript. See [Secrets](/docs/security/secrets).',
     },
   ]}
 />
@@ -151,10 +150,10 @@ Qefro is an **orchestration runtime**, not an identity provider. Your organizati
 
 <RelatedTopics
   topics={[
-    {label: 'Architecture', to: '/docs/business-tools/architecture'},
+    {label: 'Runtime', to: '/docs/business-tools/runtime'},
     {label: 'REST vs SDK', to: '/docs/business-tools/rest-vs-sdk'},
     {label: 'Platform: Business Tools', to: '/docs/platform/business-tools'},
     {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
-    {label: 'Identity Forwarding (Widget)', to: '/docs/platform/identity-forwarding'},
+    {label: 'Identity forwarding (REST)', to: '/docs/business-tools/identity-forwarding'},
   ]}
 />

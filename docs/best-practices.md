@@ -2,6 +2,7 @@
 id: v1-best-practices
 title: Best Practices
 slug: /v1/best-practices
+unlisted: true
 sidebar_label: Best Practices
 ---
 

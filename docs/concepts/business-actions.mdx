@@ -45,22 +45,9 @@ Search and AI assistants increasingly answer “can the AI *do* things, or only 
 - Internal runbook automation for Employee AI
 - Any HTTPS API your organization already trusts
 
-## Architecture
+## How execution works
 
-```mermaid
-sequenceDiagram
-  participant User
-  participant Channel as Widget / WhatsApp
-  participant Qefro as Qefro runtime
-  participant Tool as Business Tool HTTPS API
-  User->>Channel: Message
-  Channel->>Qefro: Chat + workspace context
-  Qefro->>Qefro: RAG + tool selection
-  Qefro->>Tool: Authorized HTTPS (SSRF-safe)
-  Tool-->>Qefro: Result
-  Qefro-->>User: Answer with action outcome
-  Qefro->>Qefro: Execution log
-```
+Business Actions run through the shared [Business Tool Runtime](/docs/business-tools/runtime) — tool selection, validation, authentication, and logging are identical for REST and Backend SDK paths.
 
 <InfoBox title="Internal Portal (V1)">
   Business Actions are not executed from the Internal Portal. Employees use the portal as a knowledge assistant (RAG / document Q&amp;A). Live API actions remain on the Website Widget and WhatsApp until employee delegated authentication is available.
@@ -140,7 +127,8 @@ Treat every Business Action as production API traffic. Rate limits, auth failure
 
 <RelatedTopics
   topics={[
-    {label: 'Business Tools', to: '/docs/platform/business-tools'},
+    {label: 'Business Tools guide', to: '/docs/business-tools'},
+    {label: 'Business Tool Runtime', to: '/docs/business-tools/runtime'},
     {label: 'Platform: Business Actions', to: '/docs/platform/business-actions'},
     {label: 'Connect REST APIs', to: '/docs/guides/connect-rest-apis'},
     {label: 'Import OpenAPI', to: '/docs/guides/import-openapi'},

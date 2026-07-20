@@ -83,21 +83,7 @@ Knowledge search, RAG, document Q&A, AI assistance, and internal documentation r
 
 Admin Console **Test Tool** continues to work for configuring connectors — that path is not a chat channel.
 
-## Architecture
-
-```mermaid
-flowchart TB
-  OpenAPI[OpenAPI import] --> Integration
-  REST[Manual REST tool] --> Tool
-  SDK[SDK Sync Tools] --> Integration
-  Integration --> Tool
-  Tool --> Kind{implementation_kind}
-  Kind -->|rest| Secrets[Encrypted API credentials]
-  Kind -->|sdk| Webhook[Signed org webhook]
-  Secrets --> Exec[ToolExecutor]
-  Webhook --> Exec
-  Exec --> Logs[Execution logs]
-```
+Runtime architecture: [Business Tool Runtime](/docs/business-tools/runtime).
 
 ## Workflow
 

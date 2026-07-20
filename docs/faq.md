@@ -2,6 +2,7 @@
 id: v1-faq
 title: FAQ
 slug: /v1/faq
+unlisted: true
 sidebar_label: FAQ
 ---
 
