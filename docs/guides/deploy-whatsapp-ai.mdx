@@ -80,6 +80,17 @@ Typical Qefro webhook base: `https://api.qefro.com/api/v1/whatsapp/webhook` (con
 - Train support staff on escalation paths
 - Monitor conversation analytics and tool logs
 - Document opt-out / business hours policy for WhatsApp
+- Tell users they can type `/new` or `/clear` to start a fresh thread (WhatsApp has no “+” button)
+
+## Conversation commands
+
+| Command | Description |
+| --- | --- |
+| `/new` | Archive the current thread and start a new conversation |
+| `/clear` | Alias of `/new` |
+| `/help` | List commands |
+
+Commands are handled before AI/RAG/tools. WhatsApp replies may also show **Interactive Reply Buttons** (New Chat, Help) with automatic text fallback — see [WhatsApp](/docs/platform/whatsapp#interactive-reply-buttons).
 
 ## Workflow checklist
 

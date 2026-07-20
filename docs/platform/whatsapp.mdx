@@ -64,6 +64,39 @@ Follow the full playbook: [Deploy WhatsApp AI](/docs/guides/deploy-whatsapp-ai).
 WhatsApp threads often contain PII. Align retention, tools, and human escalation with your privacy policy before broad rollout.
 </Warning>
 
+## Conversation commands
+
+WhatsApp has no native **New conversation** button like the Website Widget or Admin Playground. Users can manage threads with slash commands (case-insensitive):
+
+| Command | Description |
+| --- | --- |
+| `/new` | Start a new conversation (previous thread is archived, not deleted) |
+| `/clear` | Same as `/new` — start over with a fresh conversation |
+| `/help` | Show available commands |
+
+Example replies:
+
+- `/new` → “Started a new conversation…”
+- `/clear` → “Conversation cleared…”
+- `/help` → command list
+
+These are **system commands**: they never call the AI Runtime, RAG, Business Tools, or consume LLM tokens. Verified identity and authentication context for the WhatsApp contact are preserved.
+
+## Interactive Reply Buttons
+
+WhatsApp replies can include **platform-owned** quick-action buttons (Meta Interactive Reply Buttons):
+
+| Button | Action |
+| --- | --- |
+| 🆕 New Chat | Same as `/new` |
+| ❓ Help | Same as `/help` |
+
+Only Qefro platform actions are supported today. Business-specific buttons (track order, book service, my account, …) are **not** implemented yet — those will come later through Business Tool capabilities.
+
+**Fallback:** If Meta rejects an interactive message (unsupported client, API error, etc.), Qefro sends plain text and lists `/new` and `/help` so users never lose the actions.
+
+Slash commands continue to work alongside buttons. Widget and Playground UI are unchanged.
+
 ## FAQ
 
 <FaqAccordion
