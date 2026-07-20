@@ -1,0 +1,85 @@
+---
+title: "Business Tools FAQ"
+description: "Frequently asked questions about REST, SDK, auth, identity, sync, and runtime behavior."
+sidebar_label: "FAQ"
+sidebar_position: 17
+---
+
+import { FaqAccordion, RelatedTopics } from '@site/src/components';
+
+# Business Tools FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'REST or SDK — which should I use?',
+      answer:
+        'REST for existing HTTPS APIs and OpenAPI specs. SDK for OTP, login, and multi-step workflows in your backend. See REST vs SDK.',
+    },
+    {
+      question: 'Why does the assistant only answer from docs?',
+      answer:
+        'Usually missing workspace on the widget, no tools enabled, or tools filtered by auth level. Bind workspaceId and verify tools appear in Test Tool.',
+    },
+    {
+      question: 'Does identity forwarding work with SDK?',
+      answer:
+        'Raw JWT/session forward is REST only (END_USER_IDENTITY). SDK receives identity attributes and uses lookup + authorize.',
+    },
+    {
+      question: 'Where do I configure OTP?',
+      answer:
+        'In your SDK customer.authorize() — not in Admin Console. Qefro forwards the user reply via tool.resume.',
+    },
+    {
+      question: 'What is lookup.required?',
+      answer:
+        'SDK advertises required identity attributes (email/phone). Qefro resolves from channel, conversation, or asks the user before invoke.',
+    },
+    {
+      question: 'Can Internal Portal run Business Tools?',
+      answer:
+        'V1 Portal is knowledge-only for live tool execution. END_USER_IDENTITY is Widget/WhatsApp. Playground supports most tools for testing.',
+    },
+    {
+      question: 'How do secrets rotate?',
+      answer:
+        'Update encrypted secret on REST tool or signing secret on SDK connection. For SDK, update QEFRO_SIGNING_SECRET in your backend immediately.',
+    },
+    {
+      question: 'OpenAPI imported DELETE operations — safe?',
+      answer:
+        'Preview and deselect destructive ops. Treat import as a security change.',
+    },
+    {
+      question: 'Sync Tools did nothing?',
+      answer:
+        'Pass workspace_id and auto_register:true. Sync without workspace only updates connection metadata.',
+    },
+    {
+      question: 'Why placeholder URL on SDK tools?',
+      answer:
+        'SDK tools execute via webhook + sdk_handler_name, not the URL field.',
+    },
+    {
+      question: 'WhatsApp vs Widget identity?',
+      answer:
+        'WhatsApp auto-supplies phone for phone lookup. Widget may need email ask + identify() for JWT forward on REST.',
+    },
+    {
+      question: 'Test Tool vs chat?',
+      answer:
+        'Test Tool uses Admin JWT and optional user_jwt. Chat uses channel identity and widget identify().',
+    },
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Troubleshooting', to: '/docs/business-tools/troubleshooting'},
+    {label: 'Overview', to: '/docs/business-tools'},
+    {label: 'Platform FAQ', to: '/docs/faq'},
+  ]}
+/>

@@ -2,7 +2,7 @@
 
 > Complete Markdown export of https://docs.qefro.com for AI systems. Generated from the official Docusaurus sources. Prefer individual pages linked from /llms.txt when context is limited.
 
-Generated: 2026-07-19
+Generated: 2026-07-20
 
 # Concepts (GEO)
 
@@ -321,7 +321,8 @@ Deep dive: [AI Agent Security](/docs/concepts/ai-agent-security) and [Secure Bus
 4. On Customer AI, use [`identify()`](/docs/platform/identity-forwarding) when your API needs the end user.
 5. Review tool execution logs after pilot traffic.
 
-Platform reference: [Business Actions](/docs/platform/business-actions).
+Platform reference: [Business Actions](/docs/platform/business-actions).  
+Integration guide: [Business Tools](/docs/business-tools).
 
 ## Workflow
 
@@ -1139,6 +1140,10 @@ Source: https://docs.qefro.com/docs/platform/business-tools/
 
 > REST, OpenAPI, and SDK connectors that power Business Actions — encrypted credentials, signed webhooks, test, and logs.
 
+:::tip Full integration guide
+For architecture, REST vs SDK, identity forwarding, runtime pipeline, examples, and troubleshooting, see the dedicated **[Business Tools documentation](/docs/business-tools)**.
+:::
+
 **Business Tools** are workspace-scoped connectors the assistant can invoke as **Business Actions**. There are two implementation paths:
 
 | Path | How you add tools | Credentials |
@@ -1560,7 +1565,13 @@ Source: https://docs.qefro.com/docs/platform/identity-forwarding/
 
 > Forward verified end-user identity into Business Tools with widget.identify().
 
+:::info Scope
+This page covers the **Website Widget** `identify()` API. For REST tool configuration (`END_USER_IDENTITY`), SDK `lookup.required`, and channel matrices, see **[Identity forwarding (REST)](/docs/business-tools/identity-forwarding)** and **[Identity resolution (SDK)](/docs/business-tools/identity-resolution)**.
+:::
+
 **Identity Forwarding** lets your host application tell Qefro who the website visitor is, so Business Actions can call your APIs in that user’s context. Qefro does **not** replace your auth system — you own JWT/session issuance.
+
+**REST** tools with `END_USER_IDENTITY` receive the forwarded JWT/session on outbound HTTP calls. **Backend SDK** webhooks receive identity **attributes** (email, phone, id) — not raw JWT secrets.
 
 ## Introduction
 
@@ -3307,11 +3318,22 @@ Install and register handlers, then connect the webhook in Admin Console and **S
 
 ```bash
 npm install @qefro-ai/backend
-# or from crates.io: cargo add qefro-backend-sdk
+# or from crates.io:
+cargo add qefro-backend-sdk
 ```
 
+```toml
+# Cargo.toml
+[dependencies]
+qefro-backend-sdk = "1"
+```
+
+- TypeScript: [npmjs.com/package/@qefro-ai/backend](https://www.npmjs.com/package/@qefro-ai/backend)
+- Rust: [crates.io/crates/qefro-backend-sdk](https://crates.io/crates/qefro-backend-sdk)
+
 Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools).  
-Reference: [SDK Framework](/docs/v1/sdk-framework), [Business Tools](/docs/v1/business-tools).
+Reference: [SDK Framework](/docs/v1/sdk-framework), [Business Tools](/docs/v1/business-tools).  
+Examples: [JS examples](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples) · [Rust examples](https://github.com/qefro-ai/qefro-rust-backend-sdk/tree/main/examples) · [Examples index](/docs/v1/examples).
 
 Protocol messages on your webhook: `ping`, `tools.list`, `tool.invoke`, `tool.resume`.
 

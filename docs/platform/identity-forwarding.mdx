@@ -14,7 +14,13 @@ import {
 
 # Identity Forwarding
 
+:::info Scope
+This page covers the **Website Widget** `identify()` API. For REST tool configuration (`END_USER_IDENTITY`), SDK `lookup.required`, and channel matrices, see **[Identity forwarding (REST)](/docs/business-tools/identity-forwarding)** and **[Identity resolution (SDK)](/docs/business-tools/identity-resolution)**.
+:::
+
 **Identity Forwarding** lets your host application tell Qefro who the website visitor is, so Business Actions can call your APIs in that user’s context. Qefro does **not** replace your auth system — you own JWT/session issuance.
+
+**REST** tools with `END_USER_IDENTITY` receive the forwarded JWT/session on outbound HTTP calls. **Backend SDK** webhooks receive identity **attributes** (email, phone, id) — not raw JWT secrets.
 
 ## Introduction
 

@@ -1,0 +1,117 @@
+---
+title: "Parameters Reference"
+description: "Business Tool fields, SDK tool metadata, webhook payloads, and auth configuration reference."
+sidebar_label: "Parameters Reference"
+sidebar_position: 15
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Parameters Reference
+
+Reference for Admin Console fields, SDK tool definitions, and runtime payloads.
+
+## Business Tool (REST)
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | string | — | Unique per integration |
+| `description` | string | — | LLM-facing purpose |
+| `method` | enum | — | HTTP method |
+| `url` | string | — | HTTPS URL with `{param}` templates |
+| `headers` | JSON object | `{}` | Outbound headers; `__*` keys are config-only |
+| `auth_mode` | enum | `NONE` | See auth modes |
+| `encrypted_secret` | string | — | API key or bearer (server-side only) |
+| `input_schema` | JSON Schema | `{}` | LLM parameters |
+| `output_schema` | JSON Schema | `{}` | Optional response validation |
+| `timeout_seconds` | int | 30 | 1–120 |
+| `enabled` | bool | true | Master switch |
+| `allow_from_chat` | bool | false | Offer to anonymous users when public |
+| `required_auth_level` | enum | `public` | `public`, `verified_channel`, `organization_challenge` |
+| `authentication_required` | bool | false | Force org auth service |
+| `preconditions` | JSON | `{}` | Gates including `lookup_required` |
+| `implementation_kind` | enum | `rest` | `rest` or `sdk` |
+| `sdk_connection_id` | uuid | — | Required when `sdk` |
+| `sdk_handler_name` | string | — | Handler name when `sdk` |
+
+### auth_mode values
+
+| Value | Outbound |
+| --- | --- |
+| `NONE` | No auth header |
+| `API_KEY` | Custom or `X-API-Key` |
+| `BEARER_TOKEN` | `Authorization: Bearer <secret>` |
+| `END_USER_IDENTITY` | User JWT or session from identify() |
+
+### Header meta keys
+
+| Key | Purpose |
+| --- | --- |
+| `__api_key_header` | Override API key header name |
+
+## SDK tool definition (`app.tool`)
+
+| Field | Synced to Business Tool |
+| --- | --- |
+| `name` | `sdk_handler_name` |
+| `description` | yes |
+| `input_schema` | yes |
+| `auth` | influences auth flags |
+| `authentication_methods` | → `organization_challenge` |
+| `lookup.required` | → `preconditions.lookup_required` |
+| `permissions` | documentation / your enforcement |
+| `timeout` | hint only |
+
+## SDK webhook headers
+
+| Header | Purpose |
+| --- | --- |
+| `X-Qefro-Protocol` | `1` |
+| `X-Qefro-Timestamp` | Unix seconds |
+| `X-Qefro-Signature` | `v1=<hmac-sha256 hex>` |
+| `Content-Type` | `application/json` |
+
+Signature payload: `v1:{timestamp}:{raw_body}`.
+
+## tool.invoke identity object
+
+| Field | Description |
+| --- | --- |
+| `email` | Resolved email |
+| `phone` | E.164 or channel phone |
+| `customer_id` | Your customer id if known |
+| `user_id` | Alias / external id |
+| `channel` | `widget`, `whatsapp`, `portal`, … |
+
+Secrets (`user_jwt`) are **not** included in SDK identity JSON.
+
+## Widget identify payload
+
+| Field | Description |
+| --- | --- |
+| `id` | Stable user id (required) |
+| `email`, `name` | Profile hints |
+| `auth.mode` | `jwt`, `session`, `none` |
+| `auth.token` | End-user credential |
+
+## END_USER_IDENTITY REST headers
+
+| Source | Header |
+| --- | --- |
+| JWT mode | `Authorization: Bearer` |
+| Session mode | `X-Session-Id` |
+| Additive | `X-Qefro-User-ID`, `X-Qefro-User-Email`, … |
+
+## Execution log status values
+
+`success`, `error`, `timeout`, `validation_error`, `ssrf_blocked`, `rate_limited`, `precondition_failed`, `channel_not_supported`
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'REST / OpenAPI', to: '/docs/business-tools/rest-openapi'},
+    {label: 'Backend SDK', to: '/docs/business-tools/backend-sdk'},
+    {label: 'Platform Business Tools API', to: '/docs/platform/business-tools'},
+  ]}
+/>

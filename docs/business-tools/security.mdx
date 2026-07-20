@@ -1,0 +1,70 @@
+---
+title: "Business Tools Security"
+description: "SSRF controls, secret encryption, tenant isolation, audit logs, and secure integration patterns."
+sidebar_label: "Security"
+sidebar_position: 20
+---
+
+import { Warning, RelatedTopics } from '@site/src/components';
+
+# Business Tools Security
+
+Business Tools execute **production API traffic**. Treat every tool as a privileged integration.
+
+## Controls
+
+| Control | REST | SDK |
+| --- | --- | --- |
+| SSRF validation | Outbound URL | Webhook URL |
+| HTTPS required | Yes | Yes |
+| Secret encryption at rest | Per-tool | Per-connection |
+| Execution audit logs | Yes | Yes |
+| Workspace isolation | Yes | Yes |
+| Response size limits | Yes | Yes |
+| Header injection guard | Yes | N/A (JSON body) |
+
+Deep dives: [Security overview](/docs/security/overview), [Secrets](/docs/security/secrets), [Tenant isolation](/docs/security/tenant-isolation), [Audit logs](/docs/security/audit-logs).
+
+## SSRF
+
+Blocked targets include private RFC1918 ranges, link-local, and common cloud metadata endpoints. Tools cannot call `http://169.254.169.254/` or internal `localhost` unless explicitly allowlisted in product policy (default: blocked).
+
+## Secrets
+
+- REST: API keys and bearer tokens encrypted; never returned to browser or LLM.
+- SDK: Signing secret shown once on generate — store in secrets manager.
+- End-user JWT: forwarded per request only; not stored in tool config.
+
+## Identity safety
+
+- **Do not** map Portal admin ids to customer accounts.
+- **Do not** put JWTs in widget `setContext()`.
+- Validate forwarded JWTs in **your** API (signature, expiry, scopes).
+- Mask OTP destinations in challenge hints.
+
+## OpenAPI import risk
+
+Importing a full admin spec grants the assistant many operations. Always preview; disable writes until reviewed.
+
+## Least privilege
+
+| Role | Access |
+| --- | --- |
+| LLM | Tool names, descriptions, schemas — never secrets |
+| Widget | Publishable token only |
+| Admin | JWT for configuration APIs |
+| Runtime | Decrypted secrets in memory during execute only |
+
+<Warning>
+Rate limiting and PII in API responses are your responsibility. Redact before returning large customer objects to the LLM context.
+</Warning>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Secure Business Actions (guide)', to: '/docs/guides/secure-business-actions'},
+    {label: 'AI Agent Security', to: '/docs/concepts/ai-agent-security'},
+    {label: 'Best practices', to: '/docs/business-tools/best-practices'},
+  ]}
+/>

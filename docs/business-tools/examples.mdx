@@ -1,0 +1,74 @@
+---
+title: "Business Tools Examples"
+description: "Runnable REST and SDK example catalog — order status, identity forwarding, banking, CRM, and mixed workflows."
+sidebar_label: "Examples"
+sidebar_position: 16
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Business Tools Examples
+
+Runnable examples live in [qefro-js-backend-sdk/examples](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples) and [qefro-rust-backend-sdk/examples](https://github.com/qefro-ai/qefro-rust-backend-sdk/tree/main/examples).
+
+## SDK examples
+
+| Example | Demonstrates |
+| --- | --- |
+| [order-status](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/order-status) | Public order lookup + OTP `my_orders_list` + `lookup.required` |
+| [rest-order-api](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/rest-order-api) | Plain REST mock + **identity forwarding** demo page |
+| [banking](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/banking) | Account balance with auth |
+| [healthcare](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/healthcare) | Appointments |
+| [ecommerce](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/ecommerce) | Order track |
+| [crm](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/crm) | Leads list |
+| [erp](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/erp) | Inventory |
+| [internal-portal](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/internal-portal) | Employee KPI snapshot |
+| [helpdesk](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/helpdesk) | KB search handler |
+| [whatsapp](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/whatsapp) | Template preview |
+
+## REST patterns (from examples)
+
+| Pattern | Example endpoint | Auth |
+| --- | --- | --- |
+| Order by ID | `GET /rest/orders/{orderId}` | API_KEY |
+| Service account list | `GET /rest/my-orders?customer_id=` | BEARER_TOKEN |
+| Identity whoami | `GET /rest/identity/me` | END_USER_IDENTITY |
+| Identity orders | `GET /rest/identity/my-orders` | END_USER_IDENTITY |
+
+Hosted demo (deploy your own): `widget-identity-demo.html` in rest-order-api example.
+
+## Mixed workflow example
+
+**E-commerce support workspace:**
+
+1. `order_status_check` (SDK, public) — ORD-1001 by ID
+2. `my_orders_list` (SDK, OTP) — authenticated list
+3. `shipping_track` (REST, API key) — carrier API
+4. `identity_my_orders` (REST forward) — widget logged-in users
+
+See [Mixed integrations](/docs/business-tools/mixed-integrations).
+
+## Quick start commands
+
+```bash
+git clone https://github.com/qefro-ai/qefro-js-backend-sdk.git
+cd qefro-js-backend-sdk/examples/order-status
+cp .env.example .env && npm install && npm start
+# Webhook: http://localhost:8090/qefro
+./scripts/smoke.sh
+```
+
+```bash
+cd examples/rest-order-api && npm install && npm start
+# REST: http://localhost:8091/rest/identity/me
+```
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Register SDK (guide)', to: '/docs/guides/register-sdk-business-tools'},
+    {label: 'Connect REST APIs', to: '/docs/guides/connect-rest-apis'},
+    {label: 'V1 Examples index', to: '/docs/v1/examples'},
+  ]}
+/>

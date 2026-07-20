@@ -143,6 +143,12 @@ const config: Config = {
         },
         {
           type: 'docSidebar',
+          sidebarId: 'businessToolsSidebar',
+          position: 'left',
+          label: 'Business Tools',
+        },
+        {
+          type: 'docSidebar',
           sidebarId: 'guidesSidebar',
           position: 'left',
           label: 'Guides',
@@ -184,6 +190,7 @@ const config: Config = {
             {label: 'Concepts', to: '/docs/concepts/what-is-an-ai-workspace'},
             {label: 'Getting Started', to: '/docs/getting-started/installation'},
             {label: 'Platform', to: '/docs/platform/ai-workspaces'},
+            {label: 'Business Tools', to: '/docs/business-tools'},
             {label: 'Guides', to: '/docs/guides/build-ai-customer-support'},
             {label: 'API Reference', to: '/docs/api/authentication'},
             {label: 'Glossary', to: '/docs/glossary'},

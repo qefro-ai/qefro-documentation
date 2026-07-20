@@ -59,6 +59,11 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
+      type: 'link',
+      label: 'Business Tools (full guide)',
+      href: '/docs/business-tools',
+    },
+    {
       type: 'category',
       label: 'Platform',
       collapsed: true,
@@ -89,6 +94,72 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Reference',
       items: ['faq', 'glossary', 'release-notes'],
+    },
+  ],
+
+  businessToolsSidebar: [
+    {
+      type: 'category',
+      label: 'Business Tools',
+      collapsed: false,
+      link: { type: 'doc', id: 'business-tools/index' },
+      items: [
+        {
+          type: 'category',
+          label: 'Fundamentals',
+          items: [
+            'business-tools/index',
+            'business-tools/architecture',
+            'business-tools/runtime',
+            'business-tools/rest-vs-sdk',
+            'business-tools/mixed-integrations',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Integration paths',
+          items: [
+            'business-tools/rest-openapi',
+            'business-tools/backend-sdk',
+            'business-tools/openapi-import',
+            'business-tools/sdk-synchronization',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Identity & auth',
+          items: [
+            'business-tools/authentication',
+            'business-tools/identity-forwarding',
+            'business-tools/identity-resolution',
+            'business-tools/challenge-resume',
+            'business-tools/confirmation-flow',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Reference',
+          items: [
+            'business-tools/parameters-reference',
+            'business-tools/examples',
+            'business-tools/best-practices',
+            'business-tools/security',
+            'business-tools/troubleshooting',
+            'business-tools/faq',
+          ],
+        },
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Step-by-step guides',
+      collapsed: true,
+      items: [
+        'guides/connect-rest-apis',
+        'guides/import-openapi',
+        'guides/register-sdk-business-tools',
+        'guides/secure-business-actions',
+      ],
     },
   ],
 

@@ -1,0 +1,69 @@
+---
+title: "Business Tools Troubleshooting"
+description: "Diagnose tool selection, auth, sync, SSRF, and identity forwarding issues."
+sidebar_label: "Troubleshooting"
+sidebar_position: 19
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Business Tools Troubleshooting
+
+## Symptom → cause
+
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| AI cites knowledge base only | No `workspaceId` on widget | Set `data-workspace-id` / `workspaceId` |
+| Tool never offered | `enabled: false` or wrong workspace | Enable tool; verify integration workspace |
+| `customer_not_found` | Email not in SDK directory | Fix lookup mapping; test directory |
+| `invalid_signature` (SDK) | Secret mismatch | Align Admin secret + `QEFRO_SIGNING_SECRET` |
+| REST 401 | Wrong API key/bearer | Test Tool; rotate secret |
+| `END_USER_IDENTITY requires...` | No identify() | Call identify before account tools |
+| OTP loop | Wrong resume handling | Verify authorize on `ctx.response` |
+| Portal can't run tool | `END_USER_IDENTITY` on Portal | Test on Widget |
+| Sync lists 0 tools | Webhook down / wrong path | Test Connection; check `/qefro` |
+| SSRF blocked | Private URL | Use public HTTPS |
+| Playground works, widget doesn't | Missing identify or workspace | Match playground workspace + widget config |
+
+## Debug workflow
+
+```mermaid
+flowchart TD
+  A[Tool not working] --> B{Test Tool succeeds?}
+  B -->|no| C[Fix credentials URL schema]
+  B -->|yes| D{Chat selects tool?}
+  D -->|no| E[Check workspace + description + enabled]
+  D -->|yes| F{Execution log?}
+  F --> G[Read status + request/response in logs]
+```
+
+```bash
+# Execution logs
+curl -sS -H "Authorization: Bearer $ADMIN_JWT" \
+  https://api.qefro.com/api/v1/tools/$TOOL_ID/logs
+```
+
+## SDK signature debug
+
+Payload format: `v1:{timestamp}:{body}`  
+Header: `X-Qefro-Signature: v1=<hex>`
+
+Use framework `app.listen()` — do not verify manually unless debugging.
+
+## Widget identity demo
+
+Use the [rest-order-api widget-identity-demo](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/rest-order-api) page:
+
+- Widget token ≠ admin JWT
+- Global constructor: `AIWidget.Widget`
+- Green banner: “Widget OK · workspace …”
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'FAQ', to: '/docs/business-tools/faq'},
+    {label: 'Runtime', to: '/docs/business-tools/runtime'},
+    {label: 'V1 Troubleshooting', to: '/docs/v1/troubleshooting'},
+  ]}
+/>
