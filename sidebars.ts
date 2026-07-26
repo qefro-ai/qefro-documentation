@@ -93,6 +93,7 @@ const sidebars: SidebarsConfig = {
         'guides/production-deployment',
         'guides/enable-custom-domains',
         'platform/custom-domains',
+        'platform/workspace-subdomains',
         'platform/branding',
       ],
     },

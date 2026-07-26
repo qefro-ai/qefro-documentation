@@ -27,10 +27,21 @@ Qefro REST errors typically return JSON with a machine-readable **`code`** and h
 | **401** | Unauthenticated | Missing/expired user JWT or widget token |
 | **403** | Forbidden | Member lacking Admin rights or workspace grant |
 | **404** | Not found | Wrong id, wrong tenant, deleted resource |
-| **409** | Conflict | Idempotent replay, unique constraint (e.g. billing) |
+| **409** | Conflict | Idempotent replay, unique constraint, **slug taken / reserved** |
 | **422** | Semantic validation | Business rule failed |
 | **429** | Rate limited | Back off; see [Rate Limits](/docs/api/rate-limits) |
 | **5xx** | Server / upstream | Retry with jitter; check status with support |
+
+### Workspace slug codes
+
+| Code | HTTP | Meaning |
+| --- | --- | --- |
+| `SLUG_INVALID` | 400 | Failed shape / regex rules |
+| `SLUG_RESERVED` | 409 | Name is in `reserved_subdomains` |
+| `SLUG_TAKEN` | 409 | Another workspace already owns the slug |
+| `RESERVED_SUBDOMAIN_EXISTS` | 409 | Super Admin duplicate reserve |
+
+See [Workspace Subdomains](/docs/platform/workspace-subdomains).
 
 ## Example error payload
 

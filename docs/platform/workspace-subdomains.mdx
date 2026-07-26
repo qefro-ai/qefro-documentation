@@ -1,0 +1,218 @@
+---
+title: "Workspace Subdomains"
+description: "Slug validation rules, reserved subdomain policy, check-slug API, and Super Admin management for https://{workspace}.qefro.com."
+sidebar_label: "Workspace Subdomains"
+---
+
+import {
+  InfoBox,
+  Warning,
+  RelatedTopics,
+  FaqAccordion,
+  WorkflowCard,
+} from '@site/src/components';
+
+# Workspace Subdomains
+
+Every Qefro workspace is reachable at:
+
+```text
+https://{slug}.qefro.com
+```
+
+Wildcard DNS and wildcard TLS are already configured. This page documents **slug validation**, the **reserved subdomain** policy, availability APIs, and error codes.
+
+## Short definition (citation-ready)
+
+> Workspace subdomains are unique, lowercase slugs (`3–32` characters) that map to `{slug}.qefro.com`. System, security, infrastructure, and brand names are reserved and cannot be registered.
+
+## Slug validation rules
+
+| Rule | Detail |
+| --- | --- |
+| Case | Lowercase only (input is trimmed and lowercased) |
+| Characters | Letters `a–z`, digits `0–9`, hyphen `-` |
+| Length | 3–32 characters |
+| Start | Must start with a letter |
+| Hyphens | Cannot start or end with `-`; no consecutive `--` |
+| Rejected | `.`, `_`, `..`, and any non-ASCII |
+| Reserved | Must not match `reserved_subdomains` |
+| Unique | Must not match an existing workspace `slug` |
+
+**Regex** (plus consecutive-hyphen rejection):
+
+```text
+^[a-z][a-z0-9-]{2,31}$
+```
+
+## Reserved subdomain policy
+
+Reserved names protect:
+
+- Qefro system routes (`www`, `app`, `api`, `admin`, …)
+- Authentication endpoints (`login`, `oauth`, `sso`, …)
+- Infrastructure hosts (`cdn`, `assets`, `gateway`, …)
+- Monitoring endpoints (`metrics`, `grafana`, `health`, …)
+- Common phishing / brand names (`qefro`, `adminpanel`, `localhost`, …)
+
+Categories stored in the database:
+
+| Category | Purpose |
+| --- | --- |
+| `system` | Platform hosts and billing |
+| `security` | Auth and anti-phishing |
+| `infrastructure` | CDN, storage, mail transport |
+| `internal` | Dev / ops / monitoring |
+| `brand` | Public brand and marketing hosts |
+
+<Warning>
+Users never receive a raw database error for reserved names. They see a friendly reason such as “Reserved system subdomain”.
+</Warning>
+
+## Domain model (future-proof)
+
+Each workspace (tenant) stores:
+
+| Field | Meaning |
+| --- | --- |
+| `slug` | Subdomain (`{slug}.qefro.com`) — unique |
+| `custom_domain` / `custom_hostname` | Optional custom portal hostname |
+| `domain_type` | `subdomain` (default) or `custom` |
+| `created_at` | Creation timestamp |
+
+Custom domains are covered in [Custom Domains](/docs/platform/custom-domains).
+
+## API: check slug availability
+
+### `POST /api/v1/workspaces/check-slug`
+
+Also available as `POST /api/workspaces/check-slug`.
+
+**Request**
+
+```json
+{
+  "slug": "acme"
+}
+```
+
+**Available**
+
+```json
+{
+  "available": true,
+  "reserved": false,
+  "reason": null,
+  "slug": "acme"
+}
+```
+
+**Reserved**
+
+```json
+{
+  "available": false,
+  "reserved": true,
+  "reason": "Reserved system subdomain",
+  "slug": "admin",
+  "code": "SLUG_RESERVED"
+}
+```
+
+**Legacy GET** (signup UI): `GET /api/v1/public/tenant-slug-available?slug=acme` — same validation, includes `available` / `reserved` / `reason`.
+
+## Workspace creation
+
+Before insert, registration and admin create flows:
+
+1. Normalize (trim + lowercase)
+2. Validate regex / shape
+3. Check `reserved_subdomains`
+4. Check uniqueness on `tenants.slug`
+5. Insert with unique index enforcement
+
+## Super Admin: manage reserved names
+
+Only Super Admin JWT (`role=super_admin`):
+
+| Method | Path | Action |
+| --- | --- | --- |
+| `GET` | `/api/v1/admin/reserved-subdomains` | List (optional `?search=&category=`) |
+| `GET` | `/api/v1/admin/reserved-subdomains/search?search=` | Search |
+| `GET` | `/api/v1/admin/reserved-subdomains/:name` | Get one |
+| `POST` | `/api/v1/admin/reserved-subdomains` | Add |
+| `DELETE` | `/api/v1/admin/reserved-subdomains/:name` | Remove |
+
+**Add example**
+
+```json
+{
+  "name": "partners",
+  "category": "brand",
+  "description": "Partner portal host"
+}
+```
+
+Duplicate names return `409` with code `RESERVED_SUBDOMAIN_EXISTS`.
+
+## Error codes
+
+| Code | HTTP | When |
+| --- | --- | --- |
+| `SLUG_INVALID` | 400 | Shape / regex failure |
+| `SLUG_RESERVED` | 409 | Matches reserved table |
+| `SLUG_TAKEN` | 409 | Already used by a workspace |
+| `RESERVED_SUBDOMAIN_EXISTS` | 409 | Admin tried to reserve a duplicate |
+| `NOT_FOUND` | 404 | Admin delete/get missing name |
+
+Friendly messages (examples):
+
+- “Workspace name must be at least 3 characters”
+- “Use only lowercase letters, numbers, and hyphens”
+- “Reserved system subdomain”
+- “This workspace name is already taken”
+
+## Workflow
+
+<WorkflowCard
+  title="Claim a workspace subdomain"
+  steps={[
+    {title: 'Pick a name', description: 'Letters, numbers, hyphens; 3–32 chars.'},
+    {title: 'Call check-slug', description: 'POST /api/v1/workspaces/check-slug'},
+    {title: 'Register', description: 'Signup uses the same validation before insert.'},
+    {title: 'Open portal', description: 'https://{slug}.qefro.com'},
+  ]}
+/>
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Can I change my slug later?',
+      answer:
+        'Slug changes are security-sensitive (bookmarks, widgets, DNS). Prefer custom domains for branding changes; contact support for rare slug migrations.',
+    },
+    {
+      question: 'Why is “demo” reserved?',
+      answer:
+        'The platform demo tenant uses that slug. Reserving it prevents customer takeovers of platform hosts.',
+    },
+    {
+      question: 'Who can add reserved words?',
+      answer:
+        'Only Super Admins via the admin reserved-subdomains API.',
+    },
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {title: 'Custom Domains', href: '/docs/platform/custom-domains'},
+    {title: 'Enable Custom Domains', href: '/docs/guides/enable-custom-domains'},
+    {title: 'Error Codes', href: '/docs/api/error-codes'},
+    {title: 'Tenant Isolation', href: '/docs/security/tenant-isolation'},
+  ]}
+/>
