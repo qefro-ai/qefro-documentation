@@ -2,7 +2,7 @@
 
 > Complete Markdown export of https://docs.qefro.com for AI systems. Generated from the official Docusaurus sources. Prefer individual pages linked from /llms.txt when context is limited.
 
-Generated: 2026-07-20
+Generated: 2026-07-27
 
 # Concepts (GEO)
 
@@ -1451,6 +1451,39 @@ Follow the full playbook: [Deploy WhatsApp AI](/docs/guides/deploy-whatsapp-ai).
 
 WhatsApp threads often contain PII. Align retention, tools, and human escalation with your privacy policy before broad rollout.
 
+## Conversation commands
+
+WhatsApp has no native **New conversation** button like the Website Widget or Admin Playground. Users can manage threads with slash commands (case-insensitive):
+
+| Command | Description |
+| --- | --- |
+| `/new` | Start a new conversation (previous thread is archived, not deleted) |
+| `/clear` | Same as `/new` — start over with a fresh conversation |
+| `/help` | Show available commands |
+
+Example replies:
+
+- `/new` → “Started a new conversation…”
+- `/clear` → “Conversation cleared…”
+- `/help` → command list
+
+These are **system commands**: they never call the AI Runtime, RAG, Business Tools, or consume LLM tokens. Verified identity and authentication context for the WhatsApp contact are preserved.
+
+## Interactive Reply Buttons
+
+WhatsApp replies can include **platform-owned** quick-action buttons (Meta Interactive Reply Buttons):
+
+| Button | Action |
+| --- | --- |
+| 🆕 New Chat | Same as `/new` |
+| ❓ Help | Same as `/help` |
+
+Only Qefro platform actions are supported today. Business-specific buttons (track order, book service, my account, …) are **not** implemented yet — those will come later through Business Tool capabilities.
+
+**Fallback:** If Meta rejects an interactive message (unsupported client, API error, etc.), Qefro sends plain text and lists `/new` and `/help` so users never lose the actions.
+
+Slash commands continue to work alongside buttons. Widget and Playground UI are unchanged.
+
 ## FAQ
 
 ## Related topics
@@ -1958,6 +1991,8 @@ Source: https://docs.qefro.com/docs/platform/custom-domains/
 
 **Custom domains** let employees open the Internal Portal on a hostname you own (for example `ai.yourcompany.com`) instead of only `your-company.qefro.com`.
 
+Custom domains are an add-on to the default workspace subdomain (`{slug}.qefro.com`). See [Workspace Subdomains](/docs/platform/workspace-subdomains) for slug rules and reserved names.
+
 ## Short definition (citation-ready)
 
 > Qefro portal custom domains use Cloudflare custom hostnames so your DNS CNAME terminates TLS and routes to your organization’s Internal Portal.
@@ -2453,6 +2488,17 @@ Typical Qefro webhook base: `https://api.qefro.com/api/v1/whatsapp/webhook` (con
 - Train support staff on escalation paths
 - Monitor conversation analytics and tool logs
 - Document opt-out / business hours policy for WhatsApp
+- Tell users they can type `/new` or `/clear` to start a fresh thread (WhatsApp has no “+” button)
+
+## Conversation commands
+
+| Command | Description |
+| --- | --- |
+| `/new` | Archive the current thread and start a new conversation |
+| `/clear` | Alias of `/new` |
+| `/help` | List commands |
+
+Commands are handled before AI/RAG/tools. WhatsApp replies may also show **Interactive Reply Buttons** (New Chat, Help) with automatic text fallback — see [WhatsApp](/docs/platform/whatsapp#interactive-reply-buttons).
 
 ## Workflow checklist
 
@@ -3491,10 +3537,21 @@ Qefro REST errors typically return JSON with a machine-readable **`code`** and h
 | **401** | Unauthenticated | Missing/expired user JWT or widget token |
 | **403** | Forbidden | Member lacking Admin rights or workspace grant |
 | **404** | Not found | Wrong id, wrong tenant, deleted resource |
-| **409** | Conflict | Idempotent replay, unique constraint (e.g. billing) |
+| **409** | Conflict | Idempotent replay, unique constraint, **slug taken / reserved** |
 | **422** | Semantic validation | Business rule failed |
 | **429** | Rate limited | Back off; see [Rate Limits](/docs/api/rate-limits) |
 | **5xx** | Server / upstream | Retry with jitter; check status with support |
+
+### Workspace slug codes
+
+| Code | HTTP | Meaning |
+| --- | --- | --- |
+| `SLUG_INVALID` | 400 | Failed shape / regex rules |
+| `SLUG_RESERVED` | 409 | Name is in `reserved_subdomains` |
+| `SLUG_TAKEN` | 409 | Another workspace already owns the slug |
+| `RESERVED_SUBDOMAIN_EXISTS` | 409 | Super Admin duplicate reserve |
+
+See [Workspace Subdomains](/docs/platform/workspace-subdomains).
 
 ## Example error payload
 
