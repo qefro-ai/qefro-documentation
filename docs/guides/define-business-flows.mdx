@@ -1,0 +1,211 @@
+---
+title: "Define Business Flows"
+description: "Advertise Business Flows from your backend with @qefro-ai/backend or qefro-backend-sdk. The Qefro Runtime discovers, validates, and versions flows via capabilities.list — the SDK never executes them."
+sidebar_label: "Define Business Flows"
+---
+
+import {
+  InfoBox,
+  Warning,
+  RelatedTopics,
+  FaqAccordion,
+  WorkflowCard,
+} from '@site/src/components';
+
+# Define Business Flows
+
+This guide advertises **Business Flows** from your backend using the Qefro Backend Framework (`@qefro-ai/backend` or `qefro-backend-sdk`). A flow describes **how your existing Business Tools are orchestrated** — which questions to ask, which tools to call, and in what order.
+
+Flows are **metadata only**. The SDK advertises them through the `capabilities.list` message; the Qefro Runtime discovers, validates, versions, and (in a later phase) executes them. **Nothing runs inside the SDK.** Register your tools first with [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) — a flow references those tools by name.
+
+<InfoBox>
+Flows never run in your backend and never change how individual tools behave. They are a declarative description the Runtime reads. This phase stores and displays flows; execution ships later.
+</InfoBox>
+
+## Outcome
+
+- One or more flows declared with `app.flow(...)` in your backend
+- Flows advertised alongside tools via `capabilities.list`
+- Flows discovered on **Sync Tools**, validated, and shown in Admin Console → **Business Tools → SDK Connections**
+- First discovery auto-accepts; later changes surface an **Accept / Reject** version prompt
+
+## Prerequisites
+
+- A working SDK Connection with registered tools (see [Register SDK Business Tools](/docs/guides/register-sdk-business-tools))
+- `@qefro-ai/backend` ≥ 1.1.0 **or** `qefro-backend-sdk` ≥ 1.2.0
+- Owner/Admin access in Admin Console
+
+## Concepts
+
+| Term | Meaning |
+| --- | --- |
+| Flow | `{ metadata, steps }` describing an orchestration of Business Tools |
+| `id` | Immutable identity of the flow. Renaming `name` never creates a new flow |
+| Step | `{ id, type, config }` — a single node; every step needs a unique `id` |
+| `capabilities.list` | Message that returns both `tools` and `flows` (supersedes `tools.list`) |
+| Version detection | The Runtime computes its own checksum over each flow and prompts to Accept/Reject changes |
+| Validation | The Runtime flags errors (block enabling) and warnings (informational) at sync time |
+
+<InfoBox>
+`capabilities.list` is additive on protocol version `1`. Older SDKs that don't recognize it answer with an error, and the Runtime automatically falls back to `tools.list` (tools-only). Upgrade the SDK to advertise flows.
+</InfoBox>
+
+## Step 1 — Declare a flow
+
+Chain step builders off `app.flow(metadata)`. Each `tool` step references an existing tool by `tool_ref`.
+
+### TypeScript
+
+```ts
+import { Qefro } from '@qefro-ai/backend';
+
+const app = new Qefro({ signingSecret: process.env.QEFRO_SIGNING_SECRET! });
+
+// ...register app.tool('lookup_customer', ...) and app.tool('get_orders', ...) first
+
+app
+  .flow({
+    id: 'order_lookup',            // immutable identity — renaming `name` never creates a new flow
+    name: 'Order Lookup',
+    description: 'Lookup customer orders',
+    version: 1,
+    category: 'crm',
+    tags: ['customer', 'orders'],
+    intent: ['track order', 'where is my order', 'find my shipment'],
+    inputs: ['email'],
+    outputs: ['customer', 'orders'],
+  })
+  .ask({ id: 'email', field: 'email', prompt: 'Please enter your email.' })
+  .tool({ id: 'lookup', tool_ref: 'lookup_customer' })
+  .tool({ id: 'orders', tool_ref: 'get_orders' })
+  .complete({ id: 'done', message: 'Here are your recent orders.' });
+
+await app.listen({ port: 8088, path: '/qefro' });
+```
+
+### Rust
+
+```rust
+use qefro_backend_sdk::BusinessFlowMetadata;
+
+app.flow(BusinessFlowMetadata {
+    id: "order_lookup".into(),
+    name: Some("Order Lookup".into()),
+    description: Some("Lookup customer orders".into()),
+    category: Some("crm".into()),
+    tags: vec!["customer".into(), "orders".into()],
+    intent: vec!["track order".into(), "where is my order".into()],
+    inputs: vec!["email".into()],
+    outputs: vec!["customer".into(), "orders".into()],
+    ..Default::default()
+})?
+.ask("email", "email", "Please enter your email.")
+.tool("lookup", "lookup_customer")
+.tool("orders", "get_orders")
+.complete("done", Some("Here are your recent orders.".into()))?;
+```
+
+In Rust, `flow(...)` and `.complete(...)` return `Result` — a duplicate or empty id (flow or step) surfaces a `FlowError` and the flow is excluded from `capabilities.list` instead of panicking. In TypeScript, the same mistakes throw at startup.
+
+## Step 2 — Step types
+
+Every step is `{ id, type, config }`. `id` must be unique within the flow. Type-specific settings live in `config`, so future options extend `config` without breaking the wire format.
+
+| Type | Purpose | Key config |
+| --- | --- | --- |
+| `ask` | Collect input from the customer | `field`, `prompt` |
+| `tool` | Call a registered Business Tool | `tool_ref` |
+| `challenge` | Trigger a customer auth challenge | `message?` |
+| `upload` | Request a file | `field?`, `prompt?`, `accept?` |
+| `condition` | Branch to other steps | `when`, `then?`, `else?` |
+| `delay` | Wait before continuing | `duration_seconds` |
+| `approval` | Require human approval | `prompt?` |
+| `complete` | Terminal step | `message?` |
+
+<Warning>
+`tool_ref` must name a tool advertised by the **same** connection. A flow that references an unknown tool, has a duplicate/missing step id, an unknown step type, no `complete` step, or a `condition` pointing at a nonexistent step is stored as **Invalid** and cannot be enabled until fixed.
+</Warning>
+
+## Step 3 — Sync and review in Admin Console
+
+1. Open **Business Tools → SDK Connections** and select a workspace.
+2. Click **Sync Tools**. The Runtime calls `capabilities.list`, imports tools as before, and discovers your flows.
+3. Each connection shows a **Business Flows** section grouped by category with a Valid / Invalid badge, version info, tags, and inputs/outputs.
+4. Toggle **Enabled** per flow (disabled for invalid flows), and edit **Prompt Overrides** for `ask` steps.
+
+New flows are **auto-accepted** on first discovery. When you change a flow and re-sync, the Runtime detects the change (via its own checksum) and shows a **New Flow Version Available** banner with **Accept** and **Reject**. Accept promotes the pending version; Reject keeps the current one.
+
+## Versioning and identity
+
+- The **Runtime** owns change detection — it computes a SHA-256 over its own canonical serialization of each received flow. The SDK never computes checksums.
+- Identity is the immutable `id`. Rename `name` freely: the flow updates in place, no new version.
+- Bump `version` for your own record-keeping; the Runtime still uses its checksum to decide when an Accept/Reject prompt appears.
+
+## Protocol reference (what Qefro sends)
+
+| Message | When | Your response |
+| --- | --- | --- |
+| `ping` | Test Connection | `{ "type": "pong", ... }` |
+| `capabilities.list` | Sync Tools | `{ "type": "capabilities.list", "tools": [...], "flows": [...] }` |
+| `tools.list` | Legacy Sync (tools only) | `{ "type": "tools.list", "tools": [...] }` |
+
+The framework verifies and signs requests for you when you use `app.listen()`.
+
+## Workflow checklist
+
+<WorkflowCard
+  title="Business Flows launch"
+  steps={[
+    {title: 'Register tools', description: 'app.tool for every tool_ref your flow references.'},
+    {title: 'Declare flows', description: 'app.flow(metadata) + step builders; unique step ids.'},
+    {title: 'Sync Tools', description: 'Runtime calls capabilities.list and discovers flows.'},
+    {title: 'Review validation', description: 'Fix any Invalid flows (errors block enabling).'},
+    {title: 'Enable + tune', description: 'Toggle enabled; set ask-step prompt overrides.'},
+    {title: 'Accept changes', description: 'On later syncs, Accept/Reject new flow versions.'},
+  ]}
+/>
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Do flows execute inside my backend?',
+      answer:
+        'No. Flows are metadata only. The SDK advertises them through capabilities.list; the Qefro Runtime stores and displays them, and executes them in a later phase. Your tools behave exactly as before.',
+    },
+    {
+      question: 'What happens if I only upgrade one side?',
+      answer:
+        'capabilities.list is additive on protocol version 1. An old SDK answers with an error and the Runtime falls back to tools.list (tools only, no flows). Upgrade the SDK to advertise flows.',
+    },
+    {
+      question: 'How does the Runtime detect a changed flow?',
+      answer:
+        'It computes its own SHA-256 checksum over each received flow. First discovery auto-accepts; a differing checksum shows an Accept/Reject prompt. The SDK never computes checksums.',
+    },
+    {
+      question: 'Can I rename a flow without losing its settings?',
+      answer:
+        'Yes. Identity is the immutable id. Renaming name updates the flow in place — enabled state and prompt overrides are preserved.',
+    },
+    {
+      question: 'Why is my flow marked Invalid?',
+      answer:
+        'Common causes: a tool_ref that no tool advertises, a duplicate or missing step id, an unknown step type, no complete step, or a condition pointing at a nonexistent step. Fix these and re-sync; invalid flows cannot be enabled.',
+    },
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Register SDK Business Tools', to: '/docs/guides/register-sdk-business-tools'},
+    {label: 'SDK Framework', to: '/docs/v1/sdk-framework'},
+    {label: 'Business Tools (V1)', to: '/docs/v1/business-tools'},
+    {label: 'Customer Provider', to: '/docs/v1/customer-provider'},
+    {label: 'Business Tools (platform)', to: '/docs/platform/business-tools'},
+    {label: 'Examples', to: '/docs/v1/examples'},
+  ]}
+/>
