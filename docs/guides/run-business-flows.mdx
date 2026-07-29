@@ -1,0 +1,228 @@
+---
+title: "Run Business Flows"
+description: "How the Qefro Runtime executes Business Flows advertised by your SDK backend: activation, step semantics, human approval, customer verification challenges, and monitoring runs in Admin Console."
+sidebar_label: "Run Business Flows"
+---
+
+import {
+  InfoBox,
+  Warning,
+  RelatedTopics,
+  FaqAccordion,
+  WorkflowCard,
+} from '@site/src/components';
+
+# Run Business Flows
+
+[Define Business Flows](/docs/guides/define-business-flows) covers declaring flows in your backend with `app.flow(...)`. This guide covers what happens next: the **Qefro Runtime executes those flows** — asking questions, calling your Business Tools over the signed webhook, pausing for human approval, and verifying customers — while you monitor every run in Admin Console → **Flow Runs**.
+
+Your backend stays passive. The Runtime drives the conversation and only calls back into your SDK when a `tool` step runs (a normal `tool.invoke`, identical to AI-initiated tool calls).
+
+<InfoBox>
+Runnable end-to-end example: <a href="https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/order-approval"><code>examples/order-approval</code></a> in the JS SDK repository — a cancellation flow combining <code>ask</code>, <code>condition</code>, human <code>approval</code>, and an OTP-authenticated <code>tool</code> step.
+</InfoBox>
+
+## When a flow starts
+
+A customer message starts a flow run only when **all** of these hold:
+
+1. The flow is **Enabled** in the connection's Business Flows list.
+2. The flow is **Valid** (no validation errors at sync time).
+3. Its current version is **Accepted** (first discovery auto-accepts).
+4. The conversation has **no active run** already (one run per conversation at a time).
+5. The message **matches the flow's intent** — the Runtime embeds the customer message and compares it against an embedding of each flow's `intent` utterances + name + description. The best flow above a similarity threshold wins.
+
+If no flow matches, the message is handled by the normal AI tool loop. Write `intent` utterances the way real customers phrase the request ("cancel my order", "stop my order from shipping") — they are the primary selection signal.
+
+<Warning>
+A disabled flow does not just hide the orchestration — it also removes any <code>approval</code> gate in it. The AI tool loop can still call your tools directly, protected only by each tool's own <code>auth</code> level. Keep flows enabled if a human sign-off matters.
+</Warning>
+
+## Step semantics at runtime
+
+| Step | Runtime behavior | Run status while waiting |
+| --- | --- | --- |
+| `ask` | Prompts the customer; their next message is stored under `field` | `waiting_for_input` |
+| `tool` | Calls the referenced Business Tool via `tool.invoke`; output stored as a variable | `running` (or `waiting_for_challenge` if auth is needed) |
+| `condition` | Evaluates `when` against collected variables; jumps to `then`/`else` step id | — (instant) |
+| `approval` | Notifies the customer, then pauses until an Owner/Admin approves in **Flow Runs** | `waiting_for_approval` |
+| `challenge` | Explicitly triggers customer verification (same machinery as `auth: required` tools) | `waiting_for_challenge` |
+| `upload` | Asks the customer for a file | `waiting_for_upload` |
+| `delay` | Sleeps for `duration_seconds` (or until an ISO timestamp in `until`); a recovery worker wakes the run | `paused` |
+| `complete` | Sends the final `message` and finishes the run | `completed` |
+
+Step prompts and completion messages are **relayed conversationally**: the Runtime lets the AI rephrase your prompt naturally (never inventing steps or values), falling back to your exact text if generation fails. Prompt Overrides set in Admin Console take precedence over the SDK-declared prompt.
+
+### Variables and templating
+
+Every run carries a variables object:
+
+- `ask` stores the customer's answer under its `field` (e.g. `order_id`).
+- `tool` stores the tool's structured result under the tool's name (e.g. `order_status_check`), or under a custom `output` key if the step sets one.
+
+Reference variables anywhere in prompts and messages with `{{path}}` templates, including dotted paths:
+
+```text
+Order {{order_id}} is currently {{order_status_check.status}}.
+```
+
+By default a `tool` step receives **all collected variables** as its input, so a tool whose `input_schema` requires `order_id` finds the value collected by an earlier `ask`. To map explicitly, set `input_map`: `{ "tool_param": "variable.path" }`.
+
+### Condition expressions
+
+`when` is evaluated by a strict, non-eval parser:
+
+```text
+expr    := path OP literal | path exists | path empty | path
+OP      := == | != | >= | <= | > | <
+literal := true | false | null | number | 'string' | "string" | bareword
+```
+
+- The left side is always a dotted variable path (`order_status_check.found`).
+- Missing paths compare as `null`; a bare path tests truthiness.
+- Examples: `order_status_check.found == true`, `order.total >= 100`, `customer.email exists`, `orders empty`.
+
+An unparseable expression fails the run; an expression that evaluates false with no `else` target simply falls through to the next step in the list.
+
+## Human approval
+
+When a run reaches an `approval` step:
+
+1. The customer receives the step's prompt ("your request has been sent to a supervisor…").
+2. The run shows in **Flow Runs** with a **Needs approval** badge and an inline **Approve** button.
+3. Any **Owner or Admin** of the organization can approve (Members cannot — the API enforces this). Approval resumes the run at the next step.
+4. Whatever the flow does or says next is **delivered back to the customer's channel** — a WhatsApp customer gets a WhatsApp message even though they did not just send one; widget customers see it in their conversation history.
+
+Cancelling the run from the drawer is the "reject" path — the run ends as `cancelled` and the customer can start over.
+
+## Customer verification (challenges)
+
+Two ways a run verifies the customer:
+
+- **Implicit** — a `tool` step references a tool declared with `auth: 'required'`. The Runtime invokes the tool, your customer provider's `authorize` returns a challenge (e.g. `sms_otp`), and the run pauses in `waiting_for_challenge`. The customer's answer resumes the suspended tool call — on success the tool executes with the verified customer and the flow continues.
+- **Explicit** — a standalone `challenge` step, useful when you want verification before a branch rather than attached to one tool.
+
+This is the same challenge machinery as regular authenticated tools — see [Authentication](/docs/business-tools/authentication) and [Challenge & Resume](/docs/business-tools/challenge-resume). Nothing extra to implement: if your tools already challenge, flows inherit it.
+
+## Monitor runs in Admin Console
+
+**Flow Runs** (Business Tools section) lists every execution with live status:
+
+| Status | Meaning |
+| --- | --- |
+| `running` / `pending` | Actively executing steps |
+| `waiting_for_input` / `waiting_for_upload` | Waiting on the customer |
+| `waiting_for_approval` | Waiting on an Owner/Admin — approve inline or from the drawer |
+| `waiting_for_challenge` | Waiting on customer verification (e.g. OTP) |
+| `paused` | Sleeping in a `delay` step; auto-wakes |
+| `completed` / `failed` / `cancelled` | Terminal |
+
+Opening a run shows the collected variables, current step, and a full **event timeline** (`flow_started`, `step_completed`, `challenge_issued`, `approval_received`, …). Failed runs can be **retried** from the last step; any non-terminal run can be **cancelled**.
+
+## Worked example
+
+The `cancel-order` flow from `examples/order-approval` exercises everything above:
+
+```ts
+app
+  .flow({
+    id: 'cancel-order',
+    name: 'Cancel an order',
+    intent: ['cancel my order', 'i want to cancel an order', 'stop my order from shipping'],
+    category: 'orders',
+    version: 1,
+  })
+  .ask({
+    id: 'collect_order_id',
+    field: 'order_id',
+    prompt: 'Which order do you want to cancel? Please share your order ID.',
+  })
+  .tool({ id: 'lookup_order', tool_ref: 'order_status_check' })
+  .condition({
+    id: 'check_found',
+    when: 'order_status_check.found == true',
+    then: 'await_approval',
+    else: 'report_missing',
+  })
+  .complete({
+    id: 'report_missing',
+    message: "I couldn't find an order with ID {{order_id}}, so there is nothing to cancel.",
+  })
+  .approval({
+    id: 'await_approval',
+    prompt: 'Your cancellation request for order {{order_id}} has been sent to a supervisor for approval.',
+  })
+  .tool({ id: 'do_cancel', tool_ref: 'order_cancel' }) // auth: 'required' → OTP challenge
+  .complete({ id: 'confirm_cancelled', message: '{{order_cancel.message}}' });
+```
+
+What the customer and supervisor experience:
+
+1. Customer: *"cancel my order"* → intent matches, run starts, AI asks for the order ID.
+2. Customer: *"ORD-1001"* → stored as `order_id`; `order_status_check` runs; `found == true` branches to the approval step.
+3. Customer is told a supervisor must approve; run shows **Needs approval** in Flow Runs.
+4. An Owner/Admin clicks **Approve** → the run resumes; `order_cancel` requires auth, so the customer receives the OTP prompt on their channel.
+5. Customer replies with the code → the tool executes → *"Order ORD-1001 has been cancelled…"*.
+
+## Workflow checklist
+
+<WorkflowCard
+  title="Ship an executable flow"
+  steps={[
+    {title: 'Declare + sync', description: 'app.flow(...) in your backend, then Sync Tools in Admin Console.'},
+    {title: 'Enable the flow', description: 'Valid + accepted flows can be toggled Enabled per connection.'},
+    {title: 'Tune intent', description: 'Write intent utterances as customers phrase them — they drive selection.'},
+    {title: 'Test end-to-end', description: 'Trigger from chat; watch the run advance in Flow Runs.'},
+    {title: 'Approve + verify', description: 'Exercise approval and challenge steps with a real Owner/Admin account.'},
+    {title: 'Monitor', description: 'Use the run drawer timeline to debug failed or stuck runs; Retry after fixing.'},
+  ]}
+/>
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Does my backend need new code for flow execution?',
+      answer:
+        'No. Flows execute entirely in the Qefro Runtime. Your backend only answers the same signed tool.invoke calls it already handles for AI-initiated tool use — plus authorize/verify if your tools use challenges.',
+    },
+    {
+      question: 'Who can approve an approval step?',
+      answer:
+        'Any Owner or Admin of the organization, from the Flow Runs page. Members are rejected by the API. There is no per-flow approver assignment today.',
+    },
+    {
+      question: 'What happens if the customer walks away mid-flow?',
+      answer:
+        'The run stays in its waiting state (waiting_for_input, waiting_for_approval, …) and is visible in Flow Runs. An admin can cancel it at any time; a new message from the customer resumes it.',
+    },
+    {
+      question: 'How does the runtime pick between multiple enabled flows?',
+      answer:
+        'Semantic similarity: the customer message is embedded and compared against each flow\'s intent utterances, name, and description. The highest-scoring flow above the threshold starts; below the threshold, the normal AI tool loop handles the message.',
+    },
+    {
+      question: 'Why did my flow not trigger at all?',
+      answer:
+        'Check the gate: the flow must be Enabled, Valid, and its version Accepted, and the conversation must not already have an active run. Then check that the message resembles your intent utterances.',
+    },
+    {
+      question: 'Are approval and challenge messages delivered to WhatsApp?',
+      answer:
+        'Yes. When a run advances out-of-band (an admin approves, a delay wakes), the resulting message is persisted to the conversation and pushed to the customer\'s channel — WhatsApp customers receive it as a normal message.',
+    },
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Define Business Flows', to: '/docs/guides/define-business-flows'},
+    {label: 'Register SDK Business Tools', to: '/docs/guides/register-sdk-business-tools'},
+    {label: 'Authentication', to: '/docs/business-tools/authentication'},
+    {label: 'Challenge & Resume', to: '/docs/business-tools/challenge-resume'},
+    {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
+  ]}
+/>

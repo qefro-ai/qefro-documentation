@@ -16,10 +16,10 @@ import {
 
 This guide advertises **Business Flows** from your backend using the Qefro Backend Framework (`@qefro-ai/backend` or `qefro-backend-sdk`). A flow describes **how your existing Business Tools are orchestrated** — which questions to ask, which tools to call, and in what order.
 
-Flows are **metadata only**. The SDK advertises them through the `capabilities.list` message; the Qefro Runtime discovers, validates, versions, and (in a later phase) executes them. **Nothing runs inside the SDK.** Register your tools first with [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) — a flow references those tools by name.
+Flows are **metadata only** in your backend. The SDK advertises them through the `capabilities.list` message; the Qefro Runtime discovers, validates, versions, and **executes** them. **Nothing runs inside the SDK.** Register your tools first with [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) — a flow references those tools by name. Once a flow is enabled, see [Run Business Flows](/docs/guides/run-business-flows) for how the Runtime executes it.
 
 <InfoBox>
-Flows never run in your backend and never change how individual tools behave. They are a declarative description the Runtime reads. This phase stores and displays flows; execution ships later.
+Flows never run in your backend and never change how individual tools behave. They are a declarative description the Runtime reads — and, once enabled, executes: asking questions, calling your tools, pausing for approval, and verifying customers.
 </InfoBox>
 
 ## Outcome
@@ -118,7 +118,7 @@ Every step is `{ id, type, config }`. `id` must be unique within the flow. Type-
 | `challenge` | Trigger a customer auth challenge | `message?` |
 | `upload` | Request a file | `field?`, `prompt?`, `accept?` |
 | `condition` | Branch to other steps | `when`, `then?`, `else?` |
-| `delay` | Wait before continuing | `duration_seconds` |
+| `delay` | Wait before continuing | `duration_seconds` (or ISO `until`) |
 | `approval` | Require human approval | `prompt?` |
 | `complete` | Terminal step | `message?` |
 
@@ -132,6 +132,8 @@ Every step is `{ id, type, config }`. `id` must be unique within the flow. Type-
 2. Click **Sync Tools**. The Runtime calls `capabilities.list`, imports tools as before, and discovers your flows.
 3. Each connection shows a **Business Flows** section grouped by category with a Valid / Invalid badge, version info, tags, and inputs/outputs.
 4. Toggle **Enabled** per flow (disabled for invalid flows), and edit **Prompt Overrides** for `ask` steps.
+
+An enabled, valid, accepted flow is live: matching customer messages start a run the Runtime executes end to end — see [Run Business Flows](/docs/guides/run-business-flows).
 
 New flows are **auto-accepted** on first discovery. When you change a flow and re-sync, the Runtime detects the change (via its own checksum) and shows a **New Flow Version Available** banner with **Accept** and **Reject**. Accept promotes the pending version; Reject keeps the current one.
 
@@ -172,7 +174,7 @@ The framework verifies and signs requests for you when you use `app.listen()`.
     {
       question: 'Do flows execute inside my backend?',
       answer:
-        'No. Flows are metadata only. The SDK advertises them through capabilities.list; the Qefro Runtime stores and displays them, and executes them in a later phase. Your tools behave exactly as before.',
+        'No. Flows are metadata only from the SDK\'s point of view: it advertises them through capabilities.list, and the Qefro Runtime stores, displays, and executes them. During execution your backend only answers normal tool.invoke calls for tool steps. Your tools behave exactly as before.',
     },
     {
       question: 'What happens if I only upgrade one side?',
@@ -201,6 +203,7 @@ The framework verifies and signs requests for you when you use `app.listen()`.
 
 <RelatedTopics
   topics={[
+    {label: 'Run Business Flows', to: '/docs/guides/run-business-flows'},
     {label: 'Register SDK Business Tools', to: '/docs/guides/register-sdk-business-tools'},
     {label: 'SDK Framework', to: '/docs/v1/sdk-framework'},
     {label: 'Business Tools (V1)', to: '/docs/v1/business-tools'},
