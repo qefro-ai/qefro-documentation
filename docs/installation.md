@@ -34,6 +34,14 @@ qefro-backend-sdk = "1"
 
 Package: [crates.io/crates/qefro-backend-sdk](https://crates.io/crates/qefro-backend-sdk) · [docs.rs](https://docs.rs/qefro-backend-sdk)
 
+### Python (PyPI)
+
+```bash
+pip install qefro-backend
+```
+
+Package: [pypi.org/project/qefro-backend](https://pypi.org/project/qefro-backend/) (import `qefro_backend`, zero runtime dependencies)
+
 ## Verify installation
 - Portal loads
 - API health endpoint returns ok

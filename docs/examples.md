@@ -10,6 +10,7 @@ Backend examples:
 
 - **TypeScript** — [`@qefro-ai/backend`](https://www.npmjs.com/package/@qefro-ai/backend): [qefro-js-backend-sdk/examples](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples)
 - **Rust** — [`qefro-backend-sdk`](https://crates.io/crates/qefro-backend-sdk): [qefro-rust-backend-sdk/examples](https://github.com/qefro-ai/qefro-rust-backend-sdk/tree/main/examples)
+- **Python** — [`qefro-backend`](https://pypi.org/project/qefro-backend/): [qefro-python-backend-sdk/examples](https://github.com/qefro-ai/qefro-python-backend-sdk/tree/main/examples)
 
 ```bash
 # TypeScript
@@ -21,6 +22,11 @@ cp .env.example .env && npm install && npm start
 cargo add qefro-backend-sdk
 # or clone https://github.com/qefro-ai/qefro-rust-backend-sdk and run:
 # cargo run --example basic
+
+# Python
+pip install qefro-backend
+# or clone https://github.com/qefro-ai/qefro-python-backend-sdk and run:
+# python examples/basic/server.py
 ```
 
 All example backends expose `POST /qefro` and include:

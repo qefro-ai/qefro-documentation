@@ -6,7 +6,7 @@ unlisted: true
 sidebar_label: SDK Framework
 ---
 
-The Qefro Backend Framework (`@qefro-ai/backend` for TypeScript, `qefro-backend-sdk` for Rust) is how organizations register **Business Tool handlers** and own customer authentication.
+The Qefro Backend Framework (`@qefro-ai/backend` for TypeScript, `qefro-backend-sdk` for Rust, `qefro-backend` for Python) is how organizations register **Business Tool handlers** and own customer authentication.
 
 Qefro calls your backend over one signed webhook (typically `POST /qefro`). You never implement `/auth/evaluate` on Qefro — auth lives inside your handlers.
 
@@ -32,6 +32,14 @@ qefro-backend-sdk = "1"
 ```
 
 [crates.io/crates/qefro-backend-sdk](https://crates.io/crates/qefro-backend-sdk) · [docs.rs](https://docs.rs/qefro-backend-sdk)
+
+### Python (PyPI)
+
+```bash
+pip install qefro-backend
+```
+
+[pypi.org/project/qefro-backend](https://pypi.org/project/qefro-backend/) — import `qefro_backend`, zero runtime dependencies.
 
 ```bash
 export QEFRO_SIGNING_SECRET="your-signing-secret"
@@ -169,6 +177,37 @@ async fn main() -> Result<()> {
 
 More: [github.com/qefro-ai/qefro-rust-backend-sdk/examples](https://github.com/qefro-ai/qefro-rust-backend-sdk/tree/main/examples).
 
+### Python (PyPI)
+
+Handlers may be sync or `async`; register tools with the `@app.tool(...)` decorator.
+
+```python
+from qefro_backend import Qefro, CustomerProvider
+
+app = Qefro(signing_secret="...")  # or QEFRO_SIGNING_SECRET from env
+
+class Customers(CustomerProvider):
+    async def lookup(self, ctx):
+        return {"id": str((ctx.identity or {}).get("phone", "demo"))}
+
+    async def authorize(self, ctx):
+        return ctx.auth.success(
+            ctx.customer,
+            {"type": "bearer_token", "access_token": "dev", "expires_in": 900},
+        )
+
+app.customer(Customers())
+
+@app.tool("get_orders", auth="required", description="List orders for the authenticated customer")
+async def get_orders(ctx):
+    customer = ctx.customer.require()
+    return [{"orderId": "ord_1", "customerId": customer["id"]}]
+
+app.run(8088)  # POST http://0.0.0.0:8088/qefro
+```
+
+More: [github.com/qefro-ai/qefro-python-backend-sdk/examples](https://github.com/qefro-ai/qefro-python-backend-sdk/tree/main/examples).
+
 ## Protocol
 
 | Type | Direction | Purpose |
@@ -209,4 +248,4 @@ APIs:
 
 Expose `POST /qefro` behind HTTPS with stable secret management. Rotate secrets from Admin Console and update `QEFRO_SIGNING_SECRET` together.
 
-See also: [Business Tools](/docs/v1/business-tools), [Customer Provider](/docs/v1/customer-provider), [Examples](/docs/v1/examples) ([JS](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples) · [Rust](https://github.com/qefro-ai/qefro-rust-backend-sdk/tree/main/examples)).
+See also: [Business Tools](/docs/v1/business-tools), [Customer Provider](/docs/v1/customer-provider), [Examples](/docs/v1/examples) ([JS](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples) · [Rust](https://github.com/qefro-ai/qefro-rust-backend-sdk/tree/main/examples) · [Python](https://github.com/qefro-ai/qefro-python-backend-sdk/tree/main/examples)).

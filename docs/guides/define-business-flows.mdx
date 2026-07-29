@@ -1,6 +1,6 @@
 ---
 title: "Define Business Flows"
-description: "Advertise Business Flows from your backend with @qefro-ai/backend or qefro-backend-sdk. The Qefro Runtime discovers, validates, and versions flows via capabilities.list — the SDK never executes them."
+description: "Advertise Business Flows from your backend with @qefro-ai/backend, qefro-backend-sdk, or qefro-backend. The Qefro Runtime discovers, validates, and versions flows via capabilities.list — the SDK never executes them."
 sidebar_label: "Define Business Flows"
 ---
 
@@ -14,7 +14,7 @@ import {
 
 # Define Business Flows
 
-This guide advertises **Business Flows** from your backend using the Qefro Backend Framework (`@qefro-ai/backend` or `qefro-backend-sdk`). A flow describes **how your existing Business Tools are orchestrated** — which questions to ask, which tools to call, and in what order.
+This guide advertises **Business Flows** from your backend using the Qefro Backend Framework (`@qefro-ai/backend`, `qefro-backend-sdk`, or `qefro-backend`). A flow describes **how your existing Business Tools are orchestrated** — which questions to ask, which tools to call, and in what order.
 
 Flows are **metadata only** in your backend. The SDK advertises them through the `capabilities.list` message; the Qefro Runtime discovers, validates, versions, and **executes** them. **Nothing runs inside the SDK.** Register your tools first with [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) — a flow references those tools by name. Once a flow is enabled, see [Run Business Flows](/docs/guides/run-business-flows) for how the Runtime executes it.
 
@@ -32,7 +32,7 @@ Flows never run in your backend and never change how individual tools behave. Th
 ## Prerequisites
 
 - A working SDK Connection with registered tools (see [Register SDK Business Tools](/docs/guides/register-sdk-business-tools))
-- `@qefro-ai/backend` ≥ 1.1.0 **or** `qefro-backend-sdk` ≥ 1.2.0
+- `@qefro-ai/backend` ≥ 1.1.0 **or** `qefro-backend-sdk` ≥ 1.2.0 **or** `qefro-backend` ≥ 1.0.0
 - Owner/Admin access in Admin Console
 
 ## Concepts
@@ -106,6 +106,37 @@ app.flow(BusinessFlowMetadata {
 ```
 
 In Rust, `flow(...)` and `.complete(...)` return `Result` — a duplicate or empty id (flow or step) surfaces a `FlowError` and the flow is excluded from `capabilities.list` instead of panicking. In TypeScript, the same mistakes throw at startup.
+
+### Python
+
+```python
+from qefro_backend import Qefro
+
+app = Qefro(signing_secret="...")  # or QEFRO_SIGNING_SECRET from env
+
+# ...register app.tool("lookup_customer", ...) and app.tool("get_orders", ...) first
+
+(
+    app.flow({
+        "id": "order_lookup",          # immutable identity — renaming `name` never creates a new flow
+        "name": "Order Lookup",
+        "description": "Lookup customer orders",
+        "category": "crm",
+        "tags": ["customer", "orders"],
+        "intent": ["track order", "where is my order", "find my shipment"],
+        "inputs": ["email"],
+        "outputs": ["customer", "orders"],
+    })
+    .ask("email", field="email", prompt="Please enter your email.")
+    .tool("lookup", tool_ref="lookup_customer")
+    .tool("orders", tool_ref="get_orders")
+    .complete("done", message="Here are your recent orders.")
+)
+
+app.run(8088)  # POST http://0.0.0.0:8088/qefro
+```
+
+In Python, a duplicate or empty id (flow or step) raises `FlowError` at declaration time. Use the `else_` argument on `.condition(...)` (Python keyword) — it is serialized as the `else` wire key.
 
 ## Step 2 — Step types
 

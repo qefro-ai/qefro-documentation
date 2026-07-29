@@ -1,6 +1,6 @@
 ---
 title: "Register SDK Business Tools"
-description: "Use @qefro-ai/backend or qefro-backend-sdk to register handlers, connect your webhook in Admin Console, and sync tools into a workspace as Business Tools."
+description: "Use @qefro-ai/backend, qefro-backend-sdk, or qefro-backend to register handlers, connect your webhook in Admin Console, and sync tools into a workspace as Business Tools."
 sidebar_label: "Register SDK Business Tools"
 ---
 
@@ -15,7 +15,7 @@ import {
 
 # Register SDK Business Tools
 
-This guide registers **Business Tools** from your backend using the Qefro Backend Framework (`@qefro-ai/backend` or `qefro-backend-sdk`). Tools live in your code; Admin Console only manages the signed connection and syncs metadata into a workspace.
+This guide registers **Business Tools** from your backend using the Qefro Backend Framework (`@qefro-ai/backend`, `qefro-backend-sdk`, or `qefro-backend`). Tools live in your code; Admin Console only manages the signed connection and syncs metadata into a workspace.
 
 Prefer this path when tools need **customer authentication**, stateful workflows, or logic that does not map cleanly to a single REST call. For existing HTTPS APIs, use [Connect REST APIs](/docs/guides/connect-rest-apis) or [Import OpenAPI](/docs/guides/import-openapi).
 
@@ -29,7 +29,7 @@ Prefer this path when tools need **customer authentication**, stateful workflows
 ## Prerequisites
 
 - Owner/Admin access in Admin Console
-- Node.js 18+ (TypeScript) **or** Rust for `qefro-backend-sdk`
+- Node.js 18+ (TypeScript), Rust for `qefro-backend-sdk`, **or** Python 3.9+ for `qefro-backend`
 - A publicly reachable HTTPS URL Qefro can call (SSRF-checked — no private IPs)
 - Decision: which **workspace** should receive synced tools
 
@@ -91,6 +91,14 @@ qefro-backend-sdk = "1"
 ```
 
 Published on [crates.io](https://crates.io/crates/qefro-backend-sdk). Source: [qefro-rust-backend-sdk](https://github.com/qefro-ai/qefro-rust-backend-sdk).
+
+### Python
+
+```bash
+pip install qefro-backend
+```
+
+Published on [PyPI](https://pypi.org/project/qefro-backend/) (import `qefro_backend`). Source: [qefro-python-backend-sdk](https://github.com/qefro-ai/qefro-python-backend-sdk).
 
 Set a strong signing secret (store in a secrets manager; never commit):
 
@@ -226,7 +234,7 @@ You do not implement routing for protocol messages yourself. `app.listen()` owns
 ## Step 3 — Expose the webhook
 
 1. Deploy the process behind HTTPS (load balancer / reverse proxy).
-2. Forward `POST /qefro` (or your chosen path) to the Node/Rust process.
+2. Forward `POST /qefro` (or your chosen path) to the Node/Rust/Python process.
 3. Confirm the URL is publicly reachable (Qefro rejects private/link-local targets).
 
 Local development tip: use a tunnel (ngrok, Cloudflare Tunnel, etc.) so Admin Console can Test and Sync against your laptop.
@@ -343,7 +351,7 @@ Request signing uses HMAC over timestamp + body (`X-Qefro-Signature`, `X-Qefro-T
 <WorkflowCard
   title="SDK Business Tools launch"
   steps={[
-    {title: 'Install framework', description: '@qefro-ai/backend or qefro-backend-sdk + signing secret.'},
+    {title: 'Install framework', description: '@qefro-ai/backend, qefro-backend-sdk, or qefro-backend + signing secret.'},
     {title: 'Register tools', description: 'app.tool + customer lookup/authorize.'},
     {title: 'Expose HTTPS webhook', description: 'POST /qefro publicly reachable.'},
     {title: 'Create SDK Connection', description: 'Webhook URL + secret in Admin Console.'},
@@ -389,7 +397,7 @@ You can mix REST/OpenAPI and SDK tools in the same workspace.
     {
       question: 'Is there an example repo?',
       answer:
-        'Yes. TypeScript: github.com/qefro-ai/qefro-js-backend-sdk (examples/). Rust: github.com/qefro-ai/qefro-rust-backend-sdk (examples/basic) — install with cargo add qefro-backend-sdk from crates.io.',
+        'Yes. TypeScript: github.com/qefro-ai/qefro-js-backend-sdk (examples/). Rust: github.com/qefro-ai/qefro-rust-backend-sdk (examples/basic) — install with cargo add qefro-backend-sdk from crates.io. Python: github.com/qefro-ai/qefro-python-backend-sdk (examples/) — install with pip install qefro-backend from PyPI.',
     },
   ]}
 />
