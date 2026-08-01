@@ -1,0 +1,72 @@
+---
+title: "How to connect Shopify"
+description: "Operator steps to connect Shopify so Qefro can use commerce data and events for your AI Workspace."
+sidebar_label: "Connect Shopify"
+---
+
+import { InfoBox, WorkflowCard, RelatedTopics } from '@site/src/components';
+
+# How to connect Shopify
+
+**Goal:** Link your Shopify store so support or commerce assistants can use order/catalog context and (with engineering) event-driven flows such as abandoned cart.
+
+## Who does what
+
+| Role | Tasks |
+| --- | --- |
+| **You (admin)** | Choose workspace, approve access, test chat |
+| **Engineering** | Deploy/configure the Shopify connector, secrets, and flow triggers |
+
+<InfoBox>
+Qefro does not replace Shopify Admin. It **calls** Shopify (tools) and/or **receives** store events (connector → Runtime).
+</InfoBox>
+
+## What you need
+
+- Owner or Admin on the Qefro organization
+- Shopify store admin access (or a collaborator who can install apps / create admin tokens — per your security policy)
+- A target **AI Workspace** (e.g. Support or Commerce)
+
+## Steps (operator)
+
+1. Open [app.qefro.com](https://app.qefro.com) → your organization.
+2. Open the **AI Workspace** that should own commerce answers and tools.
+3. Confirm **knowledge** is ready for policies (shipping, returns) — [Knowledge Base](/docs/user/knowledge-base/overview).
+4. Ask engineering to enable the **Shopify** integration for this org/workspace — they follow [Integrations → Shopify](/docs/integrations/shopify/overview).
+5. When tools appear under Business Tools, run **Test** from Admin Console chat:
+   - “Where is order 1001?”
+   - “What is your return window?” (should cite knowledge, not invent policy)
+6. Optional: enable **website widget** or **WhatsApp** on the same workspace — [Channels](/docs/user/channels/overview).
+7. Optional outcomes: [Order tracking](/docs/solutions/order-tracking), [Abandoned cart](/docs/solutions/abandoned-cart).
+
+## Workflow
+
+<WorkflowCard
+  title="Shopify connected"
+  steps={[
+    {title: 'Pick workspace', description: 'Support vs Commerce isolation.'},
+    {title: 'Upload policies', description: 'Returns, shipping, FAQs.'},
+    {title: 'Engineering connects store', description: 'Connector + credentials.'},
+    {title: 'Verify tools in chat', description: 'Real order IDs in a safe environment first.'},
+    {title: 'Turn on channel', description: 'Widget and/or WhatsApp.'},
+  ]}
+/>
+
+## Troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| Assistant cannot see orders | Tool registered? Correct workspace? Engineering credentials valid? |
+| Wrong store data | Multiple shops — confirm which connection is bound to this workspace |
+| Events not starting flows | Engineering: event names + flow `metadata.trigger` — [Event-driven triggers](/docs/guides/event-driven-triggers) |
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Shopify integration', to: '/docs/integrations/shopify/overview'},
+    {label: 'Order tracking solution', to: '/docs/solutions/order-tracking'},
+    {label: 'Abandoned cart', to: '/docs/solutions/abandoned-cart'},
+    {label: 'Create an AI agent', to: '/docs/user/how-to/create-ai-agent'},
+  ]}
+/>

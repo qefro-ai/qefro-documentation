@@ -1,0 +1,53 @@
+---
+title: "WhatsApp commerce"
+description: "Sell and support on WhatsApp with grounded product answers, order tools, and optional event-driven journeys."
+sidebar_label: "WhatsApp commerce"
+---
+
+import { RelatedTopics, WorkflowCard } from '@site/src/components';
+
+# WhatsApp commerce
+
+**Outcome:** Customers discover products, get policy-correct answers, check orders, and complete guided commerce tasks on **WhatsApp** — backed by the same workspace Runtime as your website.
+
+## Building blocks
+
+| Piece | Role |
+| --- | --- |
+| Customer AI workspace | Knowledge + instructions |
+| WhatsApp channel | [Configure WhatsApp](/docs/user/how-to/configure-whatsapp) |
+| Catalog / order tools | Shopify, WooCommerce, or custom SDK |
+| Flows | Checkout help, abandoned cart, returns |
+| Events | Cart/checkout webhooks → FlowRunner |
+
+## Operator path
+
+1. [Create an AI agent](/docs/user/how-to/create-ai-agent) for commerce/support.
+2. Connect store — [Connect Shopify](/docs/user/how-to/connect-shopify) or WooCommerce integration.
+3. [Configure WhatsApp](/docs/user/how-to/configure-whatsapp) on that workspace.
+4. Test order tracking and FAQs on a real device.
+5. Add journeys: [Abandoned cart](/docs/solutions/abandoned-cart), [Order tracking](/docs/solutions/order-tracking), [Refund automation](/docs/solutions/refund-automation).
+
+## Workflow
+
+<WorkflowCard
+  title="WhatsApp commerce MVP"
+  steps={[
+    {title: 'Workspace + catalog knowledge', description: 'Accurate product and policy answers.'},
+    {title: 'Commerce tools', description: 'Orders and optionally catalog.'},
+    {title: 'WhatsApp live', description: 'One number, one workspace.'},
+    {title: 'One automated journey', description: 'e.g. abandoned cart event.'},
+    {title: 'Measure conversion / CSAT', description: 'Iterate instructions and tools.'},
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Conversational commerce', to: '/docs/solutions/conversational-commerce'},
+    {label: 'Configure WhatsApp', to: '/docs/user/how-to/configure-whatsapp'},
+    {label: 'Event-driven triggers', to: '/docs/guides/event-driven-triggers'},
+    {label: 'Customer support', to: '/docs/solutions/customer-support'},
+  ]}
+/>

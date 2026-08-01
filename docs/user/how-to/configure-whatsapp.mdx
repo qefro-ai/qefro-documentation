@@ -1,0 +1,68 @@
+---
+title: "How to configure WhatsApp"
+description: "Connect WhatsApp as a Customer AI channel for an AI Workspace."
+sidebar_label: "Configure WhatsApp"
+---
+
+import { InfoBox, WorkflowCard, RelatedTopics } from '@site/src/components';
+
+# How to configure WhatsApp
+
+**Goal:** Customers message your business on WhatsApp and reach the same grounded Customer AI as your website widget.
+
+## Prerequisites
+
+- Plan that includes WhatsApp (typically **Growth+** — confirm on your billing page)
+- Owner or Admin role
+- Meta / WhatsApp Business assets ready (Business portfolio, WABA, phone number) — engineering or a partner may complete Meta-side setup
+- Target **AI Workspace** with indexed knowledge
+
+## Steps (operator)
+
+1. Open [app.qefro.com](https://app.qefro.com) → **Channels** / WhatsApp settings (wording may vary slightly by release).
+2. Select the **AI Workspace** that should answer WhatsApp traffic.
+3. Complete provider connection (embedded signup or admin fields your org uses).
+4. Confirm the **phone number** shows as connected / quality pending as applicable.
+5. Send a test message from a personal WhatsApp to the business number.
+6. In **Conversations**, open the thread and verify:
+   - Reply is grounded (citations / correct policy)
+   - Handoff behavior matches your instructions
+7. Optional: enable Business Tools so WhatsApp users can check orders (same tools as widget).
+
+<InfoBox>
+WhatsApp template / marketing outbound rules are governed by Meta. Qefro focuses on the **AI session** once the customer is in a supported messaging context. Follow Meta policy for opt-in and templates.
+</InfoBox>
+
+## Workflow
+
+<WorkflowCard
+  title="WhatsApp channel live"
+  steps={[
+    {title: 'Workspace ready', description: 'Knowledge tested in Console first.'},
+    {title: 'Connect WABA / number', description: 'Admin + Meta prerequisites.'},
+    {title: 'Bind workspace', description: 'Right team owns the answers.'},
+    {title: 'Live test message', description: 'From a real device.'},
+    {title: 'Monitor conversations', description: 'Tune instructions and docs.'},
+  ]}
+/>
+
+## Troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| No reply | Number bound? Workspace correct? API healthy? |
+| Wrong knowledge | Different workspace than widget — align bindings |
+| Tools fail | Same as web: tool auth / Customer Provider — ask engineering |
+
+Deep technical guide: [Deploy WhatsApp AI](/docs/guides/deploy-whatsapp-ai). Platform overview: [WhatsApp](/docs/platform/whatsapp).
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Channels overview', to: '/docs/user/channels/overview'},
+    {label: 'Deploy WhatsApp guide', to: '/docs/guides/deploy-whatsapp-ai'},
+    {label: 'Conversations', to: '/docs/user/conversations/overview'},
+    {label: 'Customer support solution', to: '/docs/solutions/customer-support'},
+  ]}
+/>

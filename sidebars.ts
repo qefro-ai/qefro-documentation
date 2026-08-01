@@ -1,22 +1,33 @@
 import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
 /**
- * Information architecture:
- * Introduction · User Guide · Developer Guide · Integrations · Solutions · Reference
+ * Documentation as a product — priority order:
+ *   P0 Getting Started · User · Developer
+ *   P1 Integrations · Solutions
+ *   P2 API / SDK Reference
+ *   P3 Architecture deep dive
  *
- * Deep technical pages remain under concepts/, platform/, business-tools/, guides/,
- * api/, security/ and are linked from the audience hubs (stable URLs).
+ * Voice rules:
+ *   User docs     → what to do (how-to)
+ *   Developer docs → how Qefro works (runtime concepts)
+ *   Reference     → exact specs
+ *   Solutions     → business outcomes
+ *
+ * Deep pages under concepts/, platform/, business-tools/, guides/, api/, security/
+ * keep stable URLs and are linked from audience hubs.
  */
 const sidebars: SidebarsConfig = {
   userSidebar: [
     {
       type: 'category',
-      label: 'Introduction',
+      label: 'Start here',
       collapsed: false,
       items: [
         'introduction/overview',
-        'introduction/architecture',
+        'architecture/overview',
         'introduction/concepts',
+        'compare/n8n-vs-qefro',
+        'compare/langgraph-vs-qefro',
         'glossary',
       ],
     },
@@ -29,6 +40,18 @@ const sidebars: SidebarsConfig = {
         'getting-started/installation',
         'getting-started/quick-start',
         'guides/build-ai-customer-support',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'How to',
+      collapsed: false,
+      items: [
+        'user/how-to/create-ai-agent',
+        'user/how-to/configure-whatsapp',
+        'user/how-to/connect-shopify',
+        'user/how-to/track-orders',
+        'user/how-to/add-approval-workflow',
       ],
     },
     {
@@ -129,22 +152,15 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Quick Start',
       collapsed: false,
-      items: ['developer/quick-start', 'guides/register-sdk-business-tools'],
-    },
-    {
-      type: 'category',
-      label: 'SDK',
-      collapsed: false,
       items: [
-        'developer/sdk/javascript',
-        'developer/sdk/python',
-        'developer/sdk/rust',
-        'business-tools/backend-sdk',
+        'developer/quick-start',
+        'architecture/overview',
+        'guides/register-sdk-business-tools',
       ],
     },
     {
       type: 'category',
-      label: 'Concepts',
+      label: 'How Qefro works',
       collapsed: false,
       items: [
         'developer/concepts/runtime',
@@ -156,10 +172,33 @@ const sidebars: SidebarsConfig = {
         'developer/concepts/approvals',
         'developer/concepts/challenges',
         'developer/concepts/memory',
+        'developer/concepts/sessions',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Architecture deep dive',
+      collapsed: true,
+      items: [
+        'architecture/overview',
+        'introduction/architecture',
         'business-tools/runtime',
-        'concepts/business-actions',
         'concepts/multi-tenant-ai-architecture',
         'concepts/ai-agent-security',
+        'concepts/business-actions',
+        'compare/n8n-vs-qefro',
+        'compare/langgraph-vs-qefro',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'SDK guides',
+      collapsed: false,
+      items: [
+        'developer/sdk/javascript',
+        'developer/sdk/python',
+        'developer/sdk/rust',
+        'business-tools/backend-sdk',
       ],
     },
     {
@@ -240,21 +279,6 @@ const sidebars: SidebarsConfig = {
         'v1-kubernetes',
       ],
     },
-    {
-      type: 'category',
-      label: 'API Reference',
-      collapsed: true,
-      items: [
-        'developer/api-reference/overview',
-        'api/authentication',
-        'api/rest-apis',
-        'api/sdks',
-        'api/webhooks',
-        'api/rate-limits',
-        'api/error-codes',
-        'api/examples',
-      ],
-    },
   ],
 
   integrationsSidebar: [
@@ -263,7 +287,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Shopify',
       collapsed: true,
-      items: ['integrations/shopify/overview'],
+      items: ['integrations/shopify/overview', 'user/how-to/connect-shopify'],
     },
     {
       type: 'category',
@@ -315,9 +339,11 @@ const sidebars: SidebarsConfig = {
   solutionsSidebar: [
     'solutions/overview',
     'solutions/customer-support',
+    'solutions/whatsapp-commerce',
     'solutions/order-tracking',
     'solutions/abandoned-cart',
     'solutions/appointment-booking',
+    'solutions/lead-qualification',
     'solutions/refund-automation',
     'solutions/conversational-commerce',
     {
@@ -328,42 +354,71 @@ const sidebars: SidebarsConfig = {
         'guides/build-ai-customer-support',
         'guides/event-driven-triggers',
         'guides/secure-business-actions',
+        'user/how-to/track-orders',
+        'user/how-to/add-approval-workflow',
       ],
     },
   ],
 
   referenceSidebar: [
     'reference/overview',
-    'reference/cli',
-    'reference/environment-variables',
-    'reference/configuration',
-    'reference/event-reference',
-    'reference/connector-reference',
     {
       type: 'category',
-      label: 'API',
-      collapsed: true,
+      label: 'API reference',
+      collapsed: false,
       items: [
+        'developer/api-reference/overview',
         'api/authentication',
         'api/rest-apis',
-        'api/sdks',
         'api/webhooks',
         'api/rate-limits',
         'api/error-codes',
         'api/examples',
       ],
     },
-    'api/error-codes',
-    'glossary',
-    'faq',
-    'troubleshooting',
-    'reference/changelog',
-    'release-notes',
+    {
+      type: 'category',
+      label: 'SDK reference',
+      collapsed: false,
+      items: [
+        'api/sdks',
+        'developer/sdk/javascript',
+        'developer/sdk/python',
+        'developer/sdk/rust',
+        'business-tools/backend-sdk',
+        'business-tools/parameters-reference',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Schemas & config',
+      collapsed: false,
+      items: [
+        'reference/event-reference',
+        'reference/connector-reference',
+        'reference/environment-variables',
+        'reference/configuration',
+        'reference/cli',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Architecture (P3)',
+      collapsed: true,
+      items: [
+        'architecture/overview',
+        'introduction/architecture',
+        'concepts/multi-tenant-ai-architecture',
+        'business-tools/runtime',
+      ],
+    },
     {
       type: 'category',
       label: 'Compare',
-      collapsed: true,
+      collapsed: false,
       items: [
+        'compare/n8n-vs-qefro',
+        'compare/langgraph-vs-qefro',
         'compare/chatbase-vs-qefro',
         'compare/intercom-vs-qefro',
         'compare/zendesk-vs-qefro',
@@ -384,6 +439,11 @@ const sidebars: SidebarsConfig = {
         'security/compliance',
       ],
     },
+    'glossary',
+    'faq',
+    'troubleshooting',
+    'reference/changelog',
+    'release-notes',
   ],
 };
 

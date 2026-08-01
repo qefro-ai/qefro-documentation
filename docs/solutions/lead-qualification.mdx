@@ -1,0 +1,58 @@
+---
+title: "Lead qualification"
+description: "Capture and qualify leads via chat or WhatsApp, then hand off to CRM or sales."
+sidebar_label: "Lead qualification"
+---
+
+import { RelatedTopics, WorkflowCard } from '@site/src/components';
+
+# Lead qualification
+
+**Outcome:** Website or WhatsApp visitors are guided through qualifying questions; good-fit leads are captured and pushed to your CRM or notify sales.
+
+## Architecture (business view)
+
+1. **Customer AI workspace** with product/pricing knowledge.
+2. **Flow or structured prompts** collect company size, use case, timeline.
+3. **Business Tool** creates/updates HubSpot (or other CRM) lead/contact.
+4. Optional **approval or human handoff** for enterprise tier.
+5. Optional **event** from marketing site form → same flow via [event-driven triggers](/docs/guides/event-driven-triggers).
+
+## Prerequisites
+
+- Workspace + knowledge for accurate product answers
+- CRM tool (HubSpot integration or custom SDK tool) — [HubSpot](/docs/integrations/hubspot/overview)
+- Clear definition of qualified vs disqualified
+- Channel: widget and/or WhatsApp
+
+## Operator checklist
+
+<WorkflowCard
+  title="Lead qualification pilot"
+  steps={[
+    {title: 'Define qualify fields', description: 'What sales actually needs.'},
+    {title: 'Script the conversation', description: 'Instructions + optional flow.'},
+    {title: 'Connect CRM tool', description: 'Engineering registers write tool.'},
+    {title: 'Test end-to-end', description: 'Fake lead → CRM row.'},
+    {title: 'Go live on one page', description: 'Measure handoff quality.'},
+  ]}
+/>
+
+## Troubleshooting
+
+| Issue | Direction |
+| --- | --- |
+| Leads missing in CRM | Tool logs; field mapping; auth |
+| Low quality leads | Tighten questions; add disqualify paths |
+| Spam | Rate limits, challenge, or human review step |
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'HubSpot', to: '/docs/integrations/hubspot/overview'},
+    {label: 'Customer support', to: '/docs/solutions/customer-support'},
+    {label: 'WhatsApp commerce', to: '/docs/solutions/whatsapp-commerce'},
+    {label: 'How to create an AI agent', to: '/docs/user/how-to/create-ai-agent'},
+  ]}
+/>

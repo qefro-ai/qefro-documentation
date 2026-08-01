@@ -12,15 +12,22 @@ Canonical product hosts:
 - Widget CDN: https://cdn.qefro.com
 - Marketing: https://qefro.com
 
-## Introduction
+## P0 — Start here
 
 - [What is Qefro?](https://docs.qefro.com/docs/introduction/overview/): Qefro is an AI Workspace platform — configure knowledge, tools, and flows once, then deploy Customer AI and Employee AI across channels.
-- [Architecture](https://docs.qefro.com/docs/introduction/architecture/): How Qefro layers Admin Console, Runtime, channels, Backend SDK, and connectors — one orchestration engine.
+- [Qefro architecture](https://docs.qefro.com/docs/architecture/overview/): Product architecture: Admin Console, Runtime, FlowRunner, channels, Backend SDK, and connectors — one execution engine.
+- [Qefro vs n8n](https://docs.qefro.com/docs/compare/n8n-vs-qefro/): How Qefro differs from n8n-style workflow automation — AI Workspaces, channels, and a product Runtime vs general-purpose automation.
+- [Qefro vs LangGraph](https://docs.qefro.com/docs/compare/langgraph-vs-qefro/): How Qefro differs from LangGraph-style agent frameworks — productized Runtime and Admin Console vs library-level graph control.
 - [Core Concepts](https://docs.qefro.com/docs/introduction/concepts/): Map of Qefro concepts for operators and developers — workspaces, knowledge, tools, flows, events, channels.
-
-## User Guide
-
 - [User Guide — Getting Started](https://docs.qefro.com/docs/user/getting-started/): Create your organization, first AI Workspace, upload knowledge, and test chat in the Admin Console.
+
+## User Guide (what to do)
+
+- [How to create an AI agent](https://docs.qefro.com/docs/user/how-to/create-ai-agent/): Create an AI Workspace agent for customers or employees — knowledge, personality, and channels.
+- [How to configure WhatsApp](https://docs.qefro.com/docs/user/how-to/configure-whatsapp/): Connect WhatsApp as a Customer AI channel for an AI Workspace.
+- [How to connect Shopify](https://docs.qefro.com/docs/user/how-to/connect-shopify/): Operator steps to connect Shopify so Qefro can use commerce data and events for your AI Workspace.
+- [How to track orders](https://docs.qefro.com/docs/user/how-to/track-orders/): Let customers ask where their order is — knowledge plus order-status tools on your AI Workspace.
+- [How to add an approval workflow](https://docs.qefro.com/docs/user/how-to/add-approval-workflow/): Require a supervisor approval step before a Business Flow continues (for example refunds).
 - [Workspaces](https://docs.qefro.com/docs/user/workspaces/overview/): Create and manage AI Workspaces — isolated knowledge, tools, and conversations for each team.
 - [Agents & assistants](https://docs.qefro.com/docs/user/agents/overview/): Customer AI and Employee AI assistants bound to workspaces — behavior, instructions, and handoff.
 - [Knowledge Base](https://docs.qefro.com/docs/user/knowledge-base/overview/): Upload and index documents so assistants answer with citations from your content.
@@ -31,17 +38,22 @@ Canonical product hosts:
 - [Billing](https://docs.qefro.com/docs/user/billing/overview/): Plans, entitlements, checkout, and subscription management.
 - [Administration](https://docs.qefro.com/docs/user/administration/overview/): Invite members, configure RBAC, teams, domains, and organization settings.
 
-## Developer Guide
+## Developer Guide (how it works)
 
 - [Developer Quick Start](https://docs.qefro.com/docs/developer/quick-start/): Register the Backend SDK, advertise tools and flows, sync into a workspace, and optionally emit events.
-- [JavaScript / TypeScript SDK](https://docs.qefro.com/docs/developer/sdk/javascript/): Use @qefro-ai/backend to register tools, flows, customer provider, and signed webhooks.
-- [Python SDK](https://docs.qefro.com/docs/developer/sdk/python/): Use qefro-backend to register tools and flows over the signed Qefro webhook protocol.
-- [Rust SDK](https://docs.qefro.com/docs/developer/sdk/rust/): Use qefro-backend-sdk to register tools and flows with typed metadata.
 - [Runtime](https://docs.qefro.com/docs/developer/concepts/runtime/): How the Qefro Runtime and FlowRunner execute tools and Business Flows.
 - [Events](https://docs.qefro.com/docs/developer/concepts/events/): Namespaced orchestration events trigger Business Flows in FlowRunner — connectors only emit.
 - [Flows](https://docs.qefro.com/docs/developer/concepts/flows/): Business Flows are declarative step graphs executed by FlowRunner.
 - [Tools](https://docs.qefro.com/docs/developer/concepts/tools/): Business Tools — REST, OpenAPI, and Backend SDK handlers the Runtime can invoke.
 - [Connectors](https://docs.qefro.com/docs/developer/concepts/connectors/): Connectors normalize external systems into Qefro events and optional tools — they never run FlowRunner.
+- [Middleware](https://docs.qefro.com/docs/developer/concepts/middleware/): Backend SDK middleware hooks around tool invocation and protocol handling.
+- [Approvals (developer)](https://docs.qefro.com/docs/developer/concepts/approvals/): Declare approval steps in Business Flows; operators approve in Flow Runs.
+- [Challenges](https://docs.qefro.com/docs/developer/concepts/challenges/): Customer verification (OTP, etc.) via Customer Provider authorize/verify and challenge/resume.
+- [Memory & variables](https://docs.qefro.com/docs/developer/concepts/memory/): Conversation context, flow variables, and what the Runtime persists per run.
+- [Sessions](https://docs.qefro.com/docs/developer/concepts/sessions/): Channel sessions, conversation lifecycle, and how identity attaches for tools and Customer Provider.
+- [JavaScript / TypeScript SDK](https://docs.qefro.com/docs/developer/sdk/javascript/): Use @qefro-ai/backend to register tools, flows, customer provider, and signed webhooks.
+- [Python SDK](https://docs.qefro.com/docs/developer/sdk/python/): Use qefro-backend to register tools and flows over the signed Qefro webhook protocol.
+- [Rust SDK](https://docs.qefro.com/docs/developer/sdk/rust/): Use qefro-backend-sdk to register tools and flows with typed metadata.
 - [Working with events](https://docs.qefro.com/docs/developer/events/overview/): Emit, list, retry, and replay orchestration events; match flows with trigger.event.
 - [Webhooks](https://docs.qefro.com/docs/developer/webhooks/overview/): Inbound provider webhooks Qefro consumes and webhook-style flow triggers.
 - [Schedules](https://docs.qefro.com/docs/developer/schedules/overview/): Cron triggers on Business Flows — the ticker emits schedule events into the bus.
@@ -61,13 +73,15 @@ Canonical product hosts:
 - [Razorpay integration](https://docs.qefro.com/docs/integrations/razorpay/overview/): Connect Razorpay to Qefro — installation, auth, events, tools, and examples.
 - [Zendesk integration](https://docs.qefro.com/docs/integrations/zendesk/overview/): Connect Zendesk to Qefro — installation, auth, events, tools, and examples.
 
-## Solutions
+## Solutions (outcomes)
 
 - [Solutions](https://docs.qefro.com/docs/solutions/overview/): Business-oriented playbooks — customer support, commerce, refunds, booking, and more.
 - [Customer support](https://docs.qefro.com/docs/solutions/customer-support/): Grounded support assistant on website and WhatsApp with optional Business Tools and human handoff.
+- [WhatsApp commerce](https://docs.qefro.com/docs/solutions/whatsapp-commerce/): Sell and support on WhatsApp with grounded product answers, order tools, and optional event-driven journeys.
 - [Order tracking](https://docs.qefro.com/docs/solutions/order-tracking/): Customers ask where their order is; the assistant calls your order API via a Business Tool or flow.
 - [Abandoned cart recovery](https://docs.qefro.com/docs/solutions/abandoned-cart/): Commerce connector emits cart.abandoned; a flow delays then reminds the shopper via your messaging tool.
 - [Appointment booking](https://docs.qefro.com/docs/solutions/appointment-booking/): Collect slot preferences, check availability via tools, confirm booking with optional challenge.
+- [Lead qualification](https://docs.qefro.com/docs/solutions/lead-qualification/): Capture and qualify leads via chat or WhatsApp, then hand off to CRM or sales.
 - [Refund automation](https://docs.qefro.com/docs/solutions/refund-automation/): Policy-aware refunds with human approval gates and authenticated refund tools.
 - [Conversational commerce](https://docs.qefro.com/docs/solutions/conversational-commerce/): Assist shoppers on WhatsApp/web with catalog answers, order actions, and event-driven lifecycle messages.
 

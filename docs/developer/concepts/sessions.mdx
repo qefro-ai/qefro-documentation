@@ -1,0 +1,57 @@
+---
+title: "Sessions"
+description: "Channel sessions, conversation lifecycle, and how identity attaches for tools and Customer Provider."
+sidebar_label: "Sessions"
+---
+
+import { RelatedTopics, InfoBox } from '@site/src/components';
+
+# Sessions
+
+In Qefro, a **session** is the channel-scoped context that ties messages, identity, and (optionally) verified customer state to a **conversation** inside an AI Workspace.
+
+## Layers
+
+| Layer | Meaning |
+| --- | --- |
+| **Channel session** | Widget token / WhatsApp thread / API client context |
+| **Conversation** | Durable message thread in a workspace |
+| **Verified identity** | Result of Customer Provider / challenge — used for high-risk tools |
+| **Flow run** | Separate execution record when a Business Flow is active |
+
+Chat can exist without a flow run. A flow run may wait (`waiting_for_approval`, challenge) while the conversation stays open.
+
+## Website widget
+
+1. Page loads widget with workspace/public configuration.
+2. Widget obtains a **session token** for the channel.
+3. Optional `identify()` attaches a known customer subject (see identity docs).
+4. Messages create or continue a **conversation**.
+5. Tool calls may require Customer Provider authorization against session attributes.
+
+## WhatsApp
+
+- Thread identity is typically the **phone number** (provider-verified).
+- Conversation mapping is workspace + channel + external thread key.
+- Same Runtime and tools as widget; channel packaging differs.
+
+## API / Employee channels
+
+- Org JWT or internal portal session for **employees**.
+- Customer chat APIs use channel credentials, not employee RBAC.
+
+## Relationship to memory
+
+Session and conversation IDs scope what [Memory](/docs/developer/concepts/memory) and flow variables can see. Do not put secrets in client-visible session metadata.
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Memory', to: '/docs/developer/concepts/memory'},
+    {label: 'Challenges', to: '/docs/developer/concepts/challenges'},
+    {label: 'Identity resolution', to: '/docs/business-tools/identity-resolution'},
+    {label: 'Runtime', to: '/docs/developer/concepts/runtime'},
+    {label: 'Architecture', to: '/docs/architecture/overview'},
+  ]}
+/>

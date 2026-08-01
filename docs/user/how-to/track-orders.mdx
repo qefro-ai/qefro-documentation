@@ -1,0 +1,58 @@
+---
+title: "How to track orders"
+description: "Let customers ask where their order is — knowledge plus order-status tools on your AI Workspace."
+sidebar_label: "Track orders"
+---
+
+import { InfoBox, WorkflowCard, RelatedTopics } from '@site/src/components';
+
+# How to track orders
+
+**Goal:** Customers ask “Where is my order?” on widget or WhatsApp and get a factual status from **your** commerce system — not a hallucinated ETA.
+
+## What you need
+
+- AI Workspace for Support or Commerce
+- Policy docs in knowledge (shipping times, carriers) for non-account questions
+- Engineering: an **order status** Business Tool (Shopify, WooCommerce, custom API, or SDK handler)
+- Optional: identity / order-id collection so the tool is authorized
+
+## Steps (operator)
+
+1. Create or open the workspace — [Create an AI agent](/docs/user/how-to/create-ai-agent).
+2. Upload **shipping and delivery FAQs** to knowledge.
+3. Ask engineering to register the order status tool and bind it to this workspace — start from [Order tracking solution](/docs/solutions/order-tracking).
+4. In Console test chat, try:
+   - Policy: “How long does standard shipping take?”
+   - Tool: “Status of order `TEST-ORDER-ID`” (use a sandbox order)
+5. Confirm the assistant **asks for order id / email** when required instead of guessing.
+6. Enable the customer channel (widget / WhatsApp).
+7. Spot-check **Conversations** in the first days; refine instructions if the model skips the tool.
+
+<InfoBox>
+Order data always comes from **tools** (or events), never from the LLM’s training data. If the tool is down, the assistant should say so — not invent tracking numbers.
+</InfoBox>
+
+## Workflow
+
+<WorkflowCard
+  title="Order tracking live"
+  steps={[
+    {title: 'Workspace + shipping docs', description: 'Policies in knowledge.'},
+    {title: 'Order status tool', description: 'Engineering wires commerce API.'},
+    {title: 'Test ask → tool → answer', description: 'Sandbox order IDs.'},
+    {title: 'Publish channel', description: 'Widget or WhatsApp.'},
+    {title: 'Monitor failures', description: 'Tool errors and missing IDs.'},
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Order tracking solution', to: '/docs/solutions/order-tracking'},
+    {label: 'Connect Shopify', to: '/docs/user/how-to/connect-shopify'},
+    {label: 'Business Tools', to: '/docs/business-tools'},
+    {label: 'Conversational commerce', to: '/docs/solutions/conversational-commerce'},
+  ]}
+/>

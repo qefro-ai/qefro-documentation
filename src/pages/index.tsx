@@ -69,14 +69,15 @@ const features = [
 ];
 
 const categories = [
-  {label: 'Introduction', to: '/docs/introduction/overview'},
-  {label: 'User Guide', to: '/docs/user/getting-started'},
+  {label: 'Getting Started', to: '/docs/user/getting-started'},
+  {label: 'User Guide', to: '/docs/user/how-to/create-ai-agent'},
   {label: 'Developer Guide', to: '/docs/developer/quick-start'},
+  {label: 'Architecture', to: '/docs/architecture/overview'},
+  {label: 'vs n8n', to: '/docs/compare/n8n-vs-qefro'},
+  {label: 'vs LangGraph', to: '/docs/compare/langgraph-vs-qefro'},
   {label: 'Integrations', to: '/docs/integrations/overview'},
   {label: 'Solutions', to: '/docs/solutions/overview'},
   {label: 'Reference', to: '/docs/reference/overview'},
-  {label: 'Events', to: '/docs/guides/event-driven-triggers'},
-  {label: 'Glossary', to: '/docs/glossary'},
   {label: 'Blog', to: '/blog'},
 ];
 

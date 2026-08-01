@@ -1,0 +1,58 @@
+---
+title: "How to add an approval workflow"
+description: "Require a supervisor approval step before a Business Flow continues (for example refunds)."
+sidebar_label: "Add an approval workflow"
+---
+
+import { InfoBox, WorkflowCard, RelatedTopics } from '@site/src/components';
+
+# How to add an approval workflow
+
+**Goal:** A Business Flow pauses until an **Owner or Admin** approves (or rejects) in the Admin Console — for example before a refund tool runs.
+
+## Who does what
+
+| Role | Tasks |
+| --- | --- |
+| **Engineering** | Declares `.approval()` (or equivalent) in the Backend SDK flow definition and syncs the flow |
+| **You (admin)** | Accepts the flow version, monitors Flow Runs, approves or rejects |
+
+## Steps (operator)
+
+1. Agree the business rule with engineering (when to pause, approval prompt text, what happens after approve/reject).
+2. Engineering ships the flow with an approval step — [Approvals (developer)](/docs/developer/concepts/approvals).
+3. In Admin Console, open **Business Flows** (or SDK flows list) and **Accept** the new version when prompted.
+4. Run a **safe test** (staging workspace or test order):
+   - Start the flow from chat or a test event
+   - Confirm run status becomes **waiting for approval**
+5. Open **Flow Runs** / **Approvals** — [Approvals overview](/docs/user/approvals/overview).
+6. **Approve** or **reject** with a note if available.
+7. Confirm the customer conversation continues (tool ran or rejection message shown).
+
+<InfoBox>
+Only **Owner/Admin** can approve via API-enforced checks. Members can usually view conversations but not clear approval gates.
+</InfoBox>
+
+## Workflow
+
+<WorkflowCard
+  title="Approval path live"
+  steps={[
+    {title: 'Define the gate', description: 'Which actions need a human?'},
+    {title: 'Ship flow version', description: 'Engineering + Accept in Console.'},
+    {title: 'Test wait state', description: 'See waiting_for_approval.'},
+    {title: 'Approve as Admin', description: 'Flow Runs queue.'},
+    {title: 'Verify customer outcome', description: 'Tool side effects + message.'},
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Approvals overview', to: '/docs/user/approvals/overview'},
+    {label: 'Run Business Flows', to: '/docs/guides/run-business-flows'},
+    {label: 'Refund automation', to: '/docs/solutions/refund-automation'},
+    {label: 'Developer approvals', to: '/docs/developer/concepts/approvals'},
+  ]}
+/>

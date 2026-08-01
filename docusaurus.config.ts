@@ -182,13 +182,13 @@ const config: Config = {
         {
           title: 'Documentation',
           items: [
-            {label: 'Introduction', to: '/docs/introduction/overview'},
-            {label: 'User Guide', to: '/docs/user/getting-started'},
+            {label: 'Getting Started', to: '/docs/user/getting-started'},
+            {label: 'User Guide', to: '/docs/user/how-to/create-ai-agent'},
             {label: 'Developer Guide', to: '/docs/developer/quick-start'},
+            {label: 'Architecture', to: '/docs/architecture/overview'},
             {label: 'Integrations', to: '/docs/integrations/overview'},
             {label: 'Solutions', to: '/docs/solutions/overview'},
             {label: 'Reference', to: '/docs/reference/overview'},
-            {label: 'Glossary', to: '/docs/glossary'},
           ],
         },
         {
@@ -198,8 +198,8 @@ const config: Config = {
             {label: 'App', href: 'https://app.qefro.com'},
             {label: 'Pricing', href: 'https://qefro.com/pricing'},
             {label: 'Security', to: '/docs/security/overview'},
-            {label: 'Compare', to: '/docs/compare/chatbase-vs-qefro'},
-            {label: 'Hybrid RAG', to: '/docs/concepts/hybrid-rag'},
+            {label: 'vs n8n', to: '/docs/compare/n8n-vs-qefro'},
+            {label: 'vs LangGraph', to: '/docs/compare/langgraph-vs-qefro'},
           ],
         },
         {

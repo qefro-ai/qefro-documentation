@@ -1,0 +1,61 @@
+---
+title: "How to create an AI agent"
+description: "Create an AI Workspace agent for customers or employees — knowledge, personality, and channels."
+sidebar_label: "Create an AI agent"
+---
+
+import { InfoBox, WorkflowCard, RelatedTopics } from '@site/src/components';
+
+# How to create an AI agent
+
+In Qefro, an “AI agent” is delivered as an **AI Workspace** configuration: knowledge, instructions, tools, and channels — not a separate unmanaged chatbot silo.
+
+## Choose the agent type
+
+| Type | Audience | Typical channel |
+| --- | --- | --- |
+| **Customer AI** | Your customers | Website widget, WhatsApp |
+| **Employee AI** | Internal staff | Internal Portal |
+
+See [Customer AI](/docs/platform/customer-ai) and [Employee AI](/docs/platform/employee-ai).
+
+## Steps
+
+1. Sign in at [app.qefro.com](https://app.qefro.com).
+2. **Create an AI Workspace** with a clear name (Support, HR, IT, Sales).
+3. **Upload knowledge** — policies, product docs, SOPs. Wait until indexing succeeds.
+4. Set **instructions / personality** for the workspace (tone, handoff rules, languages).
+5. **Test in Console chat** — require citations; fix missing docs when answers are weak.
+6. **Invite teammates** and assign workspace access — [Administration](/docs/user/administration/overview).
+7. **Publish a channel**:
+   - Customers → [Website widget](/docs/user/channels/website-widget) and/or [Configure WhatsApp](/docs/user/how-to/configure-whatsapp)
+   - Employees → Internal Portal branding and access
+8. Optional: ask engineering for **Business Tools** when the agent must take actions (orders, tickets).
+
+<InfoBox>
+One workspace = one knowledge and tool boundary. Prefer **separate workspaces** over one mega-bot when teams or data must not mix.
+</InfoBox>
+
+## Workflow
+
+<WorkflowCard
+  title="Agent ready for a channel"
+  steps={[
+    {title: 'Create workspace', description: 'Name by team or use case.'},
+    {title: 'Load knowledge', description: 'Quality in → quality out.'},
+    {title: 'Tune instructions', description: 'Handoff, tone, out-of-scope.'},
+    {title: 'Test with real questions', description: 'Use production-like prompts.'},
+    {title: 'Bind channel', description: 'Widget, WhatsApp, or Internal Portal.'},
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Workspaces', to: '/docs/user/workspaces/overview'},
+    {label: 'Getting started', to: '/docs/user/getting-started'},
+    {label: 'Build customer support', to: '/docs/guides/build-ai-customer-support'},
+    {label: 'Create Employee AI guide', to: '/docs/guides/create-employee-ai'},
+  ]}
+/>
