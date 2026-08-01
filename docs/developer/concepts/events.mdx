@@ -1,0 +1,35 @@
+---
+title: "Events"
+description: "Namespaced orchestration events trigger Business Flows in FlowRunner — connectors only emit."
+sidebar_label: "Events"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Events
+
+**Orchestration events** are namespaced envelopes (`shopify.order.created`) on the org event bus. They are **triggers** into existing Business Flows — not a second workflow engine.
+
+## Rules of thumb
+
+1. Connectors / backends **emit only** — never start FlowRunner.
+2. Event names must contain a **namespace** (dot-separated).
+3. Flows opt in with `metadata.trigger: { type: 'event', event: '...' }`.
+4. Production: versioning, correlation/causation, optional sequence ordering, TTL, depth/loop protection, replay APIs.
+
+## Full guide
+
+→ [Event-Driven Triggers](/docs/guides/event-driven-triggers)  
+→ [Events API surface](/docs/developer/events/overview)  
+→ [Event reference](/docs/reference/event-reference)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Runtime', to: '/docs/developer/concepts/runtime'},
+    {label: 'Schedules', to: '/docs/developer/schedules/overview'},
+    {label: 'Webhooks', to: '/docs/developer/webhooks/overview'},
+    {label: 'Connectors', to: '/docs/developer/concepts/connectors'},
+  ]}
+/>

@@ -1,0 +1,26 @@
+---
+title: "Observability"
+description: "Logs, metrics, tool execution history, Flow Runs timeline, and audit trails."
+sidebar_label: "Overview"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Observability
+
+| Signal | Where |
+| --- | --- |
+| Tool execution logs | Admin Console + `GET /api/v1/tools/:id/logs` |
+| Flow Runs timeline | Admin Console Flow Runs |
+| Orchestration events | `GET /api/v1/org/events` |
+| Audit logs | [Audit logs](/docs/security/audit-logs) |
+| Prometheus metrics | `GET /metrics` (ops) |
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Troubleshooting', to: '/docs/troubleshooting'},
+    {label: 'Runtime', to: '/docs/developer/concepts/runtime'},
+  ]}
+/>

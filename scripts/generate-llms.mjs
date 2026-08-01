@@ -19,6 +19,90 @@ const SITE = 'https://docs.qefro.com';
 /** @type {{heading: string, ids: string[]}[]} */
 const SECTIONS = [
   {
+    heading: 'Introduction',
+    ids: [
+      'introduction/overview',
+      'introduction/architecture',
+      'introduction/concepts',
+    ],
+  },
+  {
+    heading: 'User Guide',
+    ids: [
+      'user/getting-started',
+      'user/workspaces/overview',
+      'user/agents/overview',
+      'user/knowledge-base/overview',
+      'user/channels/overview',
+      'user/conversations/overview',
+      'user/approvals/overview',
+      'user/analytics/overview',
+      'user/billing/overview',
+      'user/administration/overview',
+    ],
+  },
+  {
+    heading: 'Developer Guide',
+    ids: [
+      'developer/quick-start',
+      'developer/sdk/javascript',
+      'developer/sdk/python',
+      'developer/sdk/rust',
+      'developer/concepts/runtime',
+      'developer/concepts/events',
+      'developer/concepts/flows',
+      'developer/concepts/tools',
+      'developer/concepts/connectors',
+      'developer/events/overview',
+      'developer/webhooks/overview',
+      'developer/schedules/overview',
+      'developer/deployment/overview',
+      'developer/self-hosting/overview',
+      'developer/api-reference/overview',
+    ],
+  },
+  {
+    heading: 'Integrations',
+    ids: [
+      'integrations/overview',
+      'integrations/shopify/overview',
+      'integrations/woocommerce/overview',
+      'integrations/odoo/overview',
+      'integrations/erpnext/overview',
+      'integrations/hubspot/overview',
+      'integrations/stripe/overview',
+      'integrations/razorpay/overview',
+      'integrations/zendesk/overview',
+    ],
+  },
+  {
+    heading: 'Solutions',
+    ids: [
+      'solutions/overview',
+      'solutions/customer-support',
+      'solutions/order-tracking',
+      'solutions/abandoned-cart',
+      'solutions/appointment-booking',
+      'solutions/refund-automation',
+      'solutions/conversational-commerce',
+    ],
+  },
+  {
+    heading: 'Reference',
+    ids: [
+      'reference/overview',
+      'reference/cli',
+      'reference/environment-variables',
+      'reference/configuration',
+      'reference/event-reference',
+      'reference/connector-reference',
+      'reference/changelog',
+      'faq',
+      'glossary',
+      'release-notes',
+    ],
+  },
+  {
     heading: 'Concepts (GEO)',
     ids: [
       'concepts/what-is-an-ai-workspace',
@@ -71,6 +155,9 @@ const SECTIONS = [
       'guides/secure-business-actions',
       'guides/enable-custom-domains',
       'guides/production-deployment',
+      'guides/event-driven-triggers',
+      'guides/define-business-flows',
+      'guides/run-business-flows',
     ],
   },
   {
@@ -105,10 +192,6 @@ const SECTIONS = [
       'compare/customgpt-vs-qefro',
       'compare/copilot-studio-vs-qefro',
     ],
-  },
-  {
-    heading: 'Reference',
-    ids: ['faq', 'glossary', 'release-notes'],
   },
 ];
 

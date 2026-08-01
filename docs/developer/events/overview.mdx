@@ -1,0 +1,37 @@
+---
+title: "Working with events"
+description: "Emit, list, retry, and replay orchestration events; match flows with trigger.event."
+sidebar_label: "Overview"
+---
+
+import { RelatedTopics, ApiEndpointCard } from '@site/src/components';
+
+# Working with events
+
+## Emit
+
+<ApiEndpointCard method="POST" path="/api/v1/org/events" description="Admin emit + enqueue." />
+<ApiEndpointCard method="POST" path="/api/v1/org/events/ingest/:tenant_id" description="Connector ingest (JWT tenant must match)." />
+
+## Operate
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/v1/org/events` | List |
+| GET | `/api/v1/org/events/:id` | Get |
+| POST | `/api/v1/org/events/:id/retry` | Retry failed |
+| POST | `/api/v1/org/events/:id/replay` | Replay as new row |
+| POST | `/api/v1/org/events/replay` | Range replay |
+
+Complete semantics, envelope fields, ordering, TTL, loop depth:  
+**[Event-Driven Triggers](/docs/guides/event-driven-triggers)** · **[Event reference](/docs/reference/event-reference)**
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Events concept', to: '/docs/developer/concepts/events'},
+    {label: 'Schedules', to: '/docs/developer/schedules/overview'},
+    {label: 'REST map', to: '/docs/api/rest-apis'},
+  ]}
+/>

@@ -1,0 +1,36 @@
+---
+title: "Integrations"
+description: "Connector-specific guides for commerce, CRM, payments, and support systems."
+sidebar_label: "Overview"
+---
+
+import { RelatedTopics, InfoBox } from '@site/src/components';
+
+# Integrations
+
+Integration docs are **connector-specific**. Each guide covers installation, authentication, events, tools, webhooks, and examples.
+
+<InfoBox>
+Connectors <strong>emit events</strong> and may expose tools. They never run FlowRunner. See <a href="/docs/developer/concepts/connectors">Connectors</a> and <a href="/docs/guides/event-driven-triggers">Event-Driven Triggers</a>.
+</InfoBox>
+
+| Integration | Status |
+| --- | --- |
+| [Shopify](/docs/integrations/shopify/overview) | Guide scaffold |
+| [WooCommerce](/docs/integrations/woocommerce/overview) | Guide scaffold |
+| [Odoo](/docs/integrations/odoo/overview) | Guide scaffold |
+| [ERPNext](/docs/integrations/erpnext/overview) | Guide scaffold |
+| [HubSpot](/docs/integrations/hubspot/overview) | Guide scaffold |
+| [Stripe](/docs/integrations/stripe/overview) | Guide scaffold |
+| [Razorpay](/docs/integrations/razorpay/overview) | Billing webhooks live |
+| [Zendesk](/docs/integrations/zendesk/overview) | Guide scaffold |
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Solutions', to: '/docs/solutions/overview'},
+    {label: 'Connector reference', to: '/docs/reference/connector-reference'},
+    {label: 'Developer connectors', to: '/docs/developer/concepts/connectors'},
+  ]}
+/>

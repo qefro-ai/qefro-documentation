@@ -130,47 +130,42 @@ const config: Config = {
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'docsSidebar',
-          position: 'left',
+          type: 'dropdown',
           label: 'Documentation',
-        },
-        {
-          type: 'doc',
-          docId: 'concepts/what-is-an-ai-workspace',
           position: 'left',
-          label: 'Concepts',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'businessToolsSidebar',
-          position: 'left',
-          label: 'Business Tools',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'guidesSidebar',
-          position: 'left',
-          label: 'Guides',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'apiSidebar',
-          position: 'left',
-          label: 'API',
+          items: [
+            {
+              type: 'docSidebar',
+              sidebarId: 'userSidebar',
+              label: 'User Guide',
+            },
+            {
+              type: 'docSidebar',
+              sidebarId: 'developerSidebar',
+              label: 'Developer Guide',
+            },
+            {
+              type: 'docSidebar',
+              sidebarId: 'integrationsSidebar',
+              label: 'Integrations',
+            },
+            {
+              type: 'docSidebar',
+              sidebarId: 'solutionsSidebar',
+              label: 'Solutions',
+            },
+            {
+              type: 'docSidebar',
+              sidebarId: 'referenceSidebar',
+              label: 'Reference',
+            },
+          ],
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
-          type: 'docSidebar',
-          sidebarId: 'compareSidebar',
-          position: 'left',
-          label: 'Compare',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'securitySidebar',
-          position: 'left',
-          label: 'Security',
+          href: 'https://qefro.com/pricing',
+          label: 'Pricing',
+          position: 'right',
         },
         {
           href: 'https://github.com/qefro-ai',
@@ -187,12 +182,12 @@ const config: Config = {
         {
           title: 'Documentation',
           items: [
-            {label: 'Concepts', to: '/docs/concepts/what-is-an-ai-workspace'},
-            {label: 'Getting Started', to: '/docs/getting-started/installation'},
-            {label: 'Platform', to: '/docs/platform/ai-workspaces'},
-            {label: 'Business Tools', to: '/docs/business-tools'},
-            {label: 'Guides', to: '/docs/guides/build-ai-customer-support'},
-            {label: 'API Reference', to: '/docs/api/authentication'},
+            {label: 'Introduction', to: '/docs/introduction/overview'},
+            {label: 'User Guide', to: '/docs/user/getting-started'},
+            {label: 'Developer Guide', to: '/docs/developer/quick-start'},
+            {label: 'Integrations', to: '/docs/integrations/overview'},
+            {label: 'Solutions', to: '/docs/solutions/overview'},
+            {label: 'Reference', to: '/docs/reference/overview'},
             {label: 'Glossary', to: '/docs/glossary'},
           ],
         },
@@ -222,8 +217,8 @@ const config: Config = {
           items: [
             {label: 'GitHub', href: 'https://github.com/qefro-ai'},
             {label: 'REST APIs', to: '/docs/api/rest-apis'},
-            {label: 'Webhooks', to: '/docs/api/webhooks'},
-            {label: 'SDKs', to: '/docs/api/sdks'},
+            {label: 'Events', to: '/docs/developer/concepts/events'},
+            {label: 'SDKs', to: '/docs/developer/sdk/javascript'},
             {label: 'llms.txt', href: 'https://docs.qefro.com/llms.txt'},
           ],
         },

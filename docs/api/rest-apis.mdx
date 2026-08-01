@@ -200,6 +200,22 @@ Guides: [Connect REST APIs](/docs/guides/connect-rest-apis), [Import OpenAPI](/d
 
 Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools). Framework: [SDK Framework](/docs/v1/sdk-framework).
 
+## Orchestration events (event-driven triggers)
+
+Events are **triggers** into Business Flows — not a second execution engine. Connectors and backends emit namespaced envelopes; the Runtime bus validates, queues, and dispatches into the same FlowRunner used by chat. Guide: [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/v1/org/events` | Owner/Admin JWT | List events (`status`, `name`, `limit`) |
+| POST | `/api/v1/org/events` | Owner/Admin JWT | Emit + enqueue event |
+| GET | `/api/v1/org/events/:id` | Owner/Admin JWT | Get event |
+| POST | `/api/v1/org/events/:id/retry` | Owner/Admin JWT | Re-queue failed / dead-letter |
+| POST | `/api/v1/org/events/:id/replay` | Owner/Admin JWT | Replay as a new envelope (`replay_of`) |
+| POST | `/api/v1/org/events/replay` | Owner/Admin JWT | Replay root events in a time range |
+| POST | `/api/v1/org/events/ingest/:tenant_id` | Owner/Admin JWT (tenant must match) | Connector-style ingest |
+
+Emit body highlights: `name` (required, namespaced e.g. `shopify.order.created`), `source`, `payload`, `version`, `correlation_id`, `causation_id`, `idempotency_key`, `sequence_key` + `sequence_n`, `expires_at` / `ttl_seconds`, `depth`, `delay_seconds`.
+
 ## WhatsApp
 
 | Method | Path | Auth | Purpose |

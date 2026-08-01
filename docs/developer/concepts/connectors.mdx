@@ -1,0 +1,35 @@
+---
+title: "Connectors"
+description: "Connectors normalize external systems into Qefro events and optional tools — they never run FlowRunner."
+sidebar_label: "Connectors"
+---
+
+import { Warning, RelatedTopics } from '@site/src/components';
+
+# Connectors
+
+A **connector** adapts an external product (Shopify, Odoo, HubSpot, …) into Qefro:
+
+1. Authenticate to the external API
+2. Map webhooks / polls → **namespaced events**
+3. Optionally expose tools via Backend SDK or REST integrations
+4. **`emit()` only** into the Qefro event bus
+
+<Warning>
+Connectors must not start flows, call FlowRunner, or embed a second orchestrator. Use connector-kit EventEmitter or POST /api/v1/org/events/ingest/:tenant_id.
+</Warning>
+
+## Build path
+
+- Concepts: this page + [Events](/docs/developer/concepts/events)
+- Per-product guides: [Integrations](/docs/integrations/overview)
+- Kit reference: [Connector reference](/docs/reference/connector-reference)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Event-Driven Triggers', to: '/docs/guides/event-driven-triggers'},
+    {label: 'Shopify', to: '/docs/integrations/shopify/overview'},
+  ]}
+/>

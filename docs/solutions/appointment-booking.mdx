@@ -1,0 +1,60 @@
+---
+title: "Appointment booking"
+description: "Collect slot preferences, check availability via tools, confirm booking with optional challenge."
+sidebar_label: "Appointment booking"
+---
+
+import { RelatedTopics, WorkflowCard } from '@site/src/components';
+
+# Appointment booking
+
+Collect slot preferences, check availability via tools, confirm booking with optional challenge.
+
+## Architecture
+
+Conversation flow: ask → availability tool → confirm tool → complete
+
+## Prerequisites
+
+- Calendar/availability API tool
+- Workspace channel live
+- Optional customer auth
+
+## Installation
+
+1. Complete [User getting started](/docs/user/getting-started) for the Support (or commerce) workspace.
+2. Connect channels required by this solution.
+3. Register tools / connectors (see links below).
+4. Declare and **enable** flows; Accept versions after sync.
+5. Run a dry-end-to-end test in a non-production workspace when possible.
+
+## Flows
+
+ask date/time → tool check_slots → condition → tool book → complete
+
+## Deployment
+
+- Production checklist: [Production deployment](/docs/guides/production-deployment)
+- Observe Flow Runs and `/api/v1/org/events` for event-driven paths
+
+## Troubleshooting
+
+- No answer / weak citations → knowledge coverage ([Knowledge Base](/docs/user/knowledge-base/overview))
+- Tool failures → tool logs + SDK webhook health
+- Event flow never starts → namespaced name, Enabled+Valid+Accepted, `when` predicate ([Events](/docs/guides/event-driven-triggers))
+- Approval stuck → Owner/Admin role ([Approvals](/docs/user/approvals/overview))
+
+## Learn more
+
+- [Run Business Flows](/docs/guides/run-business-flows)
+- [Challenges](/docs/developer/concepts/challenges)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Solutions overview', to: '/docs/solutions/overview'},
+    {label: 'User Guide', to: '/docs/user/getting-started'},
+    {label: 'Developer Guide', to: '/docs/developer/quick-start'},
+  ]}
+/>

@@ -1,0 +1,30 @@
+---
+title: "Challenges"
+description: "Customer verification (OTP, etc.) via Customer Provider authorize/verify and challenge/resume."
+sidebar_label: "Challenges"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Challenges
+
+Qefro orchestrates challenges; **your** Customer Provider remains the authority.
+
+- Implicit: tool with `auth: 'required'`
+- Explicit: flow `challenge` step
+- Protocol: challenge → customer response → `tool.resume`
+
+Guides:
+
+- [Challenge & Resume](/docs/business-tools/challenge-resume)
+- [Authentication](/docs/business-tools/authentication)
+- [Identity resolution](/docs/business-tools/identity-resolution)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Approvals', to: '/docs/developer/concepts/approvals'},
+    {label: 'Tools', to: '/docs/developer/concepts/tools'},
+  ]}
+/>

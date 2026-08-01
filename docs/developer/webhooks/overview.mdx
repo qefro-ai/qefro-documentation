@@ -1,0 +1,24 @@
+---
+title: "Webhooks"
+description: "Inbound provider webhooks Qefro consumes and webhook-style flow triggers."
+sidebar_label: "Overview"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Webhooks
+
+Two different “webhook” ideas:
+
+1. **Provider webhooks Qefro consumes** — Razorpay billing, Meta WhatsApp — see [API Webhooks](/docs/api/webhooks).
+2. **Your Backend SDK webhook** — Qefro calls `POST /qefro` on your server — see [SDK Framework](/docs/v1/sdk-framework).
+3. **Flow trigger `type: webhook`** — named ingest into the event bus — see [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Events', to: '/docs/developer/events/overview'},
+    {label: 'Channels', to: '/docs/developer/channels/overview'},
+  ]}
+/>

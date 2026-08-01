@@ -1,0 +1,27 @@
+---
+title: "Configuration"
+description: "Where Qefro settings live — Admin Console, SDK metadata, and connector config."
+sidebar_label: "Configuration"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Configuration
+
+| Layer | What you configure |
+| --- | --- |
+| Admin Console | Workspaces, knowledge, channels, RBAC, SDK connections, enable flows |
+| Backend SDK | Tools, flows, customer provider, middleware (code) |
+| Connectors | External credentials, webhook secrets, emit target |
+| Platform env | Self-host infrastructure only |
+
+Flow **Prompt Overrides** and enable toggles are console-side and survive SDK `name` renames (identity is flow `id`).
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Environment variables', to: '/docs/reference/environment-variables'},
+    {label: 'Parameters reference', to: '/docs/business-tools/parameters-reference'},
+  ]}
+/>

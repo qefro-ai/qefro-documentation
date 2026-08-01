@@ -2,7 +2,1920 @@
 
 > Complete Markdown export of https://docs.qefro.com for AI systems. Generated from the official Docusaurus sources. Prefer individual pages linked from /llms.txt when context is limited.
 
-Generated: 2026-07-29
+Generated: 2026-08-01
+
+# Introduction
+
+# What is Qefro?
+
+Source: https://docs.qefro.com/docs/introduction/overview/
+
+> Qefro is an AI Workspace platform — configure knowledge, tools, and flows once, then deploy Customer AI and Employee AI across channels.
+
+Qefro is an **AI Workspace platform** for organizations. You configure knowledge, Business Tools, and Business Flows in one place, then deploy:
+
+- **Customer AI** — website widget and WhatsApp, grounded in your knowledge with citations
+- **Employee AI** — branded Internal Portal for internal teams with RBAC
+
+Assistants do more than answer questions: they can run **Business Actions** (secure tool calls into your systems) and **Business Flows** (orchestrated multi-step processes with approvals, delays, and challenges).
+
+**Configure once. Deploy everywhere.** Workspaces isolate knowledge and tools per team (Support, HR, IT). Events, chat, and schedules all enter the same Runtime.
+
+## Who this documentation is for
+
+| Audience | Start here |
+| --- | --- |
+| Operators & admins | [User Guide](/docs/user/getting-started) |
+| Backend engineers | [Developer Guide](/docs/developer/quick-start) |
+| Connector / integration builders | [Integrations](/docs/integrations/overview) |
+| Solution architects | [Solutions](/docs/solutions/overview) |
+| API & config lookup | [Reference](/docs/reference/overview) |
+
+## Platform pillars
+
+  
+  
+  
+  
+  
+  
+
+## Related topics
+
+---
+
+# Architecture
+
+Source: https://docs.qefro.com/docs/introduction/architecture/
+
+> How Qefro layers Admin Console, Runtime, channels, Backend SDK, and connectors — one orchestration engine.
+
+Qefro separates **configuration** (Admin Console), **execution** (Runtime / FlowRunner), **channels** (widget, WhatsApp, API), and **your systems** (Backend SDK + connectors).
+
+```mermaid
+flowchart TB
+  subgraph Config[Admin Console]
+    WS[AI Workspaces]
+    KB[Knowledge]
+    Tools[Business Tools]
+    Flows[Business Flows]
+  end
+
+  subgraph Runtime[Qefro Runtime]
+    RAG[Hybrid RAG]
+    FR[FlowRunner]
+    Bus[Event bus]
+  end
+
+  subgraph Channels[Channels]
+    Widget[Website widget]
+    WA[WhatsApp]
+    API[Chat / REST API]
+  end
+
+  subgraph External[Your stack]
+    SDK[Backend SDK webhook]
+    Conn[Connectors emit events]
+    REST[REST / OpenAPI APIs]
+  end
+
+  WS --> Runtime
+  KB --> RAG
+  Tools --> FR
+  Flows --> FR
+  Bus --> FR
+  Channels --> Runtime
+  FR -->|tool.invoke| SDK
+  FR --> REST
+  Conn -->|emit| Bus
+```
+
+## Core principles
+
+1. **Single runtime** — Conversation intent, events, webhooks, and schedules all start Business Flows in **FlowRunner**. There is no second orchestrator inside connectors.
+2. **Workspace isolation** — Knowledge, tools, and conversations are scoped to an AI Workspace inside an organization (tenant).
+3. **Tools live with you** — REST/OpenAPI credentials are encrypted in Qefro; Backend SDK handlers run in **your** backend over a signed webhook.
+4. **Events are triggers only** — Connectors `emit()` namespaced envelopes; the bus validates, queues, and dispatches. See [Events](/docs/developer/concepts/events).
+
+## Multi-tenant model
+
+Organization → Teams / RBAC → AI Workspaces → Channels bound to workspaces.
+
+Deep dive: [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture).
+
+## Related topics
+
+---
+
+# Core Concepts
+
+Source: https://docs.qefro.com/docs/introduction/concepts/
+
+> Map of Qefro concepts for operators and developers — workspaces, knowledge, tools, flows, events, channels.
+
+Start with the conceptual pillars, then jump into User or Developer guides for how-to steps.
+
+| Concept | Summary | Read more |
+| --- | --- | --- |
+| AI Workspace | Isolation unit for knowledge, tools, conversations | [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
+| Customer AI vs Employee AI | External channels vs Internal Portal | [Customer vs Employee](/docs/concepts/customer-ai-vs-employee-ai) |
+| Knowledge / Hybrid RAG | Grounded answers with citations | [Hybrid RAG](/docs/concepts/hybrid-rag) |
+| Business Tool / Action | Secure call into your systems | [Business Actions](/docs/concepts/business-actions) |
+| Business Flow | Declarative multi-step orchestration | [Define flows](/docs/guides/define-business-flows) |
+| Flow trigger | Conversation, event, schedule, or webhook entry | [Event-driven triggers](/docs/guides/event-driven-triggers) |
+| Runtime / FlowRunner | Single execution engine | [Runtime](/docs/developer/concepts/runtime) |
+| Orchestration event | Namespaced bus envelope | [Events](/docs/developer/concepts/events) |
+| SDK Connection | Signed webhook to your backend | [Backend SDK](/docs/business-tools/backend-sdk) |
+| RBAC | Owner / Admin / Member + teams | [RBAC](/docs/platform/rbac) |
+
+Full term list: [Glossary](/docs/glossary).
+
+## Related topics
+
+---
+
+# User Guide
+
+# User Guide — Getting Started
+
+Source: https://docs.qefro.com/docs/user/getting-started/
+
+> Create your organization, first AI Workspace, upload knowledge, and test chat in the Admin Console.
+
+# Getting Started (User Guide)
+
+This path is for **operators and admins** using [app.qefro.com](https://app.qefro.com) — no backend code required.
+
+## Outcome
+
+- Organization ready with at least one Owner
+- One AI Workspace with documents indexed
+- Test chat returns cited answers
+- Optional: website widget or WhatsApp bound to the workspace
+
+## Steps
+
+1. **Sign up / sign in** at [app.qefro.com](https://app.qefro.com).
+2. **Create an AI Workspace** (e.g. Support) — [Workspaces](/docs/user/workspaces/overview).
+3. **Upload knowledge** (PDF, DOCX, Markdown, crawl) — [Knowledge Base](/docs/user/knowledge-base/overview).
+4. **Test in Admin Console chat** until citations look correct — [Quick Start](/docs/getting-started/quick-start).
+5. **Invite teammates** and set roles — [Administration](/docs/user/administration/overview).
+6. **Connect a channel** — [Website widget](/docs/user/channels/website-widget) or [WhatsApp](/docs/user/channels/whatsapp).
+7. **Add Business Tools** (optional) when you need actions, not only answers — [Developer Guide](/docs/developer/quick-start) or ask engineering to register the Backend SDK.
+
+Need order status, refunds, or Shopify events? That is a **developer + integrations** path. Start with [Business Tools](/docs/business-tools) and [Integrations](/docs/integrations/overview).
+
+## Workflow checklist
+
+## Related topics
+
+---
+
+# Workspaces
+
+Source: https://docs.qefro.com/docs/user/workspaces/overview/
+
+> Create and manage AI Workspaces — isolated knowledge, tools, and conversations for each team.
+
+An **AI Workspace** is the isolation boundary for knowledge, Business Tools, conversations, and channel bindings (widget, WhatsApp, Employee AI).
+
+## Common tasks
+
+| Task | Where |
+| --- | --- |
+| Create a workspace | Admin Console → Workspaces |
+| Bind Customer AI | Workspace → Widget / WhatsApp settings |
+| Grant team access | Organization → Teams → workspace grants |
+| Tune instructions | Workspace system prompt / instructions |
+
+## Deep dives
+
+- [AI Workspaces (platform)](/docs/platform/ai-workspaces)
+- [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace)
+- [Workspace subdomains](/docs/platform/workspace-subdomains)
+
+## Related topics
+
+---
+
+# Agents & assistants
+
+Source: https://docs.qefro.com/docs/user/agents/overview/
+
+> Customer AI and Employee AI assistants bound to workspaces — behavior, instructions, and handoff.
+
+Qefro assistants are **workspace-bound**:
+
+- **Customer AI** — public website widget and WhatsApp
+- **Employee AI** — Internal Portal for org members
+
+## Configure behavior
+
+- Workspace instructions / system prompt
+- Enabled Business Tools and Flows
+- Handoff webhooks for human takeover
+- Branding (widget + portal)
+
+## Guides
+
+- [Customer AI](/docs/platform/customer-ai)
+- [Employee AI](/docs/platform/employee-ai)
+- [Create Employee AI](/docs/guides/create-employee-ai)
+- [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai)
+
+## Related topics
+
+---
+
+# Knowledge Base
+
+Source: https://docs.qefro.com/docs/user/knowledge-base/overview/
+
+> Upload and index documents so assistants answer with citations from your content.
+
+Train your assistant by adding **documents** to a workspace. Qefro chunks and indexes them with **hybrid RAG** (lexical + vector) and returns **citations** in answers.
+
+## Common tasks
+
+| Task | Notes |
+| --- | --- |
+| Upload files | PDF, DOCX, Markdown, TXT |
+| Add text / crawl | Console flows for raw text and site crawl |
+| Reindex | After content changes |
+| Verify quality | Admin chat — check citations and refusals |
+
+Validate retrieval quality in the Admin Console **before** enabling public widget or WhatsApp.
+
+## Deep dives
+
+- [Knowledge Platform](/docs/platform/knowledge-platform)
+- [Hybrid RAG](/docs/concepts/hybrid-rag)
+- [Quick Start](/docs/getting-started/quick-start)
+
+## Related topics
+
+---
+
+# Channels
+
+Source: https://docs.qefro.com/docs/user/channels/overview/
+
+> Deploy Customer AI on website widget, WhatsApp, and API.
+
+| Channel | Audience | Start here |
+| --- | --- | --- |
+| [Website widget](/docs/user/channels/website-widget) | Website visitors | Embed `widget.js` + publishable token |
+| [WhatsApp](/docs/user/channels/whatsapp) | Messaging customers | Meta Cloud API + Growth+ |
+| [API](/docs/user/channels/api) | Custom apps | Chat REST / WebSocket |
+
+All channels bind to an **AI Workspace** so knowledge and tools stay consistent.
+
+## Related topics
+
+---
+
+# Conversations
+
+Source: https://docs.qefro.com/docs/user/conversations/overview/
+
+> Monitor customer and employee conversations, handoff, and feedback.
+
+Operators review live and historical threads in the Admin Console:
+
+- Message history and citations
+- Handoff to human agents
+- Feedback on assistant messages
+- Flow Runs started from chat or events
+
+## Related
+
+- Conversation REST routes — [REST APIs](/docs/api/rest-apis)
+- Handoff config — tenant handoff webhook
+- [Flow Runs](/docs/guides/run-business-flows)
+
+## Related topics
+
+---
+
+# Approvals
+
+Source: https://docs.qefro.com/docs/user/approvals/overview/
+
+> Human approval gates in Business Flows — review and approve from Flow Runs.
+
+When a Business Flow includes an **`approval`** step, the run pauses until an **Owner or Admin** approves in **Flow Runs**.
+
+Approvals are part of flow execution — not a separate product. Engineers declare <code>approval</code> steps in the Backend SDK; operators act on them in the console.
+
+## Operator steps
+
+1. Open **Business Tools → Flow Runs** (or Approvals queue).
+2. Open a run with status **waiting_for_approval**.
+3. Review variables / timeline → **Approve** (or cancel the run).
+4. The customer receives the next message on their channel (widget or WhatsApp).
+
+## Learn more
+
+- [Run Business Flows — Human approval](/docs/guides/run-business-flows)
+- [Define Business Flows](/docs/guides/define-business-flows)
+- [Secure Business Actions](/docs/guides/secure-business-actions)
+
+## Related topics
+
+---
+
+# Analytics
+
+Source: https://docs.qefro.com/docs/user/analytics/overview/
+
+> Tenant analytics, feedback, and usage signals in the Admin Console.
+
+Track adoption and quality:
+
+- Conversation and message volume
+- Feedback scores
+- Tool / flow execution outcomes (via logs and Flow Runs)
+
+## Deep dive
+
+- [Analytics (platform)](/docs/platform/analytics)
+- `GET /api/v1/tenant/analytics` — [REST APIs](/docs/api/rest-apis)
+
+## Related topics
+
+---
+
+# Billing
+
+Source: https://docs.qefro.com/docs/user/billing/overview/
+
+> Plans, entitlements, checkout, and subscription management.
+
+Manage plan, seats, and entitlements (messages, documents, WhatsApp, Business Tools) in the Admin Console.
+
+## Topics
+
+- Plan limits and upgrades
+- Checkout / confirm (Razorpay)
+- Payment history including failures
+- Webhook-driven entitlement updates
+
+## References
+
+- Billing routes — [REST APIs](/docs/api/rest-apis)
+- [Webhooks (Razorpay)](/docs/api/webhooks)
+- Pricing: [qefro.com/pricing](https://qefro.com/pricing)
+
+## Related topics
+
+---
+
+# Administration
+
+Source: https://docs.qefro.com/docs/user/administration/overview/
+
+> Invite members, configure RBAC, teams, domains, and organization settings.
+
+Organization owners and admins manage access and tenancy.
+
+## Common tasks
+
+| Task | Guide |
+| --- | --- |
+| Invite team members | [Teams](/docs/platform/teams), team invite APIs |
+| Roles (Owner / Admin / Member) | [RBAC](/docs/platform/rbac), [Configure RBAC](/docs/guides/configure-rbac) |
+| Workspace grants via teams | [Teams](/docs/platform/teams) |
+| Custom domains / branding | [Custom domains](/docs/platform/custom-domains), [Branding](/docs/platform/branding) |
+| Audit logs | [Audit logs](/docs/security/audit-logs) |
+| Organizations | [Organizations](/docs/platform/organizations) |
+
+## Related topics
+
+---
+
+# Developer Guide
+
+# Developer Quick Start
+
+Source: https://docs.qefro.com/docs/developer/quick-start/
+
+> Register the Backend SDK, advertise tools and flows, sync into a workspace, and optionally emit events.
+
+Build **Business Tools** and **Business Flows** in your backend. Qefro discovers them over a signed webhook and executes tools/flows in the **Runtime** — your process never runs FlowRunner.
+
+## Choose your SDK
+
+| Language | Package | Guide |
+| --- | --- | --- |
+| JavaScript / TypeScript | `@qefro-ai/backend` | [JavaScript SDK](/docs/developer/sdk/javascript) |
+| Python | `qefro-backend` | [Python SDK](/docs/developer/sdk/python) |
+| Rust | `qefro-backend-sdk` | [Rust SDK](/docs/developer/sdk/rust) |
+
+## Minimal path
+
+1. Install the SDK and set `QEFRO_SIGNING_SECRET`.
+2. `app.tool(...)` for each business capability.
+3. Optional: `app.flow(...)` for multi-step orchestration (conversation and/or [event triggers](/docs/developer/events/overview)).
+4. `app.listen({ path: '/qefro' })` on a public HTTPS URL.
+5. Admin Console → **SDK Connections** → create connection → **Test** → **Sync Tools**.
+6. Enable tools/flows on a workspace and test from chat or emit an event.
+
+Full walkthrough: <a href="/docs/guides/register-sdk-business-tools">Register SDK Business Tools</a>. Flows: <a href="/docs/guides/define-business-flows">Define</a> · <a href="/docs/guides/run-business-flows">Run</a> · <a href="/docs/guides/event-driven-triggers">Event triggers</a>.
+
+## Workflow checklist
+
+## Related topics
+
+---
+
+# JavaScript / TypeScript SDK
+
+Source: https://docs.qefro.com/docs/developer/sdk/javascript/
+
+> Use @qefro-ai/backend to register tools, flows, customer provider, and signed webhooks.
+
+```bash
+npm install @qefro-ai/backend
+export QEFRO_SIGNING_SECRET="your-signing-secret"
+```
+
+```ts
+const app = new Qefro({ signingSecret: process.env.QEFRO_SIGNING_SECRET! });
+
+app.tool(
+  {
+    name: 'order_status_check',
+    description: 'Look up order by ID',
+    auth: 'none',
+    input_schema: {
+      type: 'object',
+      properties: { order_id: { type: 'string' } },
+      required: ['order_id'],
+    },
+  },
+  async (ctx) => {
+    return { found: true, status: 'shipped', order_id: ctx.parameters.order_id };
+  },
+);
+
+await app.listen({ port: 8088, path: '/qefro' });
+```
+
+## Learn more
+
+- [Backend SDK Integration](/docs/business-tools/backend-sdk)
+- [Register SDK Business Tools](/docs/guides/register-sdk-business-tools)
+- [Define Business Flows](/docs/guides/define-business-flows)
+- [Event-Driven Triggers](/docs/guides/event-driven-triggers)
+- Example: [event-abandoned-cart](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/event-abandoned-cart)
+
+## Related topics
+
+---
+
+# Python SDK
+
+Source: https://docs.qefro.com/docs/developer/sdk/python/
+
+> Use qefro-backend to register tools and flows over the signed Qefro webhook protocol.
+
+```bash
+pip install qefro-backend
+export QEFRO_SIGNING_SECRET="your-signing-secret"
+```
+
+```python
+from qefro_backend import Qefro
+
+app = Qefro(signing_secret="...")  # or env
+
+@app.tool({
+    "name": "order_status_check",
+    "description": "Look up order by ID",
+    "auth": "none",
+    "input_schema": {
+        "type": "object",
+        "properties": {"order_id": {"type": "string"}},
+        "required": ["order_id"],
+    },
+})
+def order_status(ctx):
+    return {"found": True, "status": "shipped", "order_id": ctx.parameters["order_id"]}
+
+app.run(8088)  # POST /qefro
+```
+
+## Learn more
+
+- [Register SDK Business Tools](/docs/guides/register-sdk-business-tools)
+- [Define Business Flows](/docs/guides/define-business-flows)
+- [Event-Driven Triggers](/docs/guides/event-driven-triggers)
+
+## Related topics
+
+---
+
+# Rust SDK
+
+Source: https://docs.qefro.com/docs/developer/sdk/rust/
+
+> Use qefro-backend-sdk to register tools and flows with typed metadata.
+
+```bash
+cargo add qefro-backend-sdk
+```
+
+```rust
+use qefro_backend_sdk::BusinessFlowMetadata;
+
+// app.tool(...) then:
+app.flow(BusinessFlowMetadata {
+    id: "order_lookup".into(),
+    name: Some("Order Lookup".into()),
+    intent: vec!["track order".into()],
+    ..Default::default()
+})?
+.ask("email", "email", "Please enter your email.")
+.tool("lookup", "lookup_customer")
+.complete("done", None)?;
+```
+
+## Learn more
+
+- [Backend SDK](/docs/business-tools/backend-sdk)
+- [Define Business Flows](/docs/guides/define-business-flows)
+- [SDK Framework](/docs/v1/sdk-framework)
+
+## Related topics
+
+---
+
+# Runtime
+
+Source: https://docs.qefro.com/docs/developer/concepts/runtime/
+
+> How the Qefro Runtime and FlowRunner execute tools and Business Flows.
+
+The **Qefro Runtime** is the single execution engine for:
+
+- AI tool-loop calls into Business Tools
+- **Business Flows** (FlowRunner): ask, tool, condition, delay, approval, challenge, complete
+- Entry from **conversation intent**, **events**, **schedules**, and **webhooks**
+
+Your Backend SDK is passive during flow execution. It only answers signed <code>tool.invoke</code> (and auth challenge) messages — the same as AI-initiated tool use.
+
+## Deep dives
+
+- [Business Tools runtime](/docs/business-tools/runtime)
+- [Run Business Flows](/docs/guides/run-business-flows)
+- [Architecture](/docs/introduction/architecture)
+
+## Related topics
+
+---
+
+# Events
+
+Source: https://docs.qefro.com/docs/developer/concepts/events/
+
+> Namespaced orchestration events trigger Business Flows in FlowRunner — connectors only emit.
+
+**Orchestration events** are namespaced envelopes (`shopify.order.created`) on the org event bus. They are **triggers** into existing Business Flows — not a second workflow engine.
+
+## Rules of thumb
+
+1. Connectors / backends **emit only** — never start FlowRunner.
+2. Event names must contain a **namespace** (dot-separated).
+3. Flows opt in with `metadata.trigger: { type: 'event', event: '...' }`.
+4. Production: versioning, correlation/causation, optional sequence ordering, TTL, depth/loop protection, replay APIs.
+
+## Full guide
+
+→ [Event-Driven Triggers](/docs/guides/event-driven-triggers)  
+→ [Events API surface](/docs/developer/events/overview)  
+→ [Event reference](/docs/reference/event-reference)
+
+## Related topics
+
+---
+
+# Flows
+
+Source: https://docs.qefro.com/docs/developer/concepts/flows/
+
+> Business Flows are declarative step graphs executed by FlowRunner.
+
+A **Business Flow** is `{ metadata, steps }` advertised by your SDK. The Runtime validates, versions, and executes it.
+
+| Topic | Doc |
+| --- | --- |
+| Declare in SDK | [Define Business Flows](/docs/guides/define-business-flows) |
+| Execution semantics | [Run Business Flows](/docs/guides/run-business-flows) |
+| Event / schedule entry | [Event-Driven Triggers](/docs/guides/event-driven-triggers) |
+
+## Related topics
+
+---
+
+# Tools
+
+Source: https://docs.qefro.com/docs/developer/concepts/tools/
+
+> Business Tools — REST, OpenAPI, and Backend SDK handlers the Runtime can invoke.
+
+| Integration style | When to use | Guide |
+| --- | --- | --- |
+| REST / OpenAPI | Simple HTTP APIs, OpenAPI import | [REST vs SDK](/docs/business-tools/rest-vs-sdk), [Connect REST](/docs/guides/connect-rest-apis) |
+| Backend SDK | Auth, multi-step, business rules in code | [Register SDK tools](/docs/guides/register-sdk-business-tools) |
+| Mixed | Some services REST, some SDK | [Mixed integrations](/docs/business-tools/mixed-integrations) |
+
+Parameters: [Parameters reference](/docs/business-tools/parameters-reference).
+
+## Related topics
+
+---
+
+# Connectors
+
+Source: https://docs.qefro.com/docs/developer/concepts/connectors/
+
+> Connectors normalize external systems into Qefro events and optional tools — they never run FlowRunner.
+
+A **connector** adapts an external product (Shopify, Odoo, HubSpot, …) into Qefro:
+
+1. Authenticate to the external API
+2. Map webhooks / polls → **namespaced events**
+3. Optionally expose tools via Backend SDK or REST integrations
+4. **`emit()` only** into the Qefro event bus
+
+Connectors must not start flows, call FlowRunner, or embed a second orchestrator. Use connector-kit EventEmitter or POST /api/v1/org/events/ingest/:tenant_id.
+
+## Build path
+
+- Concepts: this page + [Events](/docs/developer/concepts/events)
+- Per-product guides: [Integrations](/docs/integrations/overview)
+- Kit reference: [Connector reference](/docs/reference/connector-reference)
+
+## Related topics
+
+---
+
+# Working with events
+
+Source: https://docs.qefro.com/docs/developer/events/overview/
+
+> Emit, list, retry, and replay orchestration events; match flows with trigger.event.
+
+## Emit
+
+## Operate
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/v1/org/events` | List |
+| GET | `/api/v1/org/events/:id` | Get |
+| POST | `/api/v1/org/events/:id/retry` | Retry failed |
+| POST | `/api/v1/org/events/:id/replay` | Replay as new row |
+| POST | `/api/v1/org/events/replay` | Range replay |
+
+Complete semantics, envelope fields, ordering, TTL, loop depth:  
+**[Event-Driven Triggers](/docs/guides/event-driven-triggers)** · **[Event reference](/docs/reference/event-reference)**
+
+## Related topics
+
+---
+
+# Webhooks
+
+Source: https://docs.qefro.com/docs/developer/webhooks/overview/
+
+> Inbound provider webhooks Qefro consumes and webhook-style flow triggers.
+
+Two different “webhook” ideas:
+
+1. **Provider webhooks Qefro consumes** — Razorpay billing, Meta WhatsApp — see [API Webhooks](/docs/api/webhooks).
+2. **Your Backend SDK webhook** — Qefro calls `POST /qefro` on your server — see [SDK Framework](/docs/v1/sdk-framework).
+3. **Flow trigger `type: webhook`** — named ingest into the event bus — see [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+
+## Related topics
+
+---
+
+# Schedules
+
+Source: https://docs.qefro.com/docs/developer/schedules/overview/
+
+> Cron triggers on Business Flows — the ticker emits schedule events into the bus.
+
+```ts
+app.flow({
+  id: 'nightly_reconciliation',
+  trigger: { type: 'schedule', cron: '0 2 * * *' },
+})
+  .tool({ id: 'run', tool_ref: 'reconcile_orders' })
+  .complete({ id: 'done' });
+```
+
+On Sync Tools, the Runtime upserts a tenant schedule. The ticker emits `schedule.<flow_id>`; dispatch starts FlowRunner.
+
+Details: [Event-Driven Triggers — Schedule](/docs/guides/event-driven-triggers).
+
+## Related topics
+
+---
+
+# Deployment
+
+Source: https://docs.qefro.com/docs/developer/deployment/overview/
+
+> Deploy Qefro-connected backends and production checklist for the platform.
+
+- Expose Backend SDK on public HTTPS with stable signing secret
+- Health checks on your webhook
+- Production platform checklist: [Production deployment](/docs/guides/production-deployment)
+- Platform deployment notes: [Deployment](/docs/platform/deployment)
+
+Self-hosting the Qefro control plane: [Self-hosting](/docs/developer/self-hosting/overview).
+
+## Related topics
+
+---
+
+# Self-hosting
+
+Source: https://docs.qefro.com/docs/developer/self-hosting/overview/
+
+> Notes for operators running Qefro infrastructure components themselves.
+
+For teams running Qefro components on their own infrastructure:
+
+- [Docker](/docs/v1/docker)
+- [Kubernetes](/docs/v1/kubernetes)
+- [Deployment](/docs/platform/deployment)
+- [Production deployment guide](/docs/guides/production-deployment)
+
+SaaS customers on `app.qefro.com` / `api.qefro.com` typically only self-host the **Backend SDK** and connectors.
+
+## Related topics
+
+---
+
+# API Reference (developer hub)
+
+Source: https://docs.qefro.com/docs/developer/api-reference/overview/
+
+> Entry point to REST, auth, webhooks, SDKs, and error codes.
+
+# API Reference
+
+| Topic | Doc |
+| --- | --- |
+| Authentication | [API Authentication](/docs/api/authentication) |
+| REST route map | [REST APIs](/docs/api/rest-apis) |
+| SDKs | [API SDKs](/docs/api/sdks) |
+| Webhooks | [Webhooks](/docs/api/webhooks) |
+| Rate limits | [Rate limits](/docs/api/rate-limits) |
+| Errors | [Error codes](/docs/api/error-codes) |
+| Examples | [API examples](/docs/api/examples) |
+
+## Related topics
+
+---
+
+# Integrations
+
+# Integrations
+
+Source: https://docs.qefro.com/docs/integrations/overview/
+
+> Connector-specific guides for commerce, CRM, payments, and support systems.
+
+Integration docs are **connector-specific**. Each guide covers installation, authentication, events, tools, webhooks, and examples.
+
+Connectors <strong>emit events</strong> and may expose tools. They never run FlowRunner. See <a href="/docs/developer/concepts/connectors">Connectors</a> and <a href="/docs/guides/event-driven-triggers">Event-Driven Triggers</a>.
+
+| Integration | Status |
+| --- | --- |
+| [Shopify](/docs/integrations/shopify/overview) | Guide scaffold |
+| [WooCommerce](/docs/integrations/woocommerce/overview) | Guide scaffold |
+| [Odoo](/docs/integrations/odoo/overview) | Guide scaffold |
+| [ERPNext](/docs/integrations/erpnext/overview) | Guide scaffold |
+| [HubSpot](/docs/integrations/hubspot/overview) | Guide scaffold |
+| [Stripe](/docs/integrations/stripe/overview) | Guide scaffold |
+| [Razorpay](/docs/integrations/razorpay/overview) | Billing webhooks live |
+| [Zendesk](/docs/integrations/zendesk/overview) | Guide scaffold |
+
+## Related topics
+
+---
+
+# Shopify integration
+
+Source: https://docs.qefro.com/docs/integrations/shopify/overview/
+
+> Connect Shopify to Qefro — installation, auth, events, tools, and examples.
+
+# Shopify
+
+Ideal for abandoned cart recovery and order tracking solutions.
+
+Namespace convention: events under <code>shopify.*</code>. Connectors emit only; FlowRunner stays in Qefro.
+
+## Installation
+
+1. Deploy or enable the Shopify connector service (Qefro connectors monorepo / your fork).
+2. Configure credentials (below) and `QEFRO_API_BASE_URL`, `QEFRO_TENANT_ID`, API token.
+3. Point external webhooks at the connector public URL (not directly at FlowRunner).
+4. In Qefro, declare flows with `trigger.event` matching emitted names — [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+5. Sync SDK tools if the connector exposes Backend SDK handlers.
+
+## Authentication
+
+Shopify Admin API access token / custom app; store domain.
+
+Store secrets in the connector environment or secret manager — not in flow metadata.
+
+## Events
+
+| Event name | Notes |
+| --- | --- |
+| `shopify.cart.abandoned` | Emit when source system notifies connector |
+| `shopify.order.created` | Emit when source system notifies connector |
+| `shopify.order.fulfilled` | Emit when source system notifies connector |
+| `shopify.order.cancelled` | Emit when source system notifies connector |
+
+Envelope fields (idempotency, correlation, TTL): [Event reference](/docs/reference/event-reference).
+
+## Tools
+
+Typical tool surface: **lookup order, cancel order, customer lookup**.
+
+Implement as Backend SDK tools or REST Business Tools. Keep PII minimization and least privilege scopes.
+
+## Webhooks
+
+1. Receive provider webhook → verify signature.
+2. Normalize payload → `EventEmitter.emit({ name: 'shopify.…', payload, idempotencyKey })`.
+3. Return 2xx quickly; let Qefro dispatch asynchronously.
+
+## Examples
+
+- Abandoned cart pattern: [Solutions — Abandoned cart](/docs/solutions/abandoned-cart) (Shopify-oriented; adapt event names).
+- Order tracking: [Solutions — Order tracking](/docs/solutions/order-tracking).
+
+## Workflow checklist
+
+## Related topics
+
+---
+
+# WooCommerce integration
+
+Source: https://docs.qefro.com/docs/integrations/woocommerce/overview/
+
+> Connect WooCommerce to Qefro — installation, auth, events, tools, and examples.
+
+# WooCommerce
+
+WordPress-hosted stores; map webhooks to namespaced events.
+
+Namespace convention: events under <code>woocommerce.*</code>. Connectors emit only; FlowRunner stays in Qefro.
+
+## Installation
+
+1. Deploy or enable the WooCommerce connector service (Qefro connectors monorepo / your fork).
+2. Configure credentials (below) and `QEFRO_API_BASE_URL`, `QEFRO_TENANT_ID`, API token.
+3. Point external webhooks at the connector public URL (not directly at FlowRunner).
+4. In Qefro, declare flows with `trigger.event` matching emitted names — [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+5. Sync SDK tools if the connector exposes Backend SDK handlers.
+
+## Authentication
+
+WooCommerce REST API keys (consumer key/secret).
+
+Store secrets in the connector environment or secret manager — not in flow metadata.
+
+## Events
+
+| Event name | Notes |
+| --- | --- |
+| `woocommerce.order.created` | Emit when source system notifies connector |
+| `woocommerce.order.updated` | Emit when source system notifies connector |
+| `woocommerce.cart.abandoned` | Emit when source system notifies connector |
+
+Envelope fields (idempotency, correlation, TTL): [Event reference](/docs/reference/event-reference).
+
+## Tools
+
+Typical tool surface: **order status, refund request**.
+
+Implement as Backend SDK tools or REST Business Tools. Keep PII minimization and least privilege scopes.
+
+## Webhooks
+
+1. Receive provider webhook → verify signature.
+2. Normalize payload → `EventEmitter.emit({ name: 'woocommerce.…', payload, idempotencyKey })`.
+3. Return 2xx quickly; let Qefro dispatch asynchronously.
+
+## Examples
+
+- Abandoned cart pattern: [Solutions — Abandoned cart](/docs/solutions/abandoned-cart) (Shopify-oriented; adapt event names).
+- Order tracking: [Solutions — Order tracking](/docs/solutions/order-tracking).
+
+## Workflow checklist
+
+## Related topics
+
+---
+
+# Odoo integration
+
+Source: https://docs.qefro.com/docs/integrations/odoo/overview/
+
+> Connect Odoo to Qefro — installation, auth, events, tools, and examples.
+
+# Odoo
+
+ERP + helpdesk modules often drive Employee AI and support flows.
+
+Namespace convention: events under <code>odoo.*</code>. Connectors emit only; FlowRunner stays in Qefro.
+
+## Installation
+
+1. Deploy or enable the Odoo connector service (Qefro connectors monorepo / your fork).
+2. Configure credentials (below) and `QEFRO_API_BASE_URL`, `QEFRO_TENANT_ID`, API token.
+3. Point external webhooks at the connector public URL (not directly at FlowRunner).
+4. In Qefro, declare flows with `trigger.event` matching emitted names — [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+5. Sync SDK tools if the connector exposes Backend SDK handlers.
+
+## Authentication
+
+Odoo URL + database + API key / password (prefer API keys).
+
+Store secrets in the connector environment or secret manager — not in flow metadata.
+
+## Events
+
+| Event name | Notes |
+| --- | --- |
+| `odoo.sale.order.confirmed` | Emit when source system notifies connector |
+| `odoo.helpdesk.ticket.created` | Emit when source system notifies connector |
+
+Envelope fields (idempotency, correlation, TTL): [Event reference](/docs/reference/event-reference).
+
+## Tools
+
+Typical tool surface: **sale order lookup, ticket create**.
+
+Implement as Backend SDK tools or REST Business Tools. Keep PII minimization and least privilege scopes.
+
+## Webhooks
+
+1. Receive provider webhook → verify signature.
+2. Normalize payload → `EventEmitter.emit({ name: 'odoo.…', payload, idempotencyKey })`.
+3. Return 2xx quickly; let Qefro dispatch asynchronously.
+
+## Examples
+
+- Abandoned cart pattern: [Solutions — Abandoned cart](/docs/solutions/abandoned-cart) (Shopify-oriented; adapt event names).
+- Order tracking: [Solutions — Order tracking](/docs/solutions/order-tracking).
+
+## Workflow checklist
+
+## Related topics
+
+---
+
+# ERPNext integration
+
+Source: https://docs.qefro.com/docs/integrations/erpnext/overview/
+
+> Connect ERPNext to Qefro — installation, auth, events, tools, and examples.
+
+# ERPNext
+
+Use namespaced events; keep heavy business rules in Backend SDK tools.
+
+Namespace convention: events under <code>erpnext.*</code>. Connectors emit only; FlowRunner stays in Qefro.
+
+## Installation
+
+1. Deploy or enable the ERPNext connector service (Qefro connectors monorepo / your fork).
+2. Configure credentials (below) and `QEFRO_API_BASE_URL`, `QEFRO_TENANT_ID`, API token.
+3. Point external webhooks at the connector public URL (not directly at FlowRunner).
+4. In Qefro, declare flows with `trigger.event` matching emitted names — [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+5. Sync SDK tools if the connector exposes Backend SDK handlers.
+
+## Authentication
+
+ERPNext site URL + API key/secret.
+
+Store secrets in the connector environment or secret manager — not in flow metadata.
+
+## Events
+
+| Event name | Notes |
+| --- | --- |
+| `erpnext.sales_order.submitted` | Emit when source system notifies connector |
+| `erpnext.issue.opened` | Emit when source system notifies connector |
+
+Envelope fields (idempotency, correlation, TTL): [Event reference](/docs/reference/event-reference).
+
+## Tools
+
+Typical tool surface: **sales order get, issue update**.
+
+Implement as Backend SDK tools or REST Business Tools. Keep PII minimization and least privilege scopes.
+
+## Webhooks
+
+1. Receive provider webhook → verify signature.
+2. Normalize payload → `EventEmitter.emit({ name: 'erpnext.…', payload, idempotencyKey })`.
+3. Return 2xx quickly; let Qefro dispatch asynchronously.
+
+## Examples
+
+- Abandoned cart pattern: [Solutions — Abandoned cart](/docs/solutions/abandoned-cart) (Shopify-oriented; adapt event names).
+- Order tracking: [Solutions — Order tracking](/docs/solutions/order-tracking).
+
+## Workflow checklist
+
+## Related topics
+
+---
+
+# HubSpot integration
+
+Source: https://docs.qefro.com/docs/integrations/hubspot/overview/
+
+> Connect HubSpot to Qefro — installation, auth, events, tools, and examples.
+
+# HubSpot
+
+CRM events often start qualification or CSAT flows.
+
+Namespace convention: events under <code>hubspot.*</code>. Connectors emit only; FlowRunner stays in Qefro.
+
+## Installation
+
+1. Deploy or enable the HubSpot connector service (Qefro connectors monorepo / your fork).
+2. Configure credentials (below) and `QEFRO_API_BASE_URL`, `QEFRO_TENANT_ID`, API token.
+3. Point external webhooks at the connector public URL (not directly at FlowRunner).
+4. In Qefro, declare flows with `trigger.event` matching emitted names — [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+5. Sync SDK tools if the connector exposes Backend SDK handlers.
+
+## Authentication
+
+Private app access token with minimal scopes.
+
+Store secrets in the connector environment or secret manager — not in flow metadata.
+
+## Events
+
+| Event name | Notes |
+| --- | --- |
+| `hubspot.contact.created` | Emit when source system notifies connector |
+| `hubspot.deal.stage_changed` | Emit when source system notifies connector |
+| `hubspot.ticket.created` | Emit when source system notifies connector |
+
+Envelope fields (idempotency, correlation, TTL): [Event reference](/docs/reference/event-reference).
+
+## Tools
+
+Typical tool surface: **contact lookup, ticket create**.
+
+Implement as Backend SDK tools or REST Business Tools. Keep PII minimization and least privilege scopes.
+
+## Webhooks
+
+1. Receive provider webhook → verify signature.
+2. Normalize payload → `EventEmitter.emit({ name: 'hubspot.…', payload, idempotencyKey })`.
+3. Return 2xx quickly; let Qefro dispatch asynchronously.
+
+## Examples
+
+- Abandoned cart pattern: [Solutions — Abandoned cart](/docs/solutions/abandoned-cart) (Shopify-oriented; adapt event names).
+- Order tracking: [Solutions — Order tracking](/docs/solutions/order-tracking).
+
+## Workflow checklist
+
+## Related topics
+
+---
+
+# Stripe integration
+
+Source: https://docs.qefro.com/docs/integrations/stripe/overview/
+
+> Connect Stripe to Qefro — installation, auth, events, tools, and examples.
+
+# Stripe
+
+Prefer verifying Stripe signatures in the connector, then emit to Qefro.
+
+Namespace convention: events under <code>stripe.*</code>. Connectors emit only; FlowRunner stays in Qefro.
+
+## Installation
+
+1. Deploy or enable the Stripe connector service (Qefro connectors monorepo / your fork).
+2. Configure credentials (below) and `QEFRO_API_BASE_URL`, `QEFRO_TENANT_ID`, API token.
+3. Point external webhooks at the connector public URL (not directly at FlowRunner).
+4. In Qefro, declare flows with `trigger.event` matching emitted names — [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+5. Sync SDK tools if the connector exposes Backend SDK handlers.
+
+## Authentication
+
+Restricted API keys; verify Stripe webhook signatures before emit.
+
+Store secrets in the connector environment or secret manager — not in flow metadata.
+
+## Events
+
+| Event name | Notes |
+| --- | --- |
+| `stripe.invoice.paid` | Emit when source system notifies connector |
+| `stripe.invoice.payment_failed` | Emit when source system notifies connector |
+| `stripe.customer.subscription.updated` | Emit when source system notifies connector |
+
+Envelope fields (idempotency, correlation, TTL): [Event reference](/docs/reference/event-reference).
+
+## Tools
+
+Typical tool surface: **invoice lookup, subscription status**.
+
+Implement as Backend SDK tools or REST Business Tools. Keep PII minimization and least privilege scopes.
+
+## Webhooks
+
+1. Receive provider webhook → verify signature.
+2. Normalize payload → `EventEmitter.emit({ name: 'stripe.…', payload, idempotencyKey })`.
+3. Return 2xx quickly; let Qefro dispatch asynchronously.
+
+## Examples
+
+- Abandoned cart pattern: [Solutions — Abandoned cart](/docs/solutions/abandoned-cart) (Shopify-oriented; adapt event names).
+- Order tracking: [Solutions — Order tracking](/docs/solutions/order-tracking).
+
+## Workflow checklist
+
+## Related topics
+
+---
+
+# Razorpay integration
+
+Source: https://docs.qefro.com/docs/integrations/razorpay/overview/
+
+> Connect Razorpay to Qefro — installation, auth, events, tools, and examples.
+
+# Razorpay
+
+Platform billing webhooks: see API Webhooks. Connector events are separate namespaced emits for your tenant flows.
+
+Namespace convention: events under <code>razorpay.*</code>. Connectors emit only; FlowRunner stays in Qefro.
+
+## Installation
+
+1. Deploy or enable the Razorpay connector service (Qefro connectors monorepo / your fork).
+2. Configure credentials (below) and `QEFRO_API_BASE_URL`, `QEFRO_TENANT_ID`, API token.
+3. Point external webhooks at the connector public URL (not directly at FlowRunner).
+4. In Qefro, declare flows with `trigger.event` matching emitted names — [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+5. Sync SDK tools if the connector exposes Backend SDK handlers.
+
+## Authentication
+
+Key id/secret; Qefro also consumes billing webhooks for SaaS entitlements.
+
+Store secrets in the connector environment or secret manager — not in flow metadata.
+
+## Events
+
+| Event name | Notes |
+| --- | --- |
+| `razorpay.payment.captured` | Emit when source system notifies connector |
+| `razorpay.payment.failed` | Emit when source system notifies connector |
+
+Envelope fields (idempotency, correlation, TTL): [Event reference](/docs/reference/event-reference).
+
+## Tools
+
+Typical tool surface: **payment lookup**.
+
+Implement as Backend SDK tools or REST Business Tools. Keep PII minimization and least privilege scopes.
+
+## Webhooks
+
+1. Receive provider webhook → verify signature.
+2. Normalize payload → `EventEmitter.emit({ name: 'razorpay.…', payload, idempotencyKey })`.
+3. Return 2xx quickly; let Qefro dispatch asynchronously.
+
+## Examples
+
+- Abandoned cart pattern: [Solutions — Abandoned cart](/docs/solutions/abandoned-cart) (Shopify-oriented; adapt event names).
+- Order tracking: [Solutions — Order tracking](/docs/solutions/order-tracking).
+
+## Workflow checklist
+
+## Related topics
+
+---
+
+# Zendesk integration
+
+Source: https://docs.qefro.com/docs/integrations/zendesk/overview/
+
+> Connect Zendesk to Qefro — installation, auth, events, tools, and examples.
+
+# Zendesk
+
+Use for human handoff bridges and ticket status tools.
+
+Namespace convention: events under <code>zendesk.*</code>. Connectors emit only; FlowRunner stays in Qefro.
+
+## Installation
+
+1. Deploy or enable the Zendesk connector service (Qefro connectors monorepo / your fork).
+2. Configure credentials (below) and `QEFRO_API_BASE_URL`, `QEFRO_TENANT_ID`, API token.
+3. Point external webhooks at the connector public URL (not directly at FlowRunner).
+4. In Qefro, declare flows with `trigger.event` matching emitted names — [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+5. Sync SDK tools if the connector exposes Backend SDK handlers.
+
+## Authentication
+
+API token + email or OAuth.
+
+Store secrets in the connector environment or secret manager — not in flow metadata.
+
+## Events
+
+| Event name | Notes |
+| --- | --- |
+| `zendesk.ticket.created` | Emit when source system notifies connector |
+| `zendesk.ticket.solved` | Emit when source system notifies connector |
+
+Envelope fields (idempotency, correlation, TTL): [Event reference](/docs/reference/event-reference).
+
+## Tools
+
+Typical tool surface: **ticket get, ticket comment**.
+
+Implement as Backend SDK tools or REST Business Tools. Keep PII minimization and least privilege scopes.
+
+## Webhooks
+
+1. Receive provider webhook → verify signature.
+2. Normalize payload → `EventEmitter.emit({ name: 'zendesk.…', payload, idempotencyKey })`.
+3. Return 2xx quickly; let Qefro dispatch asynchronously.
+
+## Examples
+
+- Abandoned cart pattern: [Solutions — Abandoned cart](/docs/solutions/abandoned-cart) (Shopify-oriented; adapt event names).
+- Order tracking: [Solutions — Order tracking](/docs/solutions/order-tracking).
+
+## Workflow checklist
+
+## Related topics
+
+---
+
+# Solutions
+
+# Solutions
+
+Source: https://docs.qefro.com/docs/solutions/overview/
+
+> Business-oriented playbooks — customer support, commerce, refunds, booking, and more.
+
+Solution docs are **outcome-oriented**: architecture, prerequisites, installation, flows, and troubleshooting.
+
+| Solution | Outcome |
+| --- | --- |
+| [Customer support](/docs/solutions/customer-support) | Cited answers + tools + handoff |
+| [Order tracking](/docs/solutions/order-tracking) | “Where is my order?” end-to-end |
+| [Abandoned cart](/docs/solutions/abandoned-cart) | Event-triggered cart recovery |
+| [Appointment booking](/docs/solutions/appointment-booking) | Schedule with confirmation |
+| [Refund automation](/docs/solutions/refund-automation) | Policy + approval + tool |
+| [Conversational commerce](/docs/solutions/conversational-commerce) | Browse / buy assisted on chat channels |
+
+## Related topics
+
+---
+
+# Customer support
+
+Source: https://docs.qefro.com/docs/solutions/customer-support/
+
+> Grounded support assistant on website and WhatsApp with optional Business Tools and human handoff.
+
+Grounded support assistant on website and WhatsApp with optional Business Tools and human handoff.
+
+## Architecture
+
+Widget/WhatsApp → Customer AI → Hybrid RAG + tools → handoff webhook
+
+## Prerequisites
+
+- Organization + Support workspace
+- Knowledge documents uploaded
+- Optional SDK tools for account actions
+
+## Installation
+
+1. Complete [User getting started](/docs/user/getting-started) for the Support (or commerce) workspace.
+2. Connect channels required by this solution.
+3. Register tools / connectors (see links below).
+4. Declare and **enable** flows; Accept versions after sync.
+5. Run a dry-end-to-end test in a non-production workspace when possible.
+
+## Flows
+
+Conversation-triggered flows for cancel/refund; knowledge for FAQs.
+
+## Deployment
+
+- Production checklist: [Production deployment](/docs/guides/production-deployment)
+- Observe Flow Runs and `/api/v1/org/events` for event-driven paths
+
+## Troubleshooting
+
+- No answer / weak citations → knowledge coverage ([Knowledge Base](/docs/user/knowledge-base/overview))
+- Tool failures → tool logs + SDK webhook health
+- Event flow never starts → namespaced name, Enabled+Valid+Accepted, `when` predicate ([Events](/docs/guides/event-driven-triggers))
+- Approval stuck → Owner/Admin role ([Approvals](/docs/user/approvals/overview))
+
+## Learn more
+
+- [Build AI customer support](/docs/guides/build-ai-customer-support)
+- [Deploy widget](/docs/guides/deploy-website-widget)
+- [Deploy WhatsApp](/docs/guides/deploy-whatsapp-ai)
+
+## Related topics
+
+---
+
+# Order tracking
+
+Source: https://docs.qefro.com/docs/solutions/order-tracking/
+
+> Customers ask where their order is; the assistant calls your order API via a Business Tool or flow.
+
+Customers ask where their order is; the assistant calls your order API via a Business Tool or flow.
+
+## Architecture
+
+Chat intent → flow or tool_loop → order_status_check → cited/status response
+
+## Prerequisites
+
+- Order status API or Backend SDK tool
+- Workspace with tool enabled
+- Clear intent utterances
+
+## Installation
+
+1. Complete [User getting started](/docs/user/getting-started) for the Support (or commerce) workspace.
+2. Connect channels required by this solution.
+3. Register tools / connectors (see links below).
+4. Declare and **enable** flows; Accept versions after sync.
+5. Run a dry-end-to-end test in a non-production workspace when possible.
+
+## Flows
+
+ask order_id → tool order_status_check → complete with `{{status}}`
+
+## Deployment
+
+- Production checklist: [Production deployment](/docs/guides/production-deployment)
+- Observe Flow Runs and `/api/v1/org/events` for event-driven paths
+
+## Troubleshooting
+
+- No answer / weak citations → knowledge coverage ([Knowledge Base](/docs/user/knowledge-base/overview))
+- Tool failures → tool logs + SDK webhook health
+- Event flow never starts → namespaced name, Enabled+Valid+Accepted, `when` predicate ([Events](/docs/guides/event-driven-triggers))
+- Approval stuck → Owner/Admin role ([Approvals](/docs/user/approvals/overview))
+
+## Learn more
+
+- [Define flows](/docs/guides/define-business-flows)
+- [Register SDK tools](/docs/guides/register-sdk-business-tools)
+- [Order approval example pattern](/docs/guides/run-business-flows)
+
+## Related topics
+
+---
+
+# Abandoned cart recovery
+
+Source: https://docs.qefro.com/docs/solutions/abandoned-cart/
+
+> Commerce connector emits cart.abandoned; a flow delays then reminds the shopper via your messaging tool.
+
+Commerce connector emits cart.abandoned; a flow delays then reminds the shopper via your messaging tool.
+
+## Architecture
+
+Store → connector emit → event bus → FlowRunner delay → tool → complete
+
+## Prerequisites
+
+- Shopify/Woo connector emitting namespaced events
+- Flow with trigger.event
+- Reminder tool (email/SMS/WhatsApp)
+
+## Installation
+
+1. Complete [User getting started](/docs/user/getting-started) for the Support (or commerce) workspace.
+2. Connect channels required by this solution.
+3. Register tools / connectors (see links below).
+4. Declare and **enable** flows; Accept versions after sync.
+5. Run a dry-end-to-end test in a non-production workspace when possible.
+
+## Flows
+
+trigger shopify.cart.abandoned → delay → send_cart_reminder → complete
+
+## Deployment
+
+- Production checklist: [Production deployment](/docs/guides/production-deployment)
+- Observe Flow Runs and `/api/v1/org/events` for event-driven paths
+
+## Troubleshooting
+
+- No answer / weak citations → knowledge coverage ([Knowledge Base](/docs/user/knowledge-base/overview))
+- Tool failures → tool logs + SDK webhook health
+- Event flow never starts → namespaced name, Enabled+Valid+Accepted, `when` predicate ([Events](/docs/guides/event-driven-triggers))
+- Approval stuck → Owner/Admin role ([Approvals](/docs/user/approvals/overview))
+
+## Learn more
+
+- [Event-Driven Triggers](/docs/guides/event-driven-triggers)
+- [Shopify integration](/docs/integrations/shopify/overview)
+- [JS example event-abandoned-cart](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/event-abandoned-cart)
+
+## Related topics
+
+---
+
+# Appointment booking
+
+Source: https://docs.qefro.com/docs/solutions/appointment-booking/
+
+> Collect slot preferences, check availability via tools, confirm booking with optional challenge.
+
+Collect slot preferences, check availability via tools, confirm booking with optional challenge.
+
+## Architecture
+
+Conversation flow: ask → availability tool → confirm tool → complete
+
+## Prerequisites
+
+- Calendar/availability API tool
+- Workspace channel live
+- Optional customer auth
+
+## Installation
+
+1. Complete [User getting started](/docs/user/getting-started) for the Support (or commerce) workspace.
+2. Connect channels required by this solution.
+3. Register tools / connectors (see links below).
+4. Declare and **enable** flows; Accept versions after sync.
+5. Run a dry-end-to-end test in a non-production workspace when possible.
+
+## Flows
+
+ask date/time → tool check_slots → condition → tool book → complete
+
+## Deployment
+
+- Production checklist: [Production deployment](/docs/guides/production-deployment)
+- Observe Flow Runs and `/api/v1/org/events` for event-driven paths
+
+## Troubleshooting
+
+- No answer / weak citations → knowledge coverage ([Knowledge Base](/docs/user/knowledge-base/overview))
+- Tool failures → tool logs + SDK webhook health
+- Event flow never starts → namespaced name, Enabled+Valid+Accepted, `when` predicate ([Events](/docs/guides/event-driven-triggers))
+- Approval stuck → Owner/Admin role ([Approvals](/docs/user/approvals/overview))
+
+## Learn more
+
+- [Run Business Flows](/docs/guides/run-business-flows)
+- [Challenges](/docs/developer/concepts/challenges)
+
+## Related topics
+
+---
+
+# Refund automation
+
+Source: https://docs.qefro.com/docs/solutions/refund-automation/
+
+> Policy-aware refunds with human approval gates and authenticated refund tools.
+
+Policy-aware refunds with human approval gates and authenticated refund tools.
+
+## Architecture
+
+Intent/flow → lookup order → condition policy → approval → refund tool (challenge) → complete
+
+## Prerequisites
+
+- Refund tool with auth required
+- Owner/Admin approvers
+- Policy knowledge in workspace
+
+## Installation
+
+1. Complete [User getting started](/docs/user/getting-started) for the Support (or commerce) workspace.
+2. Connect channels required by this solution.
+3. Register tools / connectors (see links below).
+4. Declare and **enable** flows; Accept versions after sync.
+5. Run a dry-end-to-end test in a non-production workspace when possible.
+
+## Flows
+
+See order-approval style flows with approval + auth:required tool
+
+## Deployment
+
+- Production checklist: [Production deployment](/docs/guides/production-deployment)
+- Observe Flow Runs and `/api/v1/org/events` for event-driven paths
+
+## Troubleshooting
+
+- No answer / weak citations → knowledge coverage ([Knowledge Base](/docs/user/knowledge-base/overview))
+- Tool failures → tool logs + SDK webhook health
+- Event flow never starts → namespaced name, Enabled+Valid+Accepted, `when` predicate ([Events](/docs/guides/event-driven-triggers))
+- Approval stuck → Owner/Admin role ([Approvals](/docs/user/approvals/overview))
+
+## Learn more
+
+- [Secure Business Actions](/docs/guides/secure-business-actions)
+- [User approvals](/docs/user/approvals/overview)
+- [Run Business Flows](/docs/guides/run-business-flows)
+
+## Related topics
+
+---
+
+# Conversational commerce
+
+Source: https://docs.qefro.com/docs/solutions/conversational-commerce/
+
+> Assist shoppers on WhatsApp/web with catalog answers, order actions, and event-driven lifecycle messages.
+
+Assist shoppers on WhatsApp/web with catalog answers, order actions, and event-driven lifecycle messages.
+
+## Architecture
+
+Channels + RAG catalog + tools + event triggers for post-purchase
+
+## Prerequisites
+
+- Commerce connector
+- Customer AI channel
+- Tools for catalog/order
+- Event flows for shipping updates
+
+## Installation
+
+1. Complete [User getting started](/docs/user/getting-started) for the Support (or commerce) workspace.
+2. Connect channels required by this solution.
+3. Register tools / connectors (see links below).
+4. Declare and **enable** flows; Accept versions after sync.
+5. Run a dry-end-to-end test in a non-production workspace when possible.
+
+## Flows
+
+Mix conversation flows (browse/buy help) and event flows (shipped, delivered)
+
+## Deployment
+
+- Production checklist: [Production deployment](/docs/guides/production-deployment)
+- Observe Flow Runs and `/api/v1/org/events` for event-driven paths
+
+## Troubleshooting
+
+- No answer / weak citations → knowledge coverage ([Knowledge Base](/docs/user/knowledge-base/overview))
+- Tool failures → tool logs + SDK webhook health
+- Event flow never starts → namespaced name, Enabled+Valid+Accepted, `when` predicate ([Events](/docs/guides/event-driven-triggers))
+- Approval stuck → Owner/Admin role ([Approvals](/docs/user/approvals/overview))
+
+## Learn more
+
+- [WhatsApp](/docs/user/channels/whatsapp)
+- [Integrations](/docs/integrations/overview)
+- [Event-Driven Triggers](/docs/guides/event-driven-triggers)
+
+## Related topics
+
+---
+
+# Reference
+
+# Reference
+
+Source: https://docs.qefro.com/docs/reference/overview/
+
+> CLI, environment variables, configuration, event catalog, connectors, errors, changelog.
+
+| Page | Contents |
+| --- | --- |
+| [CLI](/docs/reference/cli) | Command-line entry points (where applicable) |
+| [Environment variables](/docs/reference/environment-variables) | Common env vars for SDK, connectors, self-host |
+| [Configuration](/docs/reference/configuration) | Config surfaces and Admin Console settings |
+| [Event reference](/docs/reference/event-reference) | Envelope schema + status + APIs |
+| [Connector reference](/docs/reference/connector-reference) | Connector-kit contracts |
+| [Error codes](/docs/api/error-codes) | API error catalog |
+| [Changelog](/docs/reference/changelog) | Docs & platform notes |
+| [Glossary](/docs/glossary) | Terminology |
+| [FAQ](/docs/faq) | Common questions |
+| [Troubleshooting](/docs/troubleshooting) | Symptom → fix |
+
+## Related topics
+
+---
+
+# CLI
+
+Source: https://docs.qefro.com/docs/reference/cli/
+
+> Command-line interfaces related to Qefro SDKs and tooling.
+
+Qefro primary configuration is the **Admin Console**. Backend SDKs are libraries embedded in your service (no required global CLI).
+
+| Tooling | Notes |
+| --- | --- |
+| `npm` / `pnpm` / `cargo` / `pip` | Install language SDKs |
+| Connector services | Usually `node`/`docker` entrypoints per connector package |
+| Docs site | `npm start` / `npm run build` in `qefro-documentation` |
+
+If a dedicated `qefro` CLI ships later, this page will list commands and global flags.
+
+## Related topics
+
+---
+
+# Environment variables
+
+Source: https://docs.qefro.com/docs/reference/environment-variables/
+
+> Common environment variables for Backend SDK, connectors, and self-hosted components.
+
+Never commit secrets. Prefer a secret manager in production.
+
+## Backend SDK
+
+| Variable | Purpose |
+| --- | --- |
+| `QEFRO_SIGNING_SECRET` | Shared secret for webhook signature verify/sign |
+| `PORT` | HTTP port for `/qefro` (examples) |
+
+## Event emit / connectors
+
+| Variable | Purpose |
+| --- | --- |
+| `QEFRO_API_BASE_URL` | e.g. `https://api.qefro.com` |
+| `QEFRO_TENANT_ID` | Tenant UUID for ingest path |
+| `QEFRO_API_TOKEN` | Bearer token for emit APIs |
+
+## Self-hosted control plane
+
+See deployment/docker/kubernetes docs for Postgres, Redis, JWT, object storage, and model endpoints. Variable names are environment-specific.
+
+## Related topics
+
+---
+
+# Configuration
+
+Source: https://docs.qefro.com/docs/reference/configuration/
+
+> Where Qefro settings live — Admin Console, SDK metadata, and connector config.
+
+| Layer | What you configure |
+| --- | --- |
+| Admin Console | Workspaces, knowledge, channels, RBAC, SDK connections, enable flows |
+| Backend SDK | Tools, flows, customer provider, middleware (code) |
+| Connectors | External credentials, webhook secrets, emit target |
+| Platform env | Self-host infrastructure only |
+
+Flow **Prompt Overrides** and enable toggles are console-side and survive SDK `name` renames (identity is flow `id`).
+
+## Related topics
+
+---
+
+# Event reference
+
+Source: https://docs.qefro.com/docs/reference/event-reference/
+
+> Orchestration event envelope fields, statuses, naming rules, and HTTP APIs.
+
+Canonical guide with examples: [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+
+## Naming
+
+- Required form: `namespace.entity.action` (must contain `.`)
+- Segments: `a-zA-Z0-9_-`, non-empty, max name length 256
+- Examples: `shopify.cart.abandoned`, `schedule.nightly_reconciliation`, `system.flow.completed`
+
+## Envelope fields
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `name` | yes | Namespaced event name |
+| `source` | no | Producer label |
+| `payload` | no | JSON object |
+| `version` | no | Default `1.0` |
+| `correlation_id` | no | Business process correlation |
+| `causation_id` | no | Parent event id |
+| `idempotency_key` | no | Tenant-unique dedupe |
+| `sequence_key` + `sequence_n` | no | FIFO stream (both required) |
+| `expires_at` / `ttl_seconds` | no | Expiration |
+| `depth` | no | Loop protection hop count (default max 8) |
+| `delay_seconds` | no | Delay before claim |
+
+## Statuses
+
+`received`, `validated`, `queued`, `running`, `completed`, `failed`, `retry`, `dead_letter`, `expired`
+
+## HTTP APIs
+
+| Method | Path |
+| --- | --- |
+| GET | `/api/v1/org/events` |
+| POST | `/api/v1/org/events` |
+| GET | `/api/v1/org/events/:id` |
+| POST | `/api/v1/org/events/:id/retry` |
+| POST | `/api/v1/org/events/:id/replay` |
+| POST | `/api/v1/org/events/replay` |
+| POST | `/api/v1/org/events/ingest/:tenant_id` |
+
+Also listed under [REST APIs](/docs/api/rest-apis).
+
+## Related topics
+
+---
+
+# Connector reference
+
+Source: https://docs.qefro.com/docs/reference/connector-reference/
+
+> Contracts for Qefro connectors — EventEmitter, naming, and boundaries.
+
+## Boundary
+
+Connectors MUST only emit events (and optionally host tools via Backend SDK). They MUST NOT start flows or call FlowRunner.
+
+## EventEmitter (connector-kit)
+
+Typical options:
+
+- `baseUrl` — `QEFRO_API_BASE_URL`
+- `tenantId` — `QEFRO_TENANT_ID`
+- `token` — `QEFRO_API_TOKEN`
+- `source` — default source label
+
+`emit({ name, payload, correlationId, idempotencyKey, version, causationId, sequenceKey, sequenceN, expiresAt, ttlSeconds, depth })`
+
+Path: `POST /api/v1/org/events/ingest/:tenant_id`
+
+## Product guides
+
+See [Integrations](/docs/integrations/overview).
+
+## Related topics
+
+---
+
+# Changelog
+
+Source: https://docs.qefro.com/docs/reference/changelog/
+
+> Documentation and platform documentation changelog.
+
+See [Release notes](/docs/release-notes) for dated entries.
+
+### 2026-08-01
+
+- Documentation IA restructure: User Guide, Developer Guide, Integrations, Solutions, Reference
+- Event-driven Business Flow triggers documented end-to-end
+
+## Related topics
+
+---
+
+# FAQ
+
+Source: https://docs.qefro.com/docs/faq/
+
+> Frequently asked questions about the Qefro AI Workspace Platform — workspaces, Customer AI, Employee AI, Business Actions, and RBAC.
+
+**FAQ** for the Qefro AI Workspace Platform as implemented on app.qefro.com / api.qefro.com.
+
+## Product
+
+A scoped AI environment with its own knowledge, instructions, Business Tools, and conversations. See What is an AI Workspace?.</>},
+  {question: 'What is Customer AI?', answer: <>External assistants on the website widget and WhatsApp. See Customer AI vs Employee AI.</>},
+  {question: 'What is Employee AI?', answer: <>Internal assistants on the branded Internal Portal for organization members with RBAC. See Employee AI.</>},
+  {question: 'What is the Internal Portal?', answer: <>The employee experience hosted on <code>your-company.qefro.com</code> or a custom domain. See Internal Portal.</>},
+  {question: 'What are Business Actions?', answer: <>Runtime, authorized calls to Business Tools (your APIs) during a conversation. See What are Business Actions?.</>},
+  {question: 'How do Business Actions call APIs?', answer: <>Configure a Business Tool (REST or OpenAPI), then the assistant invokes it under workspace scope with SSRF controls and logs. See Connect REST APIs.</>},
+  {question: 'How does RBAC work?', answer: <>Owner, Admin, and Member roles; Teams grant Members access to specific workspaces. See RBAC.</>},
+  {question: 'Do I host the vector DB?', answer: 'Not on Qefro cloud — RAG infrastructure is managed for you.'},
+  {question: 'Does Qefro replace my CRM?', answer: 'No. Business Tools call your systems of record.'},
+  {question: 'What is identify()?', answer: <>Widget API to forward your end-user JWT/session into REST Business Tools. See Identity Forwarding and REST configuration.</>},
+]} />
+
+## Business Tools
+
+REST for existing HTTPS APIs and OpenAPI specs. Backend SDK for OTP, login, and multi-step workflows. See REST vs SDK.</>},
+  {question: 'Why does the assistant only answer from docs?', answer: 'Usually missing workspace on the widget, no tools enabled, or tools filtered by auth level. Bind workspaceId and verify tools in Test Tool.'},
+  {question: 'Does identity forwarding work with SDK?', answer: 'Raw JWT/session forward is REST only (END_USER_IDENTITY). Backend SDK receives identity attributes and uses lookup + authorize.'},
+  {question: 'Can Internal Portal run Business Tools?', answer: 'V1 Portal is knowledge-only for live tool execution. END_USER_IDENTITY is Widget/WhatsApp. Playground supports most tools for testing.'},
+  {question: 'Sync Tools did nothing?', answer: 'Pass workspace_id and auto_register:true. Sync without workspace only updates connection metadata.'},
+]} />
+
+## Plans
+
+## Related topics
+
+---
+
+# Glossary
+
+Source: https://docs.qefro.com/docs/glossary/
+
+> Canonical Qefro terminology aligned with the product, with links to detailed documentation.
+
+| Term | Definition |
+| --- | --- |
+| Organization / Tenant | Top-level account boundary for billing and isolation — [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture), [Organizations](/docs/platform/organizations) |
+| AI Workspace | Isolated knowledge + tools + conversations — [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
+| Customer AI | Website widget and/or WhatsApp assistants — [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai), [Customer AI](/docs/platform/customer-ai) |
+| Employee AI | Internal Portal assistants for org members — [Employee AI](/docs/platform/employee-ai) |
+| Internal Portal | `your-company.qefro.com` employee experience — [Internal Portal](/docs/platform/internal-portal) |
+| Knowledge Platform | Ingest + hybrid retrieval + citations — [AI Knowledge Platform](/docs/concepts/ai-knowledge-platform) |
+| Hybrid RAG | Lexical + vector retrieval for grounded answers — [Hybrid RAG](/docs/concepts/hybrid-rag) |
+| Business Tool | Workspace connector (`rest` / OpenAPI or `sdk`) the AI can invoke — [Business Tools](/docs/platform/business-tools), [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) |
+| Business Action | Runtime invocation of a Business Tool — [What are Business Actions?](/docs/concepts/business-actions) |
+| Business Flow | Declarative orchestration of tools/steps executed by FlowRunner — [Define Business Flows](/docs/guides/define-business-flows), [Run Business Flows](/docs/guides/run-business-flows) |
+| Flow trigger | Entry path for a flow: conversation (intent), event, schedule, or webhook — [Event-Driven Triggers](/docs/guides/event-driven-triggers) |
+| Orchestration event | Namespaced bus envelope that can start event-triggered flows; connectors only emit — [Event-Driven Triggers](/docs/guides/event-driven-triggers) |
+| SDK Connection | Signed org webhook for `@qefro-ai/backend` / `qefro-backend-sdk` — [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) |
+| Identity Forwarding | `identify()` end-user JWT/session into tool calls — [Identity Forwarding](/docs/platform/identity-forwarding) |
+| Widget token | Publishable embed key for `cdn.qefro.com/widget.js` — [Website Widget](/docs/platform/website-widget) |
+| Owner / Admin / Member | Organization RBAC roles — [RBAC](/docs/platform/rbac) |
+| Team | Grants Members access to workspaces — [Teams](/docs/platform/teams) |
+| Custom domain | Your hostname for the Internal Portal — [Custom Domains](/docs/platform/custom-domains) |
+| AI Agent Security | Controls for retrieval + tool calling — [AI Agent Security](/docs/concepts/ai-agent-security) |
+
+## Related topics
+
+---
+
+# Release Notes
+
+Source: https://docs.qefro.com/docs/release-notes/
+
+> Notable documentation and platform documentation updates for docs.qefro.com.
+
+## 2026-08-01 — Documentation information architecture
+
+- Restructured docs navigation for **User Guide**, **Developer Guide**, **Integrations**, **Solutions**, and **Reference**
+- Navbar: Documentation dropdown + audience sections; Pricing + GitHub on the right
+- Added section hubs under `docs/introduction`, `docs/user`, `docs/developer`, `docs/integrations`, `docs/solutions`, `docs/reference`
+- Existing deep pages keep stable URLs under `concepts/`, `platform/`, `guides/`, `api/`, `business-tools/`
+
+## 2026-08-01 — Event-driven Business Flow triggers
+
+- Added [Event-Driven Triggers](/docs/guides/event-driven-triggers): connectors, webhooks, and schedules start the **same** FlowRunner (not a second engine)
+- Documented flow `metadata.trigger` (`event` / `schedule` / `webhook`), namespaced event names, optional `when` predicates
+- Documented envelope fields (version, lineage, sequence ordering, TTL, depth / loop protection) and operator replay APIs
+- REST map: `/api/v1/org/events` emit, ingest, retry, replay
+- Cross-linked from Define / Run Business Flows, glossary, and sidebars
+
+## 2026-07-18 — Docs RC1 content fulfillment
+
+- Expanded **Concepts** GEO pillars (AI Workspace, Hybrid RAG, Business Actions, agent security, multi-tenant architecture)
+- Replaced stub **Guides**, **Security**, and **Compare** pages with full playbooks and capability matrices
+- Expanded thin **Platform** and **API** reference pages (analytics, teams, branding, webhooks, examples, …)
+- Added `/llms.txt` and `/llms-full.txt` for AI discovery
+- Expanded blog posts across Platform, AI, Architecture, Security, Engineering, Product, Tutorials
+
+## 2026-07 — Docs aligned to production implementation
+
+- Rewrote docs against real hosts: `app.qefro.com`, `api.qefro.com`, `cdn.qefro.com`
+- Documented widget `identify()` transport and Business Tools REST routes
+- Documented Razorpay webhooks including `payment.failed` and order-level idempotency
+- Documented Owner / Admin / Member RBAC and org team APIs
+
+## Related topics
+
+---
 
 # Concepts (GEO)
 
@@ -2900,6 +4813,684 @@ When the checklist is green, announce URLs internally and monitor Admin Console 
 
 ---
 
+# Event-Driven Triggers
+
+Source: https://docs.qefro.com/docs/guides/event-driven-triggers/
+
+> Start Business Flows from connectors, webhooks, and schedules — events are triggers into the existing Qefro Runtime (FlowRunner), not a second orchestration engine.
+
+[Define Business Flows](/docs/guides/define-business-flows) and [Run Business Flows](/docs/guides/run-business-flows) cover conversation-driven flows: a customer message matches `intent`, and the Runtime starts a run.
+
+**Event-driven triggers** are an *additional entry path into the same Runtime*. A connector, schedule, webhook, or your backend emits a namespaced event; the bus validates and queues it; the dispatcher matches enabled flows whose `metadata.trigger` matches; then **FlowRunner** runs the flow — with the same steps, tools, approvals, delays, and challenges as chat.
+
+Events are **triggers only**. Connectors and external systems must never start flows themselves or embed a second orchestrator. They only <code>emit()</code>. The Qefro Runtime remains the single execution engine.
+
+## Outcome
+
+- Flows declared with `trigger: { type: 'event' | 'schedule' | 'webhook', ... }`
+- Connectors (or Admin API) emit namespaced events into the bus
+- Matching flows start as `Channel::Event` runs visible in **Flow Runs**
+- Production safeguards: versioning, lineage, ordering, expiration, replay, loop depth, `when` predicates
+
+## Prerequisites
+
+- SDK Connection with tools + flows: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools)
+- `@qefro-ai/backend` ≥ **1.3.0** (or equivalent Python / Rust SDK with `trigger` support)
+- Owner/Admin JWT for emit / list / replay APIs
+- Optional: Qefro connector-kit `EventEmitter` for connector services
+
+## Architecture
+
+```mermaid
+flowchart LR
+  C[Connector / webhook / schedule / API] -->|emit namespaced event| Bus[Event bus]
+  Bus -->|persist + queue| Disp[Dispatcher]
+  Disp -->|match trigger + when| Flow[Enabled Business Flow]
+  Flow --> FR[FlowRunner]
+  FR -->|tool.invoke| SDK[Your Backend SDK]
+```
+
+| Layer | Responsibility |
+| --- | --- |
+| Producer (connector, cron, HTTP) | Build envelope, call emit/ingest — **no FlowRunner** |
+| Event bus | Validate name/namespace/depth/sequence, persist, idempotency, queue |
+| Dispatcher | Claim due events, match flows, apply `when`, start runs |
+| FlowRunner | Same engine as conversation flows (ask, tool, approval, delay, …) |
+
+## Trigger types
+
+Set `metadata.trigger` on `app.flow(...)`. Default (omit `trigger`) is **conversation** — Phase 2 behaviour.
+
+| `type` | When it starts | Key fields |
+| --- | --- | --- |
+| `conversation` | Customer message matches `intent` | *(default)* |
+| `event` | Bus event name equals `event` | `event` (required, namespaced), `when?` |
+| `schedule` | Cron ticker emits `schedule.<flow_id>` | `cron` (required) |
+| `webhook` | Named webhook ingest | `name?`, `when?` |
+
+### TypeScript
+
+```ts
+app
+  .flow({
+    id: 'abandoned_cart_recovery',
+    name: 'Abandoned cart recovery',
+    version: 1,
+    trigger: {
+      type: 'event',
+      event: 'shopify.cart.abandoned',
+      // optional payload predicate
+      // when: 'cart.total >= 50',
+    },
+    inputs: ['cartId'],
+  })
+  .delay({ id: 'wait_1h', duration_seconds: 3600 })
+  .tool({ id: 'remind', tool_ref: 'send_cart_reminder' })
+  .complete({ id: 'done', message: 'Cart reminder sent.' });
+```
+
+### Python
+
+```python
+(
+    app.flow({
+        "id": "abandoned_cart_recovery",
+        "name": "Abandoned cart recovery",
+        "trigger": {
+            "type": "event",
+            "event": "shopify.cart.abandoned",
+            "when": "cart.total >= 50",  # optional
+        },
+    })
+    .delay("wait_1h", duration_seconds=3600)
+    .tool("remind", tool_ref="send_cart_reminder")
+    .complete("done", message="Cart reminder sent.")
+)
+```
+
+### Rust
+
+```rust
+use qefro_backend_sdk::{BusinessFlowMetadata, FlowTrigger};
+
+app.flow(BusinessFlowMetadata {
+    id: "abandoned_cart_recovery".into(),
+    name: Some("Abandoned cart recovery".into()),
+    trigger: Some(FlowTrigger::Event {
+        event: "shopify.cart.abandoned".into(),
+        when: None,
+    }),
+    ..Default::default()
+})?
+.delay("wait_1h", 3600)
+.tool("remind", "send_cart_reminder")
+.complete("done", Some("Cart reminder sent.".into()))?;
+```
+
+### Schedule trigger
+
+```ts
+app.flow({
+  id: 'nightly_reconciliation',
+  name: 'Nightly reconciliation',
+  trigger: { type: 'schedule', cron: '0 2 * * *' },
+})
+  .tool({ id: 'run', tool_ref: 'reconcile_orders' })
+  .complete({ id: 'done' });
+```
+
+On **Sync Tools**, the Runtime upserts a tenant schedule. The ticker emits `schedule.<flow_id>` (already namespaced). Dispatch resolves the flow via the event name **and** `payload.flow_id`.
+
+### Optional `when` predicate
+
+For `event` and `webhook` triggers, `when` is evaluated against the **event payload** (same expression style as flow `condition` steps):
+
+```text
+path OP literal | path exists | path empty | bare path (truthy)
+OP := == | != | >= | <= | > | <
+```
+
+Examples: `total >= 1000`, `status == "paid"`, `customer.email exists`.
+
+- Missing / empty `when` → always matches.
+- Expression false → that flow is **skipped** (other matching flows may still run).
+- Unparseable expressions fail closed for that flow.
+
+## Event names and namespaces
+
+Every event name **must** be fully qualified: `namespace.rest` (at least one `.`).
+
+| Rule | Detail |
+| --- | --- |
+| Required dot | `shopify.order.created` ✅ · `order_created` ❌ |
+| Segments | Non-empty; `a-zA-Z0-9_-` only |
+| Max length | 256 characters |
+| Namespace | First segment (`shopify`, `system`, `schedule`, …) |
+
+**Well-known namespaces** (conventions, not exclusive):
+
+| Namespace | Typical producers |
+| --- | --- |
+| `shopify`, `woocommerce`, `odoo`, `erpnext`, `hubspot`, `stripe` | Commerce / CRM connectors |
+| `schedule` | Cron ticker (`schedule.<flow_id>`) |
+| `webhook` | Generic HTTP webhook alias |
+| `system`, `conversation` | Platform lifecycle (reserved style) |
+
+Wildcards on the bus: subscribers may match `ns.*` patterns; flows match on the **exact** trigger event name.
+
+## Envelope
+
+| Field | Required | Purpose |
+| --- | --- | --- |
+| `name` | yes | Namespaced event name |
+| `source` | no | Producer label (default `api` / connector name) |
+| `payload` | no | JSON object; seed variables for the flow |
+| `version` | no | Envelope schema version (default `"1.0"`) |
+| `correlation_id` | no | Groups related events across a process |
+| `causation_id` | no | Immediate parent event id (lineage) |
+| `idempotency_key` | no | Tenant-scoped unique; duplicate emit returns existing row |
+| `sequence_key` + `sequence_n` | no | FIFO ordering stream (both required together) |
+| `expires_at` or `ttl_seconds` | no | Drop if still pending after expiry |
+| `depth` | no | Causation hop count (default `0`; children = parent + 1) |
+| `delay_seconds` | no | Hold before dispatcher may claim |
+
+### Seed variables when a flow starts
+
+The Runtime opens a system conversation (`Channel::Event`) and seeds the run with:
+
+- `event` — envelope summary (`id`, `name`, `namespace`, `source`, lineage, `payload`, timestamp, …)
+- Top-level keys from `payload` merged in (so `cartId` in the payload is available as `{{cartId}}`)
+
+Approvals, delays, challenges, and tool invokes behave exactly like conversation-driven runs — monitor them in **Flow Runs**.
+
+## Emit events
+
+### Admin / org API
+
+```bash
+curl -sS -X POST "https://api.qefro.com/api/v1/org/events" \
+  -H "Authorization: Bearer $QEFRO_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "shopify.cart.abandoned",
+    "source": "connector:shopify",
+    "correlation_id": "cart:abc123",
+    "idempotency_key": "shopify:cart:abc123:abandoned",
+    "payload": { "cartId": "abc123", "email": "shopper@example.com", "total": 89.5 },
+    "ttl_seconds": 86400
+  }'
+```
+
+### Connector-kit `EventEmitter`
+
+Connectors use the kit so they never touch FlowRunner:
+
+```ts
+await emitter.emit({
+  name: 'shopify.cart.abandoned',
+  payload: { cartId: 'abc123', email: 'shopper@example.com' },
+  correlationId: 'cart:abc123',
+  idempotencyKey: 'shopify:cart:abc123:abandoned',
+});
+```
+
+Path used: `POST /api/v1/org/events/ingest/:tenant_id`.
+
+## Lifecycle and status
+
+| Status | Meaning |
+| --- | --- |
+| `received` / `validated` / `queued` | Ingest path before claim |
+| `running` | Dispatcher processing / flow starting |
+| `completed` | Handled (including “no matching flow” ack) |
+| `retry` | Transient failure; backoff until `next_run_at` |
+| `failed` / `dead_letter` | Exhausted retries or permanent failure |
+| `expired` | Still pending after `expires_at` |
+
+```mermaid
+stateDiagram-v2
+  [*] --> queued: emit
+  queued --> running: claim
+  running --> completed: ack
+  running --> retry: nack
+  retry --> queued: next_run_at
+  retry --> dead_letter: max retries
+  queued --> expired: expires_at
+```
+
+## Production guarantees (hardening)
+
+### Ordering
+
+- With `sequence_key` + `sequence_n`: the claim path keeps **FIFO per stream** (later `n` waits until earlier events settle).
+- Without a sequence key: events are **independent, at-least-once**.
+
+### Lineage and loop protection
+
+- `correlation_id` ties a business process; `causation_id` points at the parent event.
+- Child emits should set `depth = parent.depth + 1` and `causation_id = parent.id`.
+- Default **max depth = 8**. Deeper emits are rejected so event→flow→emit loops cannot runaway.
+
+### Expiration
+
+- Set `expires_at` or `ttl_seconds` for time-sensitive work (flash sales, OTP windows).
+- The recovery loop expires due pending rows before claiming new work.
+
+### Idempotency
+
+- Prefer stable `idempotency_key` values from the source system (order id + event type).
+- Duplicate keys return the existing record instead of double-starting flows.
+
+### Replay (operator)
+
+Replay creates a **new** queued event linked via `replay_of` (it does not re-queue the same row).
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| POST | `/api/v1/org/events/:id/replay` | Replay one event |
+| POST | `/api/v1/org/events/replay` | Replay root events in a time range (`start`, `end`, optional `name`, `limit`) |
+| POST | `/api/v1/org/events/:id/retry` | Re-queue a failed / dead-letter event |
+| GET | `/api/v1/org/events` | List (`status`, `name`, `limit`) |
+| GET | `/api/v1/org/events/:id` | Get one |
+
+```bash
+curl -sS -X POST "https://api.qefro.com/api/v1/org/events/$EVENT_ID/replay" \
+  -H "Authorization: Bearer $QEFRO_JWT"
+```
+
+Range body:
+
+```json
+{
+  "start": "2026-08-01T00:00:00Z",
+  "end": "2026-08-01T23:59:59Z",
+  "name": "shopify.cart.abandoned",
+  "limit": 100
+}
+```
+
+## Worked example — abandoned cart
+
+Runnable reference: [`event-abandoned-cart`](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/event-abandoned-cart) in the JS Backend SDK.
+
+1. Register `send_cart_reminder` tool + flow with `trigger: { type: 'event', event: 'shopify.cart.abandoned' }`.
+2. **Sync Tools** and **Enable** the flow (Valid + Accepted).
+3. Shopify connector (or curl) emits `shopify.cart.abandoned` with `{ cartId, email }`.
+4. Dispatcher matches the flow → FlowRunner runs `delay` → `tool` → `complete`.
+5. Watch the run in **Flow Runs** (same UI as chat-started flows).
+
+## Workflow checklist
+
+## FAQ
+
+## Related topics
+
+---
+
+# Define Business Flows
+
+Source: https://docs.qefro.com/docs/guides/define-business-flows/
+
+> Advertise Business Flows from your backend with @qefro-ai/backend, qefro-backend-sdk, or qefro-backend. The Qefro Runtime discovers, validates, and versions flows via capabilities.list — the SDK never executes them.
+
+This guide advertises **Business Flows** from your backend using the Qefro Backend Framework (`@qefro-ai/backend`, `qefro-backend-sdk`, or `qefro-backend`). A flow describes **how your existing Business Tools are orchestrated** — which questions to ask, which tools to call, and in what order.
+
+Flows are **metadata only** in your backend. The SDK advertises them through the `capabilities.list` message; the Qefro Runtime discovers, validates, versions, and **executes** them. **Nothing runs inside the SDK.** Register your tools first with [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) — a flow references those tools by name. Once a flow is enabled, see [Run Business Flows](/docs/guides/run-business-flows) for conversation-driven execution, or [Event-Driven Triggers](/docs/guides/event-driven-triggers) to start the **same** Runtime from connectors, webhooks, and schedules.
+
+Flows never run in your backend and never change how individual tools behave. They are a declarative description the Runtime reads — and, once enabled, executes: asking questions, calling your tools, pausing for approval, and verifying customers.
+
+## Outcome
+
+- One or more flows declared with `app.flow(...)` in your backend
+- Flows advertised alongside tools via `capabilities.list`
+- Flows discovered on **Sync Tools**, validated, and shown in Admin Console → **Business Tools → SDK Connections**
+- First discovery auto-accepts; later changes surface an **Accept / Reject** version prompt
+
+## Prerequisites
+
+- A working SDK Connection with registered tools (see [Register SDK Business Tools](/docs/guides/register-sdk-business-tools))
+- `@qefro-ai/backend` ≥ 1.1.0 **or** `qefro-backend-sdk` ≥ 1.2.0 **or** `qefro-backend` ≥ 1.0.0
+- Owner/Admin access in Admin Console
+
+## Concepts
+
+| Term | Meaning |
+| --- | --- |
+| Flow | `{ metadata, steps }` describing an orchestration of Business Tools |
+| `id` | Immutable identity of the flow. Renaming `name` never creates a new flow |
+| Step | `{ id, type, config }` — a single node; every step needs a unique `id` |
+| `trigger` | Optional entry path: `conversation` (default), `event`, `schedule`, or `webhook` — see [Event-Driven Triggers](/docs/guides/event-driven-triggers) |
+| `capabilities.list` | Message that returns both `tools` and `flows` (supersedes `tools.list`) |
+| Version detection | The Runtime computes its own checksum over each flow and prompts to Accept/Reject changes |
+| Validation | The Runtime flags errors (block enabling) and warnings (informational) at sync time |
+
+`capabilities.list` is additive on protocol version `1`. Older SDKs that don't recognize it answer with an error, and the Runtime automatically falls back to `tools.list` (tools-only). Upgrade the SDK to advertise flows.
+
+## Step 1 — Declare a flow
+
+Chain step builders off `app.flow(metadata)`. Each `tool` step references an existing tool by `tool_ref`.
+
+### TypeScript
+
+```ts
+const app = new Qefro({ signingSecret: process.env.QEFRO_SIGNING_SECRET! });
+
+// ...register app.tool('lookup_customer', ...) and app.tool('get_orders', ...) first
+
+app
+  .flow({
+    id: 'order_lookup',            // immutable identity — renaming `name` never creates a new flow
+    name: 'Order Lookup',
+    description: 'Lookup customer orders',
+    version: 1,
+    category: 'crm',
+    tags: ['customer', 'orders'],
+    intent: ['track order', 'where is my order', 'find my shipment'],
+    inputs: ['email'],
+    outputs: ['customer', 'orders'],
+  })
+  .ask({ id: 'email', field: 'email', prompt: 'Please enter your email.' })
+  .tool({ id: 'lookup', tool_ref: 'lookup_customer' })
+  .tool({ id: 'orders', tool_ref: 'get_orders' })
+  .complete({ id: 'done', message: 'Here are your recent orders.' });
+
+await app.listen({ port: 8088, path: '/qefro' });
+```
+
+### Rust
+
+```rust
+use qefro_backend_sdk::BusinessFlowMetadata;
+
+app.flow(BusinessFlowMetadata {
+    id: "order_lookup".into(),
+    name: Some("Order Lookup".into()),
+    description: Some("Lookup customer orders".into()),
+    category: Some("crm".into()),
+    tags: vec!["customer".into(), "orders".into()],
+    intent: vec!["track order".into(), "where is my order".into()],
+    inputs: vec!["email".into()],
+    outputs: vec!["customer".into(), "orders".into()],
+    ..Default::default()
+})?
+.ask("email", "email", "Please enter your email.")
+.tool("lookup", "lookup_customer")
+.tool("orders", "get_orders")
+.complete("done", Some("Here are your recent orders.".into()))?;
+```
+
+In Rust, `flow(...)` and `.complete(...)` return `Result` — a duplicate or empty id (flow or step) surfaces a `FlowError` and the flow is excluded from `capabilities.list` instead of panicking. In TypeScript, the same mistakes throw at startup.
+
+### Python
+
+```python
+from qefro_backend import Qefro
+
+app = Qefro(signing_secret="...")  # or QEFRO_SIGNING_SECRET from env
+
+# ...register app.tool("lookup_customer", ...) and app.tool("get_orders", ...) first
+
+(
+    app.flow({
+        "id": "order_lookup",          # immutable identity — renaming `name` never creates a new flow
+        "name": "Order Lookup",
+        "description": "Lookup customer orders",
+        "category": "crm",
+        "tags": ["customer", "orders"],
+        "intent": ["track order", "where is my order", "find my shipment"],
+        "inputs": ["email"],
+        "outputs": ["customer", "orders"],
+    })
+    .ask("email", field="email", prompt="Please enter your email.")
+    .tool("lookup", tool_ref="lookup_customer")
+    .tool("orders", tool_ref="get_orders")
+    .complete("done", message="Here are your recent orders.")
+)
+
+app.run(8088)  # POST http://0.0.0.0:8088/qefro
+```
+
+In Python, a duplicate or empty id (flow or step) raises `FlowError` at declaration time. Use the `else_` argument on `.condition(...)` (Python keyword) — it is serialized as the `else` wire key.
+
+### Optional entry trigger
+
+By default a flow starts from a matching customer message (`intent`). To start from a bus event, schedule, or webhook instead, set `trigger` on the flow metadata:
+
+```ts
+app.flow({
+  id: 'abandoned_cart_recovery',
+  name: 'Abandoned cart recovery',
+  trigger: { type: 'event', event: 'shopify.cart.abandoned' }, // namespaced
+  // trigger: { type: 'schedule', cron: '0 2 * * *' },
+  // trigger: { type: 'event', event: 'shopify.order.created', when: 'total >= 1000' },
+})
+  .tool({ id: 'remind', tool_ref: 'send_cart_reminder' })
+  .complete({ id: 'done' });
+```
+
+Event names must be **namespaced** (`shopify.cart.abandoned`, not `cart_abandoned`). Full emit, ordering, replay, and connector guidance: [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+
+## Step 2 — Step types
+
+Every step is `{ id, type, config }`. `id` must be unique within the flow. Type-specific settings live in `config`, so future options extend `config` without breaking the wire format.
+
+| Type | Purpose | Key config |
+| --- | --- | --- |
+| `ask` | Collect input from the customer | `field`, `prompt` |
+| `tool` | Call a registered Business Tool | `tool_ref` |
+| `challenge` | Trigger a customer auth challenge | `message?` |
+| `upload` | Request a file | `field?`, `prompt?`, `accept?` |
+| `condition` | Branch to other steps | `when`, `then?`, `else?` |
+| `delay` | Wait before continuing | `duration_seconds` (or ISO `until`) |
+| `approval` | Require human approval | `prompt?` |
+| `complete` | Terminal step | `message?` |
+
+`tool_ref` must name a tool advertised by the **same** connection. A flow that references an unknown tool, has a duplicate/missing step id, an unknown step type, no `complete` step, or a `condition` pointing at a nonexistent step is stored as **Invalid** and cannot be enabled until fixed.
+
+## Step 3 — Sync and review in Admin Console
+
+1. Open **Business Tools → SDK Connections** and select a workspace.
+2. Click **Sync Tools**. The Runtime calls `capabilities.list`, imports tools as before, and discovers your flows.
+3. Each connection shows a **Business Flows** section grouped by category with a Valid / Invalid badge, version info, tags, and inputs/outputs.
+4. Toggle **Enabled** per flow (disabled for invalid flows), and edit **Prompt Overrides** for `ask` steps.
+
+An enabled, valid, accepted flow is live: matching customer messages start a run the Runtime executes end to end — see [Run Business Flows](/docs/guides/run-business-flows).
+
+New flows are **auto-accepted** on first discovery. When you change a flow and re-sync, the Runtime detects the change (via its own checksum) and shows a **New Flow Version Available** banner with **Accept** and **Reject**. Accept promotes the pending version; Reject keeps the current one.
+
+## Versioning and identity
+
+- The **Runtime** owns change detection — it computes a SHA-256 over its own canonical serialization of each received flow. The SDK never computes checksums.
+- Identity is the immutable `id`. Rename `name` freely: the flow updates in place, no new version.
+- Bump `version` for your own record-keeping; the Runtime still uses its checksum to decide when an Accept/Reject prompt appears.
+
+## Protocol reference (what Qefro sends)
+
+| Message | When | Your response |
+| --- | --- | --- |
+| `ping` | Test Connection | `{ "type": "pong", ... }` |
+| `capabilities.list` | Sync Tools | `{ "type": "capabilities.list", "tools": [...], "flows": [...] }` |
+| `tools.list` | Legacy Sync (tools only) | `{ "type": "tools.list", "tools": [...] }` |
+
+The framework verifies and signs requests for you when you use `app.listen()`.
+
+## Workflow checklist
+
+## FAQ
+
+## Related topics
+
+---
+
+# Run Business Flows
+
+Source: https://docs.qefro.com/docs/guides/run-business-flows/
+
+> How the Qefro Runtime executes Business Flows advertised by your SDK backend: activation, step semantics, human approval, customer verification challenges, and monitoring runs in Admin Console.
+
+[Define Business Flows](/docs/guides/define-business-flows) covers declaring flows in your backend with `app.flow(...)`. This guide covers what happens next: the **Qefro Runtime executes those flows** — asking questions, calling your Business Tools over the signed webhook, pausing for human approval, and verifying customers — while you monitor every run in Admin Console → **Flow Runs**.
+
+Your backend stays passive. The Runtime drives the conversation and only calls back into your SDK when a `tool` step runs (a normal `tool.invoke`, identical to AI-initiated tool calls).
+
+Runnable end-to-end examples — a cancellation flow combining <code>ask</code>, <code>condition</code>, human <code>approval</code>, and an OTP-authenticated <code>tool</code> step: <a href="https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/order-approval">JS</a> · <a href="https://github.com/qefro-ai/qefro-rust-backend-sdk/tree/main/examples/order-approval">Rust</a> · <a href="https://github.com/qefro-ai/qefro-python-backend-sdk/tree/main/examples/order-approval">Python</a>.
+
+## When a flow starts
+
+Flows enter the Runtime through one of two paths. Both use the **same FlowRunner** (steps, tools, approvals, delays, challenges).
+
+### Conversation trigger (default)
+
+A customer message starts a flow run only when **all** of these hold:
+
+1. The flow is **Enabled** in the connection's Business Flows list.
+2. The flow is **Valid** (no validation errors at sync time).
+3. Its current version is **Accepted** (first discovery auto-accepts).
+4. The conversation has **no active run** already (one run per conversation at a time).
+5. The flow uses the default **conversation** entry (no `trigger`, or `trigger.type = conversation`).
+6. The message **matches the flow's intent** — the Runtime embeds the customer message and compares it against an embedding of each flow's `intent` utterances + name + description. The best flow above a similarity threshold wins.
+
+If no flow matches, the message is handled by the normal AI tool loop. Write `intent` utterances the way real customers phrase the request ("cancel my order", "stop my order from shipping") — they are the primary selection signal.
+
+### Event / schedule / webhook trigger
+
+When `metadata.trigger` is `event`, `schedule`, or `webhook`, the flow does **not** start from chat intent. A producer emits a namespaced event into the org event bus; the dispatcher matches enabled flows and starts a system `Channel::Event` conversation + run. Payload fields become seed variables. Full guide: [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+
+A disabled flow does not just hide the orchestration — it also removes any <code>approval</code> gate in it. The AI tool loop can still call your tools directly, protected only by each tool's own <code>auth</code> level. Keep flows enabled if a human sign-off matters.
+
+## Step semantics at runtime
+
+| Step | Runtime behavior | Run status while waiting |
+| --- | --- | --- |
+| `ask` | Prompts the customer; their next message is stored under `field` | `waiting_for_input` |
+| `tool` | Calls the referenced Business Tool via `tool.invoke`; output stored as a variable | `running` (or `waiting_for_challenge` if auth is needed) |
+| `condition` | Evaluates `when` against collected variables; jumps to `then`/`else` step id | — (instant) |
+| `approval` | Notifies the customer, then pauses until an Owner/Admin approves in **Flow Runs** | `waiting_for_approval` |
+| `challenge` | Explicitly triggers customer verification (same machinery as `auth: required` tools) | `waiting_for_challenge` |
+| `upload` | Asks the customer for a file | `waiting_for_upload` |
+| `delay` | Sleeps for `duration_seconds` (or until an ISO timestamp in `until`); a recovery worker wakes the run | `paused` |
+| `complete` | Sends the final `message` and finishes the run | `completed` |
+
+Step prompts and completion messages are **relayed conversationally**: the Runtime lets the AI rephrase your prompt naturally (never inventing steps or values), falling back to your exact text if generation fails. Prompt Overrides set in Admin Console take precedence over the SDK-declared prompt.
+
+### Variables and templating
+
+Every run carries a variables object:
+
+- `ask` stores the customer's answer under its `field` (e.g. `order_id`).
+- `tool` stores the tool's structured result under the tool's name (e.g. `order_status_check`), or under a custom `output` key if the step sets one.
+
+Reference variables anywhere in prompts and messages with `{{path}}` templates, including dotted paths:
+
+```text
+Order {{order_id}} is currently {{order_status_check.status}}.
+```
+
+By default a `tool` step receives **all collected variables** as its input, so a tool whose `input_schema` requires `order_id` finds the value collected by an earlier `ask`. To map explicitly, set `input_map`: `{ "tool_param": "variable.path" }`.
+
+### Condition expressions
+
+`when` is evaluated by a strict, non-eval parser:
+
+```text
+expr    := path OP literal | path exists | path empty | path
+OP      := == | != | >= | <= | > | <
+literal := true | false | null | number | 'string' | "string" | bareword
+```
+
+- The left side is always a dotted variable path (`order_status_check.found`).
+- Missing paths compare as `null`; a bare path tests truthiness.
+- Examples: `order_status_check.found == true`, `order.total >= 100`, `customer.email exists`, `orders empty`.
+
+An unparseable expression fails the run; an expression that evaluates false with no `else` target simply falls through to the next step in the list.
+
+## Human approval
+
+When a run reaches an `approval` step:
+
+1. The customer receives the step's prompt ("your request has been sent to a supervisor…").
+2. The run shows in **Flow Runs** with a **Needs approval** badge and an inline **Approve** button.
+3. Any **Owner or Admin** of the organization can approve (Members cannot — the API enforces this). Approval resumes the run at the next step.
+4. Whatever the flow does or says next is **delivered back to the customer's channel** — a WhatsApp customer gets a WhatsApp message even though they did not just send one; widget customers see it in their conversation history.
+
+Cancelling the run from the drawer is the "reject" path — the run ends as `cancelled` and the customer can start over.
+
+## Customer verification (challenges)
+
+Two ways a run verifies the customer:
+
+- **Implicit** — a `tool` step references a tool declared with `auth: 'required'`. The Runtime invokes the tool, your customer provider's `authorize` returns a challenge (e.g. `sms_otp`), and the run pauses in `waiting_for_challenge`. The customer's answer resumes the suspended tool call — on success the tool executes with the verified customer and the flow continues.
+- **Explicit** — a standalone `challenge` step, useful when you want verification before a branch rather than attached to one tool.
+
+This is the same challenge machinery as regular authenticated tools — see [Authentication](/docs/business-tools/authentication) and [Challenge & Resume](/docs/business-tools/challenge-resume). Nothing extra to implement: if your tools already challenge, flows inherit it.
+
+## Monitor runs in Admin Console
+
+**Flow Runs** (Business Tools section) lists every execution with live status:
+
+| Status | Meaning |
+| --- | --- |
+| `running` / `pending` | Actively executing steps |
+| `waiting_for_input` / `waiting_for_upload` | Waiting on the customer |
+| `waiting_for_approval` | Waiting on an Owner/Admin — approve inline or from the drawer |
+| `waiting_for_challenge` | Waiting on customer verification (e.g. OTP) |
+| `paused` | Sleeping in a `delay` step; auto-wakes |
+| `completed` / `failed` / `cancelled` | Terminal |
+
+Opening a run shows the collected variables, current step, and a full **event timeline** (`flow_started`, `step_completed`, `challenge_issued`, `approval_received`, …). Failed runs can be **retried** from the last step; any non-terminal run can be **cancelled**.
+
+## Worked example
+
+The `cancel-order` flow from `examples/order-approval` exercises everything above:
+
+```ts
+app
+  .flow({
+    id: 'cancel-order',
+    name: 'Cancel an order',
+    intent: ['cancel my order', 'i want to cancel an order', 'stop my order from shipping'],
+    category: 'orders',
+    version: 1,
+  })
+  .ask({
+    id: 'collect_order_id',
+    field: 'order_id',
+    prompt: 'Which order do you want to cancel? Please share your order ID.',
+  })
+  .tool({ id: 'lookup_order', tool_ref: 'order_status_check' })
+  .condition({
+    id: 'check_found',
+    when: 'order_status_check.found == true',
+    then: 'await_approval',
+    else: 'report_missing',
+  })
+  .complete({
+    id: 'report_missing',
+    message: "I couldn't find an order with ID {{order_id}}, so there is nothing to cancel.",
+  })
+  .approval({
+    id: 'await_approval',
+    prompt: 'Your cancellation request for order {{order_id}} has been sent to a supervisor for approval.',
+  })
+  .tool({ id: 'do_cancel', tool_ref: 'order_cancel' }) // auth: 'required' → OTP challenge
+  .complete({ id: 'confirm_cancelled', message: '{{order_cancel.message}}' });
+```
+
+What the customer and supervisor experience:
+
+1. Customer: *"cancel my order"* → intent matches, run starts, AI asks for the order ID.
+2. Customer: *"ORD-1001"* → stored as `order_id`; `order_status_check` runs; `found == true` branches to the approval step.
+3. Customer is told a supervisor must approve; run shows **Needs approval** in Flow Runs.
+4. An Owner/Admin clicks **Approve** → the run resumes; `order_cancel` requires auth, so the customer receives the OTP prompt on their channel.
+5. Customer replies with the code → the tool executes → *"Order ORD-1001 has been cancelled…"*.
+
+## Workflow checklist
+
+## FAQ
+
+## Related topics
+
+---
+
 # API
 
 # API Authentication
@@ -3216,6 +5807,22 @@ Guides: [Connect REST APIs](/docs/guides/connect-rest-apis), [Import OpenAPI](/d
 | POST | `/api/v1/org/sdk-connections/:id/sync-tools` | Owner/Admin JWT | `tools.list`; optional `auto_register` + `workspace_id` |
 
 Guide: [Register SDK Business Tools](/docs/guides/register-sdk-business-tools). Framework: [SDK Framework](/docs/v1/sdk-framework).
+
+## Orchestration events (event-driven triggers)
+
+Events are **triggers** into Business Flows — not a second execution engine. Connectors and backends emit namespaced envelopes; the Runtime bus validates, queues, and dispatches into the same FlowRunner used by chat. Guide: [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/v1/org/events` | Owner/Admin JWT | List events (`status`, `name`, `limit`) |
+| POST | `/api/v1/org/events` | Owner/Admin JWT | Emit + enqueue event |
+| GET | `/api/v1/org/events/:id` | Owner/Admin JWT | Get event |
+| POST | `/api/v1/org/events/:id/retry` | Owner/Admin JWT | Re-queue failed / dead-letter |
+| POST | `/api/v1/org/events/:id/replay` | Owner/Admin JWT | Replay as a new envelope (`replay_of`) |
+| POST | `/api/v1/org/events/replay` | Owner/Admin JWT | Replay root events in a time range |
+| POST | `/api/v1/org/events/ingest/:tenant_id` | Owner/Admin JWT (tenant must match) | Connector-style ingest |
+
+Emit body highlights: `name` (required, namespaced e.g. `shopify.order.created`), `source`, `payload`, `version`, `correlation_id`, `causation_id`, `idempotency_key`, `sequence_key` + `sequence_n`, `expires_at` / `ttl_seconds`, `depth`, `delay_seconds`.
 
 ## WhatsApp
 
@@ -4242,99 +6849,6 @@ Source: https://docs.qefro.com/docs/compare/copilot-studio-vs-qefro/
 ## FAQ
 
 Microsoft product names and licensing change often — verify Copilot Studio capabilities on Microsoft’s documentation.
-
-## Related topics
-
----
-
-# Reference
-
-# FAQ
-
-Source: https://docs.qefro.com/docs/faq/
-
-> Frequently asked questions about the Qefro AI Workspace Platform — workspaces, Customer AI, Employee AI, Business Actions, and RBAC.
-
-**FAQ** for the Qefro AI Workspace Platform as implemented on app.qefro.com / api.qefro.com.
-
-## Product
-
-A scoped AI environment with its own knowledge, instructions, Business Tools, and conversations. See What is an AI Workspace?.</>},
-  {question: 'What is Customer AI?', answer: <>External assistants on the website widget and WhatsApp. See Customer AI vs Employee AI.</>},
-  {question: 'What is Employee AI?', answer: <>Internal assistants on the branded Internal Portal for organization members with RBAC. See Employee AI.</>},
-  {question: 'What is the Internal Portal?', answer: <>The employee experience hosted on <code>your-company.qefro.com</code> or a custom domain. See Internal Portal.</>},
-  {question: 'What are Business Actions?', answer: <>Runtime, authorized calls to Business Tools (your APIs) during a conversation. See What are Business Actions?.</>},
-  {question: 'How do Business Actions call APIs?', answer: <>Configure a Business Tool (REST or OpenAPI), then the assistant invokes it under workspace scope with SSRF controls and logs. See Connect REST APIs.</>},
-  {question: 'How does RBAC work?', answer: <>Owner, Admin, and Member roles; Teams grant Members access to specific workspaces. See RBAC.</>},
-  {question: 'Do I host the vector DB?', answer: 'Not on Qefro cloud — RAG infrastructure is managed for you.'},
-  {question: 'Does Qefro replace my CRM?', answer: 'No. Business Tools call your systems of record.'},
-  {question: 'What is identify()?', answer: <>Widget API to forward your end-user JWT/session into REST Business Tools. See Identity Forwarding and REST configuration.</>},
-]} />
-
-## Business Tools
-
-REST for existing HTTPS APIs and OpenAPI specs. Backend SDK for OTP, login, and multi-step workflows. See REST vs SDK.</>},
-  {question: 'Why does the assistant only answer from docs?', answer: 'Usually missing workspace on the widget, no tools enabled, or tools filtered by auth level. Bind workspaceId and verify tools in Test Tool.'},
-  {question: 'Does identity forwarding work with SDK?', answer: 'Raw JWT/session forward is REST only (END_USER_IDENTITY). Backend SDK receives identity attributes and uses lookup + authorize.'},
-  {question: 'Can Internal Portal run Business Tools?', answer: 'V1 Portal is knowledge-only for live tool execution. END_USER_IDENTITY is Widget/WhatsApp. Playground supports most tools for testing.'},
-  {question: 'Sync Tools did nothing?', answer: 'Pass workspace_id and auto_register:true. Sync without workspace only updates connection metadata.'},
-]} />
-
-## Plans
-
-## Related topics
-
----
-
-# Glossary
-
-Source: https://docs.qefro.com/docs/glossary/
-
-> Canonical Qefro terminology aligned with the product, with links to detailed documentation.
-
-| Term | Definition |
-| --- | --- |
-| Organization / Tenant | Top-level account boundary for billing and isolation — [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture), [Organizations](/docs/platform/organizations) |
-| AI Workspace | Isolated knowledge + tools + conversations — [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
-| Customer AI | Website widget and/or WhatsApp assistants — [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai), [Customer AI](/docs/platform/customer-ai) |
-| Employee AI | Internal Portal assistants for org members — [Employee AI](/docs/platform/employee-ai) |
-| Internal Portal | `your-company.qefro.com` employee experience — [Internal Portal](/docs/platform/internal-portal) |
-| Knowledge Platform | Ingest + hybrid retrieval + citations — [AI Knowledge Platform](/docs/concepts/ai-knowledge-platform) |
-| Hybrid RAG | Lexical + vector retrieval for grounded answers — [Hybrid RAG](/docs/concepts/hybrid-rag) |
-| Business Tool | Workspace connector (`rest` / OpenAPI or `sdk`) the AI can invoke — [Business Tools](/docs/platform/business-tools), [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) |
-| Business Action | Runtime invocation of a Business Tool — [What are Business Actions?](/docs/concepts/business-actions) |
-| SDK Connection | Signed org webhook for `@qefro-ai/backend` / `qefro-backend-sdk` — [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) |
-| Identity Forwarding | `identify()` end-user JWT/session into tool calls — [Identity Forwarding](/docs/platform/identity-forwarding) |
-| Widget token | Publishable embed key for `cdn.qefro.com/widget.js` — [Website Widget](/docs/platform/website-widget) |
-| Owner / Admin / Member | Organization RBAC roles — [RBAC](/docs/platform/rbac) |
-| Team | Grants Members access to workspaces — [Teams](/docs/platform/teams) |
-| Custom domain | Your hostname for the Internal Portal — [Custom Domains](/docs/platform/custom-domains) |
-| AI Agent Security | Controls for retrieval + tool calling — [AI Agent Security](/docs/concepts/ai-agent-security) |
-
-## Related topics
-
----
-
-# Release Notes
-
-Source: https://docs.qefro.com/docs/release-notes/
-
-> Notable documentation and platform documentation updates for docs.qefro.com.
-
-## 2026-07-18 — Docs RC1 content fulfillment
-
-- Expanded **Concepts** GEO pillars (AI Workspace, Hybrid RAG, Business Actions, agent security, multi-tenant architecture)
-- Replaced stub **Guides**, **Security**, and **Compare** pages with full playbooks and capability matrices
-- Expanded thin **Platform** and **API** reference pages (analytics, teams, branding, webhooks, examples, …)
-- Added `/llms.txt` and `/llms-full.txt` for AI discovery
-- Expanded blog posts across Platform, AI, Architecture, Security, Engineering, Product, Tutorials
-
-## 2026-07 — Docs aligned to production implementation
-
-- Rewrote docs against real hosts: `app.qefro.com`, `api.qefro.com`, `cdn.qefro.com`
-- Documented widget `identify()` transport and Business Tools REST routes
-- Documented Razorpay webhooks including `payment.failed` and order-level idempotency
-- Documented Owner / Admin / Member RBAC and org team APIs
 
 ## Related topics
 

@@ -1,0 +1,61 @@
+---
+title: "Abandoned cart recovery"
+description: "Commerce connector emits cart.abandoned; a flow delays then reminds the shopper via your messaging tool."
+sidebar_label: "Abandoned cart recovery"
+---
+
+import { RelatedTopics, WorkflowCard } from '@site/src/components';
+
+# Abandoned cart recovery
+
+Commerce connector emits cart.abandoned; a flow delays then reminds the shopper via your messaging tool.
+
+## Architecture
+
+Store → connector emit → event bus → FlowRunner delay → tool → complete
+
+## Prerequisites
+
+- Shopify/Woo connector emitting namespaced events
+- Flow with trigger.event
+- Reminder tool (email/SMS/WhatsApp)
+
+## Installation
+
+1. Complete [User getting started](/docs/user/getting-started) for the Support (or commerce) workspace.
+2. Connect channels required by this solution.
+3. Register tools / connectors (see links below).
+4. Declare and **enable** flows; Accept versions after sync.
+5. Run a dry-end-to-end test in a non-production workspace when possible.
+
+## Flows
+
+trigger shopify.cart.abandoned → delay → send_cart_reminder → complete
+
+## Deployment
+
+- Production checklist: [Production deployment](/docs/guides/production-deployment)
+- Observe Flow Runs and `/api/v1/org/events` for event-driven paths
+
+## Troubleshooting
+
+- No answer / weak citations → knowledge coverage ([Knowledge Base](/docs/user/knowledge-base/overview))
+- Tool failures → tool logs + SDK webhook health
+- Event flow never starts → namespaced name, Enabled+Valid+Accepted, `when` predicate ([Events](/docs/guides/event-driven-triggers))
+- Approval stuck → Owner/Admin role ([Approvals](/docs/user/approvals/overview))
+
+## Learn more
+
+- [Event-Driven Triggers](/docs/guides/event-driven-triggers)
+- [Shopify integration](/docs/integrations/shopify/overview)
+- [JS example event-abandoned-cart](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/event-abandoned-cart)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Solutions overview', to: '/docs/solutions/overview'},
+    {label: 'User Guide', to: '/docs/user/getting-started'},
+    {label: 'Developer Guide', to: '/docs/developer/quick-start'},
+  ]}
+/>

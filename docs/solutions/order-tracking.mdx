@@ -1,0 +1,61 @@
+---
+title: "Order tracking"
+description: "Customers ask where their order is; the assistant calls your order API via a Business Tool or flow."
+sidebar_label: "Order tracking"
+---
+
+import { RelatedTopics, WorkflowCard } from '@site/src/components';
+
+# Order tracking
+
+Customers ask where their order is; the assistant calls your order API via a Business Tool or flow.
+
+## Architecture
+
+Chat intent → flow or tool_loop → order_status_check → cited/status response
+
+## Prerequisites
+
+- Order status API or Backend SDK tool
+- Workspace with tool enabled
+- Clear intent utterances
+
+## Installation
+
+1. Complete [User getting started](/docs/user/getting-started) for the Support (or commerce) workspace.
+2. Connect channels required by this solution.
+3. Register tools / connectors (see links below).
+4. Declare and **enable** flows; Accept versions after sync.
+5. Run a dry-end-to-end test in a non-production workspace when possible.
+
+## Flows
+
+ask order_id → tool order_status_check → complete with `{{status}}`
+
+## Deployment
+
+- Production checklist: [Production deployment](/docs/guides/production-deployment)
+- Observe Flow Runs and `/api/v1/org/events` for event-driven paths
+
+## Troubleshooting
+
+- No answer / weak citations → knowledge coverage ([Knowledge Base](/docs/user/knowledge-base/overview))
+- Tool failures → tool logs + SDK webhook health
+- Event flow never starts → namespaced name, Enabled+Valid+Accepted, `when` predicate ([Events](/docs/guides/event-driven-triggers))
+- Approval stuck → Owner/Admin role ([Approvals](/docs/user/approvals/overview))
+
+## Learn more
+
+- [Define flows](/docs/guides/define-business-flows)
+- [Register SDK tools](/docs/guides/register-sdk-business-tools)
+- [Order approval example pattern](/docs/guides/run-business-flows)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Solutions overview', to: '/docs/solutions/overview'},
+    {label: 'User Guide', to: '/docs/user/getting-started'},
+    {label: 'Developer Guide', to: '/docs/developer/quick-start'},
+  ]}
+/>

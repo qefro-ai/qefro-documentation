@@ -24,15 +24,24 @@ Runnable end-to-end examples — a cancellation flow combining <code>ask</code>,
 
 ## When a flow starts
 
+Flows enter the Runtime through one of two paths. Both use the **same FlowRunner** (steps, tools, approvals, delays, challenges).
+
+### Conversation trigger (default)
+
 A customer message starts a flow run only when **all** of these hold:
 
 1. The flow is **Enabled** in the connection's Business Flows list.
 2. The flow is **Valid** (no validation errors at sync time).
 3. Its current version is **Accepted** (first discovery auto-accepts).
 4. The conversation has **no active run** already (one run per conversation at a time).
-5. The message **matches the flow's intent** — the Runtime embeds the customer message and compares it against an embedding of each flow's `intent` utterances + name + description. The best flow above a similarity threshold wins.
+5. The flow uses the default **conversation** entry (no `trigger`, or `trigger.type = conversation`).
+6. The message **matches the flow's intent** — the Runtime embeds the customer message and compares it against an embedding of each flow's `intent` utterances + name + description. The best flow above a similarity threshold wins.
 
 If no flow matches, the message is handled by the normal AI tool loop. Write `intent` utterances the way real customers phrase the request ("cancel my order", "stop my order from shipping") — they are the primary selection signal.
+
+### Event / schedule / webhook trigger
+
+When `metadata.trigger` is `event`, `schedule`, or `webhook`, the flow does **not** start from chat intent. A producer emits a namespaced event into the org event bus; the dispatcher matches enabled flows and starts a system `Channel::Event` conversation + run. Payload fields become seed variables. Full guide: [Event-Driven Triggers](/docs/guides/event-driven-triggers).
 
 <Warning>
 A disabled flow does not just hide the orchestration — it also removes any <code>approval</code> gate in it. The AI tool loop can still call your tools directly, protected only by each tool's own <code>auth</code> level. Keep flows enabled if a human sign-off matters.
@@ -205,7 +214,12 @@ What the customer and supervisor experience:
     {
       question: 'Why did my flow not trigger at all?',
       answer:
-        'Check the gate: the flow must be Enabled, Valid, and its version Accepted, and the conversation must not already have an active run. Then check that the message resembles your intent utterances.',
+        'For conversation flows: Enabled, Valid, Accepted, no active run, and a message that resembles your intent utterances. For event/schedule/webhook flows: the bus event name must match trigger.event (namespaced), any when predicate must pass, and the event must not be expired — see Event-Driven Triggers.',
+    },
+    {
+      question: 'Can the same flow start from both chat and a connector event?',
+      answer:
+        'Not with a single trigger. Entry is either conversation (intent) or event/schedule/webhook. Declare two flow ids if you need both entry styles for a related process.',
     },
     {
       question: 'Are approval and challenge messages delivered to WhatsApp?',
@@ -220,6 +234,7 @@ What the customer and supervisor experience:
 <RelatedTopics
   topics={[
     {label: 'Define Business Flows', to: '/docs/guides/define-business-flows'},
+    {label: 'Event-Driven Triggers', to: '/docs/guides/event-driven-triggers'},
     {label: 'Register SDK Business Tools', to: '/docs/guides/register-sdk-business-tools'},
     {label: 'Authentication', to: '/docs/business-tools/authentication'},
     {label: 'Challenge & Resume', to: '/docs/business-tools/challenge-resume'},

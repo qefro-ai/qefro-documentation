@@ -1,0 +1,30 @@
+---
+title: "Channels (developer)"
+description: "Programmatic channel integration — widget identify, WhatsApp webhooks, chat APIs."
+sidebar_label: "Overview"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Channels (developer)
+
+| Channel | Developer concerns |
+| --- | --- |
+| Website widget | Embed script, token, `identify()`, CSP |
+| WhatsApp | Meta webhook verify + signature, plan limits |
+| Chat API | JWT / widget token, streaming WS |
+
+Operator-oriented channel setup: [User — Channels](/docs/user/channels/overview).
+
+- [Deploy widget](/docs/guides/deploy-website-widget)
+- [Deploy WhatsApp](/docs/guides/deploy-whatsapp-ai)
+- [REST APIs](/docs/api/rest-apis)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Webhooks', to: '/docs/developer/webhooks/overview'},
+    {label: 'Identity forwarding', to: '/docs/platform/identity-forwarding'},
+  ]}
+/>

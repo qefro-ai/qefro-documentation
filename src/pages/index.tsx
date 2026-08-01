@@ -69,13 +69,13 @@ const features = [
 ];
 
 const categories = [
-  {label: 'Concepts', to: '/docs/concepts/what-is-an-ai-workspace'},
-  {label: 'Getting Started', to: '/docs/getting-started/installation'},
-  {label: 'Platform', to: '/docs/platform/ai-workspaces'},
-  {label: 'Guides', to: '/docs/guides/build-ai-customer-support'},
-  {label: 'API', to: '/docs/api/authentication'},
-  {label: 'Security', to: '/docs/security/overview'},
-  {label: 'Compare', to: '/docs/compare/chatbase-vs-qefro'},
+  {label: 'Introduction', to: '/docs/introduction/overview'},
+  {label: 'User Guide', to: '/docs/user/getting-started'},
+  {label: 'Developer Guide', to: '/docs/developer/quick-start'},
+  {label: 'Integrations', to: '/docs/integrations/overview'},
+  {label: 'Solutions', to: '/docs/solutions/overview'},
+  {label: 'Reference', to: '/docs/reference/overview'},
+  {label: 'Events', to: '/docs/guides/event-driven-triggers'},
   {label: 'Glossary', to: '/docs/glossary'},
   {label: 'Blog', to: '/blog'},
 ];
@@ -148,18 +148,18 @@ function HomepageHeader(): ReactNode {
         <div className="qefro-hero__actions">
           <Link
             className="button button--primary button--lg"
-            to="/docs/getting-started/quick-start">
-            Get Started
+            to="/docs/user/getting-started">
+            User Guide
           </Link>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/concepts/what-is-an-ai-workspace">
-            Concepts
+            to="/docs/developer/quick-start">
+            Developer Guide
           </Link>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/platform/ai-workspaces">
-            Documentation
+            to="/docs/integrations/overview">
+            Integrations
           </Link>
           <Link
             className="button button--secondary button--lg"

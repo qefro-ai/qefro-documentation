@@ -1,0 +1,37 @@
+---
+title: "WhatsApp"
+description: "Connect Meta Cloud API WhatsApp to a Support workspace."
+sidebar_label: "WhatsApp"
+---
+
+import { RelatedTopics, Warning } from '@site/src/components';
+
+# WhatsApp
+
+Customer AI on **WhatsApp** uses Meta Cloud API webhooks into Qefro.
+
+<Warning>
+WhatsApp requires a plan entitlement (Growth+) and a verified webhook. Validate the workspace brain on the widget first.
+</Warning>
+
+## Operator steps
+
+1. Confirm plan supports WhatsApp.
+2. Configure Meta app + webhook URL on `api.qefro.com`.
+3. Bind the phone number to a **Support** workspace.
+4. Send a test message and verify citations / tools.
+
+## Guides
+
+- [WhatsApp (platform)](/docs/platform/whatsapp)
+- [Deploy WhatsApp AI](/docs/guides/deploy-whatsapp-ai)
+- [Webhooks](/docs/api/webhooks)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Channels overview', to: '/docs/user/channels/overview'},
+    {label: 'Website widget', to: '/docs/user/channels/website-widget'},
+  ]}
+/>

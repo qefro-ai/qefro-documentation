@@ -12,6 +12,78 @@ Canonical product hosts:
 - Widget CDN: https://cdn.qefro.com
 - Marketing: https://qefro.com
 
+## Introduction
+
+- [What is Qefro?](https://docs.qefro.com/docs/introduction/overview/): Qefro is an AI Workspace platform — configure knowledge, tools, and flows once, then deploy Customer AI and Employee AI across channels.
+- [Architecture](https://docs.qefro.com/docs/introduction/architecture/): How Qefro layers Admin Console, Runtime, channels, Backend SDK, and connectors — one orchestration engine.
+- [Core Concepts](https://docs.qefro.com/docs/introduction/concepts/): Map of Qefro concepts for operators and developers — workspaces, knowledge, tools, flows, events, channels.
+
+## User Guide
+
+- [User Guide — Getting Started](https://docs.qefro.com/docs/user/getting-started/): Create your organization, first AI Workspace, upload knowledge, and test chat in the Admin Console.
+- [Workspaces](https://docs.qefro.com/docs/user/workspaces/overview/): Create and manage AI Workspaces — isolated knowledge, tools, and conversations for each team.
+- [Agents & assistants](https://docs.qefro.com/docs/user/agents/overview/): Customer AI and Employee AI assistants bound to workspaces — behavior, instructions, and handoff.
+- [Knowledge Base](https://docs.qefro.com/docs/user/knowledge-base/overview/): Upload and index documents so assistants answer with citations from your content.
+- [Channels](https://docs.qefro.com/docs/user/channels/overview/): Deploy Customer AI on website widget, WhatsApp, and API.
+- [Conversations](https://docs.qefro.com/docs/user/conversations/overview/): Monitor customer and employee conversations, handoff, and feedback.
+- [Approvals](https://docs.qefro.com/docs/user/approvals/overview/): Human approval gates in Business Flows — review and approve from Flow Runs.
+- [Analytics](https://docs.qefro.com/docs/user/analytics/overview/): Tenant analytics, feedback, and usage signals in the Admin Console.
+- [Billing](https://docs.qefro.com/docs/user/billing/overview/): Plans, entitlements, checkout, and subscription management.
+- [Administration](https://docs.qefro.com/docs/user/administration/overview/): Invite members, configure RBAC, teams, domains, and organization settings.
+
+## Developer Guide
+
+- [Developer Quick Start](https://docs.qefro.com/docs/developer/quick-start/): Register the Backend SDK, advertise tools and flows, sync into a workspace, and optionally emit events.
+- [JavaScript / TypeScript SDK](https://docs.qefro.com/docs/developer/sdk/javascript/): Use @qefro-ai/backend to register tools, flows, customer provider, and signed webhooks.
+- [Python SDK](https://docs.qefro.com/docs/developer/sdk/python/): Use qefro-backend to register tools and flows over the signed Qefro webhook protocol.
+- [Rust SDK](https://docs.qefro.com/docs/developer/sdk/rust/): Use qefro-backend-sdk to register tools and flows with typed metadata.
+- [Runtime](https://docs.qefro.com/docs/developer/concepts/runtime/): How the Qefro Runtime and FlowRunner execute tools and Business Flows.
+- [Events](https://docs.qefro.com/docs/developer/concepts/events/): Namespaced orchestration events trigger Business Flows in FlowRunner — connectors only emit.
+- [Flows](https://docs.qefro.com/docs/developer/concepts/flows/): Business Flows are declarative step graphs executed by FlowRunner.
+- [Tools](https://docs.qefro.com/docs/developer/concepts/tools/): Business Tools — REST, OpenAPI, and Backend SDK handlers the Runtime can invoke.
+- [Connectors](https://docs.qefro.com/docs/developer/concepts/connectors/): Connectors normalize external systems into Qefro events and optional tools — they never run FlowRunner.
+- [Working with events](https://docs.qefro.com/docs/developer/events/overview/): Emit, list, retry, and replay orchestration events; match flows with trigger.event.
+- [Webhooks](https://docs.qefro.com/docs/developer/webhooks/overview/): Inbound provider webhooks Qefro consumes and webhook-style flow triggers.
+- [Schedules](https://docs.qefro.com/docs/developer/schedules/overview/): Cron triggers on Business Flows — the ticker emits schedule events into the bus.
+- [Deployment](https://docs.qefro.com/docs/developer/deployment/overview/): Deploy Qefro-connected backends and production checklist for the platform.
+- [Self-hosting](https://docs.qefro.com/docs/developer/self-hosting/overview/): Notes for operators running Qefro infrastructure components themselves.
+- [API Reference (developer hub)](https://docs.qefro.com/docs/developer/api-reference/overview/): Entry point to REST, auth, webhooks, SDKs, and error codes.
+
+## Integrations
+
+- [Integrations](https://docs.qefro.com/docs/integrations/overview/): Connector-specific guides for commerce, CRM, payments, and support systems.
+- [Shopify integration](https://docs.qefro.com/docs/integrations/shopify/overview/): Connect Shopify to Qefro — installation, auth, events, tools, and examples.
+- [WooCommerce integration](https://docs.qefro.com/docs/integrations/woocommerce/overview/): Connect WooCommerce to Qefro — installation, auth, events, tools, and examples.
+- [Odoo integration](https://docs.qefro.com/docs/integrations/odoo/overview/): Connect Odoo to Qefro — installation, auth, events, tools, and examples.
+- [ERPNext integration](https://docs.qefro.com/docs/integrations/erpnext/overview/): Connect ERPNext to Qefro — installation, auth, events, tools, and examples.
+- [HubSpot integration](https://docs.qefro.com/docs/integrations/hubspot/overview/): Connect HubSpot to Qefro — installation, auth, events, tools, and examples.
+- [Stripe integration](https://docs.qefro.com/docs/integrations/stripe/overview/): Connect Stripe to Qefro — installation, auth, events, tools, and examples.
+- [Razorpay integration](https://docs.qefro.com/docs/integrations/razorpay/overview/): Connect Razorpay to Qefro — installation, auth, events, tools, and examples.
+- [Zendesk integration](https://docs.qefro.com/docs/integrations/zendesk/overview/): Connect Zendesk to Qefro — installation, auth, events, tools, and examples.
+
+## Solutions
+
+- [Solutions](https://docs.qefro.com/docs/solutions/overview/): Business-oriented playbooks — customer support, commerce, refunds, booking, and more.
+- [Customer support](https://docs.qefro.com/docs/solutions/customer-support/): Grounded support assistant on website and WhatsApp with optional Business Tools and human handoff.
+- [Order tracking](https://docs.qefro.com/docs/solutions/order-tracking/): Customers ask where their order is; the assistant calls your order API via a Business Tool or flow.
+- [Abandoned cart recovery](https://docs.qefro.com/docs/solutions/abandoned-cart/): Commerce connector emits cart.abandoned; a flow delays then reminds the shopper via your messaging tool.
+- [Appointment booking](https://docs.qefro.com/docs/solutions/appointment-booking/): Collect slot preferences, check availability via tools, confirm booking with optional challenge.
+- [Refund automation](https://docs.qefro.com/docs/solutions/refund-automation/): Policy-aware refunds with human approval gates and authenticated refund tools.
+- [Conversational commerce](https://docs.qefro.com/docs/solutions/conversational-commerce/): Assist shoppers on WhatsApp/web with catalog answers, order actions, and event-driven lifecycle messages.
+
+## Reference
+
+- [Reference](https://docs.qefro.com/docs/reference/overview/): CLI, environment variables, configuration, event catalog, connectors, errors, changelog.
+- [CLI](https://docs.qefro.com/docs/reference/cli/): Command-line interfaces related to Qefro SDKs and tooling.
+- [Environment variables](https://docs.qefro.com/docs/reference/environment-variables/): Common environment variables for Backend SDK, connectors, and self-hosted components.
+- [Configuration](https://docs.qefro.com/docs/reference/configuration/): Where Qefro settings live — Admin Console, SDK metadata, and connector config.
+- [Event reference](https://docs.qefro.com/docs/reference/event-reference/): Orchestration event envelope fields, statuses, naming rules, and HTTP APIs.
+- [Connector reference](https://docs.qefro.com/docs/reference/connector-reference/): Contracts for Qefro connectors — EventEmitter, naming, and boundaries.
+- [Changelog](https://docs.qefro.com/docs/reference/changelog/): Documentation and platform documentation changelog.
+- [FAQ](https://docs.qefro.com/docs/faq/): Frequently asked questions about the Qefro AI Workspace Platform — workspaces, Customer AI, Employee AI, Business Actions, and RBAC.
+- [Glossary](https://docs.qefro.com/docs/glossary/): Canonical Qefro terminology aligned with the product, with links to detailed documentation.
+- [Release Notes](https://docs.qefro.com/docs/release-notes/): Notable documentation and platform documentation updates for docs.qefro.com.
+
 ## Concepts (GEO)
 
 - [What is an AI Workspace?](https://docs.qefro.com/docs/concepts/what-is-an-ai-workspace/): An AI Workspace is an isolated AI environment with its own knowledge, instructions, tools, and conversations — the core unit of Qefro.
@@ -61,6 +133,9 @@ Canonical product hosts:
 - [Secure Business Actions](https://docs.qefro.com/docs/guides/secure-business-actions/): Production checklist for AI tool calling: least privilege, encrypted secrets, SSRF awareness, identify(), and execution log review.
 - [Enable Custom Domains](https://docs.qefro.com/docs/guides/enable-custom-domains/): Serve the Internal Portal on your hostname via Cloudflare custom hostnames — DNS CNAME, TLS, and Admin Console domain setup.
 - [Production Deployment](https://docs.qefro.com/docs/guides/production-deployment/): Go-live checklist for Qefro cloud: knowledge quality, channels, RBAC, Business Actions, billing, monitoring, and security review.
+- [Event-Driven Triggers](https://docs.qefro.com/docs/guides/event-driven-triggers/): Start Business Flows from connectors, webhooks, and schedules — events are triggers into the existing Qefro Runtime (FlowRunner), not a second orchestration engine.
+- [Define Business Flows](https://docs.qefro.com/docs/guides/define-business-flows/): Advertise Business Flows from your backend with @qefro-ai/backend, qefro-backend-sdk, or qefro-backend. The Qefro Runtime discovers, validates, and versions flows via capabilities.list — the SDK never executes them.
+- [Run Business Flows](https://docs.qefro.com/docs/guides/run-business-flows/): How the Qefro Runtime executes Business Flows advertised by your SDK backend: activation, step semantics, human approval, customer verification challenges, and monitoring runs in Admin Console.
 
 ## API
 
@@ -88,12 +163,6 @@ Canonical product hosts:
 - [Freshworks vs Qefro](https://docs.qefro.com/docs/compare/freshworks-vs-qefro/): Educational comparison of Freshworks-style CRM/support suites and Qefro AI Workspaces for Customer AI, Employee AI, and Business Actions.
 - [CustomGPT vs Qefro](https://docs.qefro.com/docs/compare/customgpt-vs-qefro/): Educational comparison of CustomGPT-style custom bot builders and Qefro AI Workspaces for multi-team Customer AI, Employee AI, and Business Actions.
 - [Copilot Studio vs Qefro](https://docs.qefro.com/docs/compare/copilot-studio-vs-qefro/): Educational comparison of Microsoft Copilot Studio-style enterprise copilots and Qefro AI Workspaces for Customer AI, Employee AI, and Business Actions.
-
-## Reference
-
-- [FAQ](https://docs.qefro.com/docs/faq/): Frequently asked questions about the Qefro AI Workspace Platform — workspaces, Customer AI, Employee AI, Business Actions, and RBAC.
-- [Glossary](https://docs.qefro.com/docs/glossary/): Canonical Qefro terminology aligned with the product, with links to detailed documentation.
-- [Release Notes](https://docs.qefro.com/docs/release-notes/): Notable documentation and platform documentation updates for docs.qefro.com.
 
 ## Optional
 

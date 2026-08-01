@@ -1,0 +1,39 @@
+---
+title: "Knowledge Base"
+description: "Upload and index documents so assistants answer with citations from your content."
+sidebar_label: "Overview"
+---
+
+import { RelatedTopics, Warning } from '@site/src/components';
+
+# Knowledge Base
+
+Train your assistant by adding **documents** to a workspace. Qefro chunks and indexes them with **hybrid RAG** (lexical + vector) and returns **citations** in answers.
+
+## Common tasks
+
+| Task | Notes |
+| --- | --- |
+| Upload files | PDF, DOCX, Markdown, TXT |
+| Add text / crawl | Console flows for raw text and site crawl |
+| Reindex | After content changes |
+| Verify quality | Admin chat — check citations and refusals |
+
+<Warning>
+Validate retrieval quality in the Admin Console **before** enabling public widget or WhatsApp.
+</Warning>
+
+## Deep dives
+
+- [Knowledge Platform](/docs/platform/knowledge-platform)
+- [Hybrid RAG](/docs/concepts/hybrid-rag)
+- [Quick Start](/docs/getting-started/quick-start)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Workspaces', to: '/docs/user/workspaces/overview'},
+    {label: 'Document REST APIs', to: '/docs/api/rest-apis'},
+  ]}
+/>

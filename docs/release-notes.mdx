@@ -7,6 +7,21 @@ import { RelatedTopics } from '@site/src/components';
 
 # Release Notes
 
+## 2026-08-01 — Documentation information architecture
+
+- Restructured docs navigation for **User Guide**, **Developer Guide**, **Integrations**, **Solutions**, and **Reference**
+- Navbar: Documentation dropdown + audience sections; Pricing + GitHub on the right
+- Added section hubs under `docs/introduction`, `docs/user`, `docs/developer`, `docs/integrations`, `docs/solutions`, `docs/reference`
+- Existing deep pages keep stable URLs under `concepts/`, `platform/`, `guides/`, `api/`, `business-tools/`
+
+## 2026-08-01 — Event-driven Business Flow triggers
+
+- Added [Event-Driven Triggers](/docs/guides/event-driven-triggers): connectors, webhooks, and schedules start the **same** FlowRunner (not a second engine)
+- Documented flow `metadata.trigger` (`event` / `schedule` / `webhook`), namespaced event names, optional `when` predicates
+- Documented envelope fields (version, lineage, sequence ordering, TTL, depth / loop protection) and operator replay APIs
+- REST map: `/api/v1/org/events` emit, ingest, retry, replay
+- Cross-linked from Define / Run Business Flows, glossary, and sidebars
+
 ## 2026-07-18 — Docs RC1 content fulfillment
 
 - Expanded **Concepts** GEO pillars (AI Workspace, Hybrid RAG, Business Actions, agent security, multi-tenant architecture)

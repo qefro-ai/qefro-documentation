@@ -1,0 +1,31 @@
+---
+title: "Schedules"
+description: "Cron triggers on Business Flows — the ticker emits schedule events into the bus."
+sidebar_label: "Overview"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Schedules
+
+```ts
+app.flow({
+  id: 'nightly_reconciliation',
+  trigger: { type: 'schedule', cron: '0 2 * * *' },
+})
+  .tool({ id: 'run', tool_ref: 'reconcile_orders' })
+  .complete({ id: 'done' });
+```
+
+On Sync Tools, the Runtime upserts a tenant schedule. The ticker emits `schedule.<flow_id>`; dispatch starts FlowRunner.
+
+Details: [Event-Driven Triggers — Schedule](/docs/guides/event-driven-triggers).
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Events', to: '/docs/developer/concepts/events'},
+    {label: 'Flows', to: '/docs/developer/concepts/flows'},
+  ]}
+/>

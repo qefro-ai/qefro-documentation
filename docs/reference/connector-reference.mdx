@@ -1,0 +1,41 @@
+---
+title: "Connector reference"
+description: "Contracts for Qefro connectors — EventEmitter, naming, and boundaries."
+sidebar_label: "Connector reference"
+---
+
+import { RelatedTopics, Warning } from '@site/src/components';
+
+# Connector reference
+
+## Boundary
+
+<Warning>
+Connectors MUST only emit events (and optionally host tools via Backend SDK). They MUST NOT start flows or call FlowRunner.
+</Warning>
+
+## EventEmitter (connector-kit)
+
+Typical options:
+
+- `baseUrl` — `QEFRO_API_BASE_URL`
+- `tenantId` — `QEFRO_TENANT_ID`
+- `token` — `QEFRO_API_TOKEN`
+- `source` — default source label
+
+`emit({ name, payload, correlationId, idempotencyKey, version, causationId, sequenceKey, sequenceN, expiresAt, ttlSeconds, depth })`
+
+Path: `POST /api/v1/org/events/ingest/:tenant_id`
+
+## Product guides
+
+See [Integrations](/docs/integrations/overview).
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Event reference', to: '/docs/reference/event-reference'},
+    {label: 'Connectors concept', to: '/docs/developer/concepts/connectors'},
+  ]}
+/>

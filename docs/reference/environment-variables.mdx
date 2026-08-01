@@ -1,0 +1,41 @@
+---
+title: "Environment variables"
+description: "Common environment variables for Backend SDK, connectors, and self-hosted components."
+sidebar_label: "Environment variables"
+---
+
+import { RelatedTopics, Warning } from '@site/src/components';
+
+# Environment variables
+
+<Warning>
+Never commit secrets. Prefer a secret manager in production.
+</Warning>
+
+## Backend SDK
+
+| Variable | Purpose |
+| --- | --- |
+| `QEFRO_SIGNING_SECRET` | Shared secret for webhook signature verify/sign |
+| `PORT` | HTTP port for `/qefro` (examples) |
+
+## Event emit / connectors
+
+| Variable | Purpose |
+| --- | --- |
+| `QEFRO_API_BASE_URL` | e.g. `https://api.qefro.com` |
+| `QEFRO_TENANT_ID` | Tenant UUID for ingest path |
+| `QEFRO_API_TOKEN` | Bearer token for emit APIs |
+
+## Self-hosted control plane
+
+See deployment/docker/kubernetes docs for Postgres, Redis, JWT, object storage, and model endpoints. Variable names are environment-specific.
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Configuration', to: '/docs/reference/configuration'},
+    {label: 'Self-hosting', to: '/docs/developer/self-hosting/overview'},
+  ]}
+/>

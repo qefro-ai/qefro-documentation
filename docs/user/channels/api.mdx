@@ -1,0 +1,30 @@
+---
+title: "Chat API channel"
+description: "Use Qefro chat over REST and WebSocket for custom frontends."
+sidebar_label: "API"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Chat API channel
+
+Build a custom UI against Qefro chat APIs while still using workspace knowledge and tools.
+
+## Entry points
+
+| API | Auth | Use |
+| --- | --- | --- |
+| `POST /api/v1/chat` | User JWT | Authenticated console-style chat |
+| `POST /api/v1/widget/chat` | Widget token | Public Customer AI HTTP |
+| `GET /ws/chat` | Widget token | Streaming WebSocket |
+
+Full map: [REST APIs](/docs/api/rest-apis).
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'API authentication', to: '/docs/api/authentication'},
+    {label: 'SDKs', to: '/docs/api/sdks'},
+  ]}
+/>

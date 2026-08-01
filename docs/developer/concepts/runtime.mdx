@@ -1,0 +1,35 @@
+---
+title: "Runtime"
+description: "How the Qefro Runtime and FlowRunner execute tools and Business Flows."
+sidebar_label: "Runtime"
+---
+
+import { InfoBox, RelatedTopics } from '@site/src/components';
+
+# Runtime
+
+The **Qefro Runtime** is the single execution engine for:
+
+- AI tool-loop calls into Business Tools
+- **Business Flows** (FlowRunner): ask, tool, condition, delay, approval, challenge, complete
+- Entry from **conversation intent**, **events**, **schedules**, and **webhooks**
+
+<InfoBox>
+Your Backend SDK is passive during flow execution. It only answers signed <code>tool.invoke</code> (and auth challenge) messages — the same as AI-initiated tool use.
+</InfoBox>
+
+## Deep dives
+
+- [Business Tools runtime](/docs/business-tools/runtime)
+- [Run Business Flows](/docs/guides/run-business-flows)
+- [Architecture](/docs/introduction/architecture)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Events', to: '/docs/developer/concepts/events'},
+    {label: 'Flows', to: '/docs/developer/concepts/flows'},
+    {label: 'Tools', to: '/docs/developer/concepts/tools'},
+  ]}
+/>

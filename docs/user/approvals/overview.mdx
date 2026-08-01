@@ -1,0 +1,37 @@
+---
+title: "Approvals"
+description: "Human approval gates in Business Flows — review and approve from Flow Runs."
+sidebar_label: "Overview"
+---
+
+import { RelatedTopics, InfoBox } from '@site/src/components';
+
+# Approvals
+
+When a Business Flow includes an **`approval`** step, the run pauses until an **Owner or Admin** approves in **Flow Runs**.
+
+<InfoBox>
+Approvals are part of flow execution — not a separate product. Engineers declare <code>approval</code> steps in the Backend SDK; operators act on them in the console.
+</InfoBox>
+
+## Operator steps
+
+1. Open **Business Tools → Flow Runs** (or Approvals queue).
+2. Open a run with status **waiting_for_approval**.
+3. Review variables / timeline → **Approve** (or cancel the run).
+4. The customer receives the next message on their channel (widget or WhatsApp).
+
+## Learn more
+
+- [Run Business Flows — Human approval](/docs/guides/run-business-flows)
+- [Define Business Flows](/docs/guides/define-business-flows)
+- [Secure Business Actions](/docs/guides/secure-business-actions)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Conversations', to: '/docs/user/conversations/overview'},
+    {label: 'Developer: approvals concept', to: '/docs/developer/concepts/approvals'},
+  ]}
+/>

@@ -1,0 +1,56 @@
+---
+title: "JavaScript / TypeScript SDK"
+description: "Use @qefro-ai/backend to register tools, flows, customer provider, and signed webhooks."
+sidebar_label: "JavaScript"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# JavaScript / TypeScript SDK
+
+```bash
+npm install @qefro-ai/backend
+export QEFRO_SIGNING_SECRET="your-signing-secret"
+```
+
+```ts
+import { Qefro } from '@qefro-ai/backend';
+
+const app = new Qefro({ signingSecret: process.env.QEFRO_SIGNING_SECRET! });
+
+app.tool(
+  {
+    name: 'order_status_check',
+    description: 'Look up order by ID',
+    auth: 'none',
+    input_schema: {
+      type: 'object',
+      properties: { order_id: { type: 'string' } },
+      required: ['order_id'],
+    },
+  },
+  async (ctx) => {
+    return { found: true, status: 'shipped', order_id: ctx.parameters.order_id };
+  },
+);
+
+await app.listen({ port: 8088, path: '/qefro' });
+```
+
+## Learn more
+
+- [Backend SDK Integration](/docs/business-tools/backend-sdk)
+- [Register SDK Business Tools](/docs/guides/register-sdk-business-tools)
+- [Define Business Flows](/docs/guides/define-business-flows)
+- [Event-Driven Triggers](/docs/guides/event-driven-triggers)
+- Example: [event-abandoned-cart](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples/event-abandoned-cart)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Python SDK', to: '/docs/developer/sdk/python'},
+    {label: 'Rust SDK', to: '/docs/developer/sdk/rust'},
+    {label: 'Tools concept', to: '/docs/developer/concepts/tools'},
+  ]}
+/>

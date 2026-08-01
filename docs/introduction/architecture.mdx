@@ -1,0 +1,73 @@
+---
+title: "Architecture"
+description: "How Qefro layers Admin Console, Runtime, channels, Backend SDK, and connectors — one orchestration engine."
+sidebar_label: "Architecture"
+---
+
+import { InfoBox, RelatedTopics } from '@site/src/components';
+
+# Architecture
+
+Qefro separates **configuration** (Admin Console), **execution** (Runtime / FlowRunner), **channels** (widget, WhatsApp, API), and **your systems** (Backend SDK + connectors).
+
+```mermaid
+flowchart TB
+  subgraph Config[Admin Console]
+    WS[AI Workspaces]
+    KB[Knowledge]
+    Tools[Business Tools]
+    Flows[Business Flows]
+  end
+
+  subgraph Runtime[Qefro Runtime]
+    RAG[Hybrid RAG]
+    FR[FlowRunner]
+    Bus[Event bus]
+  end
+
+  subgraph Channels[Channels]
+    Widget[Website widget]
+    WA[WhatsApp]
+    API[Chat / REST API]
+  end
+
+  subgraph External[Your stack]
+    SDK[Backend SDK webhook]
+    Conn[Connectors emit events]
+    REST[REST / OpenAPI APIs]
+  end
+
+  WS --> Runtime
+  KB --> RAG
+  Tools --> FR
+  Flows --> FR
+  Bus --> FR
+  Channels --> Runtime
+  FR -->|tool.invoke| SDK
+  FR --> REST
+  Conn -->|emit| Bus
+```
+
+## Core principles
+
+1. **Single runtime** — Conversation intent, events, webhooks, and schedules all start Business Flows in **FlowRunner**. There is no second orchestrator inside connectors.
+2. **Workspace isolation** — Knowledge, tools, and conversations are scoped to an AI Workspace inside an organization (tenant).
+3. **Tools live with you** — REST/OpenAPI credentials are encrypted in Qefro; Backend SDK handlers run in **your** backend over a signed webhook.
+4. **Events are triggers only** — Connectors `emit()` namespaced envelopes; the bus validates, queues, and dispatches. See [Events](/docs/developer/concepts/events).
+
+## Multi-tenant model
+
+Organization → Teams / RBAC → AI Workspaces → Channels bound to workspaces.
+
+Deep dive: [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture).
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Overview', to: '/docs/introduction/overview'},
+    {label: 'Runtime', to: '/docs/developer/concepts/runtime'},
+    {label: 'Events', to: '/docs/developer/concepts/events'},
+    {label: 'Deployment', to: '/docs/platform/deployment'},
+  ]}
+/>

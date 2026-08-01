@@ -1,0 +1,60 @@
+---
+title: "Event reference"
+description: "Orchestration event envelope fields, statuses, naming rules, and HTTP APIs."
+sidebar_label: "Event reference"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Event reference
+
+Canonical guide with examples: [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+
+## Naming
+
+- Required form: `namespace.entity.action` (must contain `.`)
+- Segments: `a-zA-Z0-9_-`, non-empty, max name length 256
+- Examples: `shopify.cart.abandoned`, `schedule.nightly_reconciliation`, `system.flow.completed`
+
+## Envelope fields
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `name` | yes | Namespaced event name |
+| `source` | no | Producer label |
+| `payload` | no | JSON object |
+| `version` | no | Default `1.0` |
+| `correlation_id` | no | Business process correlation |
+| `causation_id` | no | Parent event id |
+| `idempotency_key` | no | Tenant-unique dedupe |
+| `sequence_key` + `sequence_n` | no | FIFO stream (both required) |
+| `expires_at` / `ttl_seconds` | no | Expiration |
+| `depth` | no | Loop protection hop count (default max 8) |
+| `delay_seconds` | no | Delay before claim |
+
+## Statuses
+
+`received`, `validated`, `queued`, `running`, `completed`, `failed`, `retry`, `dead_letter`, `expired`
+
+## HTTP APIs
+
+| Method | Path |
+| --- | --- |
+| GET | `/api/v1/org/events` |
+| POST | `/api/v1/org/events` |
+| GET | `/api/v1/org/events/:id` |
+| POST | `/api/v1/org/events/:id/retry` |
+| POST | `/api/v1/org/events/:id/replay` |
+| POST | `/api/v1/org/events/replay` |
+| POST | `/api/v1/org/events/ingest/:tenant_id` |
+
+Also listed under [REST APIs](/docs/api/rest-apis).
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Events concept', to: '/docs/developer/concepts/events'},
+    {label: 'Connector reference', to: '/docs/reference/connector-reference'},
+  ]}
+/>

@@ -1,0 +1,32 @@
+---
+title: "Approvals (developer)"
+description: "Declare approval steps in Business Flows; operators approve in Flow Runs."
+sidebar_label: "Approvals"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Approvals (developer)
+
+```ts
+.approval({
+  id: 'await_supervisor',
+  prompt: 'Refund for {{order_id}} needs supervisor approval.',
+})
+```
+
+- Only **Owner/Admin** can approve (API-enforced).
+- Run status: `waiting_for_approval`.
+- After approve, FlowRunner continues; messages deliver to the customer channel.
+
+Operator UI: [User — Approvals](/docs/user/approvals/overview).  
+Semantics: [Run Business Flows](/docs/guides/run-business-flows).
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Flows', to: '/docs/developer/concepts/flows'},
+    {label: 'Challenges', to: '/docs/developer/concepts/challenges'},
+  ]}
+/>

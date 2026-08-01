@@ -16,7 +16,7 @@ import {
 
 This guide advertises **Business Flows** from your backend using the Qefro Backend Framework (`@qefro-ai/backend`, `qefro-backend-sdk`, or `qefro-backend`). A flow describes **how your existing Business Tools are orchestrated** — which questions to ask, which tools to call, and in what order.
 
-Flows are **metadata only** in your backend. The SDK advertises them through the `capabilities.list` message; the Qefro Runtime discovers, validates, versions, and **executes** them. **Nothing runs inside the SDK.** Register your tools first with [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) — a flow references those tools by name. Once a flow is enabled, see [Run Business Flows](/docs/guides/run-business-flows) for how the Runtime executes it.
+Flows are **metadata only** in your backend. The SDK advertises them through the `capabilities.list` message; the Qefro Runtime discovers, validates, versions, and **executes** them. **Nothing runs inside the SDK.** Register your tools first with [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) — a flow references those tools by name. Once a flow is enabled, see [Run Business Flows](/docs/guides/run-business-flows) for conversation-driven execution, or [Event-Driven Triggers](/docs/guides/event-driven-triggers) to start the **same** Runtime from connectors, webhooks, and schedules.
 
 <InfoBox>
 Flows never run in your backend and never change how individual tools behave. They are a declarative description the Runtime reads — and, once enabled, executes: asking questions, calling your tools, pausing for approval, and verifying customers.
@@ -42,6 +42,7 @@ Flows never run in your backend and never change how individual tools behave. Th
 | Flow | `{ metadata, steps }` describing an orchestration of Business Tools |
 | `id` | Immutable identity of the flow. Renaming `name` never creates a new flow |
 | Step | `{ id, type, config }` — a single node; every step needs a unique `id` |
+| `trigger` | Optional entry path: `conversation` (default), `event`, `schedule`, or `webhook` — see [Event-Driven Triggers](/docs/guides/event-driven-triggers) |
 | `capabilities.list` | Message that returns both `tools` and `flows` (supersedes `tools.list`) |
 | Version detection | The Runtime computes its own checksum over each flow and prompts to Accept/Reject changes |
 | Validation | The Runtime flags errors (block enabling) and warnings (informational) at sync time |
@@ -137,6 +138,24 @@ app.run(8088)  # POST http://0.0.0.0:8088/qefro
 ```
 
 In Python, a duplicate or empty id (flow or step) raises `FlowError` at declaration time. Use the `else_` argument on `.condition(...)` (Python keyword) — it is serialized as the `else` wire key.
+
+### Optional entry trigger
+
+By default a flow starts from a matching customer message (`intent`). To start from a bus event, schedule, or webhook instead, set `trigger` on the flow metadata:
+
+```ts
+app.flow({
+  id: 'abandoned_cart_recovery',
+  name: 'Abandoned cart recovery',
+  trigger: { type: 'event', event: 'shopify.cart.abandoned' }, // namespaced
+  // trigger: { type: 'schedule', cron: '0 2 * * *' },
+  // trigger: { type: 'event', event: 'shopify.order.created', when: 'total >= 1000' },
+})
+  .tool({ id: 'remind', tool_ref: 'send_cart_reminder' })
+  .complete({ id: 'done' });
+```
+
+Event names must be **namespaced** (`shopify.cart.abandoned`, not `cart_abandoned`). Full emit, ordering, replay, and connector guidance: [Event-Driven Triggers](/docs/guides/event-driven-triggers).
 
 ## Step 2 — Step types
 
@@ -235,6 +254,7 @@ The framework verifies and signs requests for you when you use `app.listen()`.
 <RelatedTopics
   topics={[
     {label: 'Run Business Flows', to: '/docs/guides/run-business-flows'},
+    {label: 'Event-Driven Triggers', to: '/docs/guides/event-driven-triggers'},
     {label: 'Register SDK Business Tools', to: '/docs/guides/register-sdk-business-tools'},
     {label: 'SDK Framework', to: '/docs/v1/sdk-framework'},
     {label: 'Business Tools (V1)', to: '/docs/v1/business-tools'},

@@ -1,0 +1,56 @@
+---
+title: "User Guide — Getting Started"
+description: "Create your organization, first AI Workspace, upload knowledge, and test chat in the Admin Console."
+sidebar_label: "Getting Started"
+---
+
+import { InfoBox, WorkflowCard, RelatedTopics } from '@site/src/components';
+
+# Getting Started (User Guide)
+
+This path is for **operators and admins** using [app.qefro.com](https://app.qefro.com) — no backend code required.
+
+## Outcome
+
+- Organization ready with at least one Owner
+- One AI Workspace with documents indexed
+- Test chat returns cited answers
+- Optional: website widget or WhatsApp bound to the workspace
+
+## Steps
+
+1. **Sign up / sign in** at [app.qefro.com](https://app.qefro.com).
+2. **Create an AI Workspace** (e.g. Support) — [Workspaces](/docs/user/workspaces/overview).
+3. **Upload knowledge** (PDF, DOCX, Markdown, crawl) — [Knowledge Base](/docs/user/knowledge-base/overview).
+4. **Test in Admin Console chat** until citations look correct — [Quick Start](/docs/getting-started/quick-start).
+5. **Invite teammates** and set roles — [Administration](/docs/user/administration/overview).
+6. **Connect a channel** — [Website widget](/docs/user/channels/website-widget) or [WhatsApp](/docs/user/channels/whatsapp).
+7. **Add Business Tools** (optional) when you need actions, not only answers — [Developer Guide](/docs/developer/quick-start) or ask engineering to register the Backend SDK.
+
+<InfoBox>
+Need order status, refunds, or Shopify events? That is a **developer + integrations** path. Start with [Business Tools](/docs/business-tools) and [Integrations](/docs/integrations/overview).
+</InfoBox>
+
+## Workflow checklist
+
+<WorkflowCard
+  title="First workspace live"
+  steps={[
+    {title: 'Create workspace', description: 'Admin Console → Workspaces.'},
+    {title: 'Upload documents', description: 'Wait for indexing; fix failed files.'},
+    {title: 'Test chat', description: 'Verify citations and refusals when unknown.'},
+    {title: 'Invite team', description: 'Owner/Admin/Member + teams for workspace access.'},
+    {title: 'Enable channel', description: 'Widget token or WhatsApp on Growth+.'},
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Installation / accounts', to: '/docs/getting-started/installation'},
+    {label: 'Quick Start', to: '/docs/getting-started/quick-start'},
+    {label: 'Build customer support', to: '/docs/guides/build-ai-customer-support'},
+    {label: 'Developer quick start', to: '/docs/developer/quick-start'},
+  ]}
+/>

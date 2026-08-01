@@ -1,0 +1,28 @@
+---
+title: "CLI"
+description: "Command-line interfaces related to Qefro SDKs and tooling."
+sidebar_label: "CLI"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# CLI
+
+Qefro primary configuration is the **Admin Console**. Backend SDKs are libraries embedded in your service (no required global CLI).
+
+| Tooling | Notes |
+| --- | --- |
+| `npm` / `pnpm` / `cargo` / `pip` | Install language SDKs |
+| Connector services | Usually `node`/`docker` entrypoints per connector package |
+| Docs site | `npm start` / `npm run build` in `qefro-documentation` |
+
+If a dedicated `qefro` CLI ships later, this page will list commands and global flags.
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Environment variables', to: '/docs/reference/environment-variables'},
+    {label: 'Developer quick start', to: '/docs/developer/quick-start'},
+  ]}
+/>

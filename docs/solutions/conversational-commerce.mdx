@@ -1,0 +1,62 @@
+---
+title: "Conversational commerce"
+description: "Assist shoppers on WhatsApp/web with catalog answers, order actions, and event-driven lifecycle messages."
+sidebar_label: "Conversational commerce"
+---
+
+import { RelatedTopics, WorkflowCard } from '@site/src/components';
+
+# Conversational commerce
+
+Assist shoppers on WhatsApp/web with catalog answers, order actions, and event-driven lifecycle messages.
+
+## Architecture
+
+Channels + RAG catalog + tools + event triggers for post-purchase
+
+## Prerequisites
+
+- Commerce connector
+- Customer AI channel
+- Tools for catalog/order
+- Event flows for shipping updates
+
+## Installation
+
+1. Complete [User getting started](/docs/user/getting-started) for the Support (or commerce) workspace.
+2. Connect channels required by this solution.
+3. Register tools / connectors (see links below).
+4. Declare and **enable** flows; Accept versions after sync.
+5. Run a dry-end-to-end test in a non-production workspace when possible.
+
+## Flows
+
+Mix conversation flows (browse/buy help) and event flows (shipped, delivered)
+
+## Deployment
+
+- Production checklist: [Production deployment](/docs/guides/production-deployment)
+- Observe Flow Runs and `/api/v1/org/events` for event-driven paths
+
+## Troubleshooting
+
+- No answer / weak citations → knowledge coverage ([Knowledge Base](/docs/user/knowledge-base/overview))
+- Tool failures → tool logs + SDK webhook health
+- Event flow never starts → namespaced name, Enabled+Valid+Accepted, `when` predicate ([Events](/docs/guides/event-driven-triggers))
+- Approval stuck → Owner/Admin role ([Approvals](/docs/user/approvals/overview))
+
+## Learn more
+
+- [WhatsApp](/docs/user/channels/whatsapp)
+- [Integrations](/docs/integrations/overview)
+- [Event-Driven Triggers](/docs/guides/event-driven-triggers)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Solutions overview', to: '/docs/solutions/overview'},
+    {label: 'User Guide', to: '/docs/user/getting-started'},
+    {label: 'Developer Guide', to: '/docs/developer/quick-start'},
+  ]}
+/>

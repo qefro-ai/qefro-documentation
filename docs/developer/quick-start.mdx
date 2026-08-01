@@ -1,0 +1,56 @@
+---
+title: "Developer Quick Start"
+description: "Register the Backend SDK, advertise tools and flows, sync into a workspace, and optionally emit events."
+sidebar_label: "Quick Start"
+---
+
+import { InfoBox, WorkflowCard, RelatedTopics } from '@site/src/components';
+
+# Developer Quick Start
+
+Build **Business Tools** and **Business Flows** in your backend. Qefro discovers them over a signed webhook and executes tools/flows in the **Runtime** — your process never runs FlowRunner.
+
+## Choose your SDK
+
+| Language | Package | Guide |
+| --- | --- | --- |
+| JavaScript / TypeScript | `@qefro-ai/backend` | [JavaScript SDK](/docs/developer/sdk/javascript) |
+| Python | `qefro-backend` | [Python SDK](/docs/developer/sdk/python) |
+| Rust | `qefro-backend-sdk` | [Rust SDK](/docs/developer/sdk/rust) |
+
+## Minimal path
+
+1. Install the SDK and set `QEFRO_SIGNING_SECRET`.
+2. `app.tool(...)` for each business capability.
+3. Optional: `app.flow(...)` for multi-step orchestration (conversation and/or [event triggers](/docs/developer/events/overview)).
+4. `app.listen({ path: '/qefro' })` on a public HTTPS URL.
+5. Admin Console → **SDK Connections** → create connection → **Test** → **Sync Tools**.
+6. Enable tools/flows on a workspace and test from chat or emit an event.
+
+<InfoBox>
+Full walkthrough: <a href="/docs/guides/register-sdk-business-tools">Register SDK Business Tools</a>. Flows: <a href="/docs/guides/define-business-flows">Define</a> · <a href="/docs/guides/run-business-flows">Run</a> · <a href="/docs/guides/event-driven-triggers">Event triggers</a>.
+</InfoBox>
+
+## Workflow checklist
+
+<WorkflowCard
+  title="First SDK connection"
+  steps={[
+    {title: 'Scaffold backend', description: 'Install SDK; expose POST /qefro.'},
+    {title: 'Register tools', description: 'Stable names + JSON Schema inputs.'},
+    {title: 'Connect in console', description: 'Webhook URL + signing secret.'},
+    {title: 'Sync Tools', description: 'capabilities.list imports tools/flows.'},
+    {title: 'Enable + test', description: 'Chat or emit a namespaced event.'},
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Runtime', to: '/docs/developer/concepts/runtime'},
+    {label: 'Events', to: '/docs/developer/concepts/events'},
+    {label: 'Flows', to: '/docs/developer/concepts/flows'},
+    {label: 'API reference', to: '/docs/api/authentication'},
+  ]}
+/>

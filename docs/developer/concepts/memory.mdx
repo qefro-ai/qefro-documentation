@@ -1,0 +1,29 @@
+---
+title: "Memory & variables"
+description: "Conversation context, flow variables, and what the Runtime persists per run."
+sidebar_label: "Memory"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Memory & variables
+
+| Scope | What is stored |
+| --- | --- |
+| Conversation messages | Chat history for the channel thread |
+| Flow run variables | `ask` fields, tool outputs, event payload seeds |
+| Templates | `{{path}}` in prompts and complete messages |
+| Event seed | `event.*` plus top-level payload keys on event-triggered runs |
+
+There is no separate long-term “vector memory” product beyond workspace **knowledge** (RAG) and run variables.
+
+See [Run Business Flows — Variables](/docs/guides/run-business-flows).
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Knowledge Base', to: '/docs/user/knowledge-base/overview'},
+    {label: 'Flows', to: '/docs/developer/concepts/flows'},
+  ]}
+/>

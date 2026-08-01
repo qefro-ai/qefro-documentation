@@ -1,0 +1,28 @@
+---
+title: "Middleware"
+description: "Backend SDK middleware hooks around tool invocation and protocol handling."
+sidebar_label: "Middleware"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Middleware
+
+Use SDK middleware (`app.use`) for cross-cutting concerns in **your** backend:
+
+- Logging and metrics around `tool.invoke`
+- Tenant / auth context enrichment
+- Input validation and redaction
+
+Middleware runs in your process on the signed webhook path — not inside FlowRunner step graphs.
+
+See [Backend SDK](/docs/business-tools/backend-sdk) lifecycle.
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Tools', to: '/docs/developer/concepts/tools'},
+    {label: 'Observability', to: '/docs/developer/observability/overview'},
+  ]}
+/>

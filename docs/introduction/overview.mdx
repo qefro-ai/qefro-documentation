@@ -1,0 +1,53 @@
+---
+title: "What is Qefro?"
+description: "Qefro is an AI Workspace platform — configure knowledge, tools, and flows once, then deploy Customer AI and Employee AI across channels."
+sidebar_label: "Overview"
+---
+
+import { InfoBox, RelatedTopics, FeatureCard, FeatureCardGrid } from '@site/src/components';
+
+# What is Qefro?
+
+Qefro is an **AI Workspace platform** for organizations. You configure knowledge, Business Tools, and Business Flows in one place, then deploy:
+
+- **Customer AI** — website widget and WhatsApp, grounded in your knowledge with citations
+- **Employee AI** — branded Internal Portal for internal teams with RBAC
+
+Assistants do more than answer questions: they can run **Business Actions** (secure tool calls into your systems) and **Business Flows** (orchestrated multi-step processes with approvals, delays, and challenges).
+
+<InfoBox>
+**Configure once. Deploy everywhere.** Workspaces isolate knowledge and tools per team (Support, HR, IT). Events, chat, and schedules all enter the same Runtime.
+</InfoBox>
+
+## Who this documentation is for
+
+| Audience | Start here |
+| --- | --- |
+| Operators & admins | [User Guide](/docs/user/getting-started) |
+| Backend engineers | [Developer Guide](/docs/developer/quick-start) |
+| Connector / integration builders | [Integrations](/docs/integrations/overview) |
+| Solution architects | [Solutions](/docs/solutions/overview) |
+| API & config lookup | [Reference](/docs/reference/overview) |
+
+## Platform pillars
+
+<FeatureCardGrid>
+  <FeatureCard title="AI Workspaces" description="Isolated knowledge, tools, and conversations per team." href="/docs/concepts/what-is-an-ai-workspace" />
+  <FeatureCard title="Knowledge Platform" description="Hybrid RAG, OCR, citations, workspace isolation." href="/docs/platform/knowledge-platform" />
+  <FeatureCard title="Business Tools & Flows" description="REST, OpenAPI, Backend SDK — plus FlowRunner orchestration." href="/docs/business-tools" />
+  <FeatureCard title="Event-driven Runtime" description="Connectors emit events; the same FlowRunner executes." href="/docs/developer/concepts/events" />
+  <FeatureCard title="Channels" description="Website widget, WhatsApp, API." href="/docs/user/channels/overview" />
+  <FeatureCard title="Security & RBAC" description="Tenant isolation, teams, identity, audit logs." href="/docs/security/overview" />
+</FeatureCardGrid>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Architecture', to: '/docs/introduction/architecture'},
+    {label: 'Core concepts', to: '/docs/introduction/concepts'},
+    {label: 'Glossary', to: '/docs/glossary'},
+    {label: 'User getting started', to: '/docs/user/getting-started'},
+    {label: 'Developer quick start', to: '/docs/developer/quick-start'},
+  ]}
+/>

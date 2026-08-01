@@ -1,0 +1,43 @@
+---
+title: "Rust SDK"
+description: "Use qefro-backend-sdk to register tools and flows with typed metadata."
+sidebar_label: "Rust"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Rust SDK
+
+```bash
+cargo add qefro-backend-sdk
+```
+
+```rust
+use qefro_backend_sdk::BusinessFlowMetadata;
+
+// app.tool(...) then:
+app.flow(BusinessFlowMetadata {
+    id: "order_lookup".into(),
+    name: Some("Order Lookup".into()),
+    intent: vec!["track order".into()],
+    ..Default::default()
+})?
+.ask("email", "email", "Please enter your email.")
+.tool("lookup", "lookup_customer")
+.complete("done", None)?;
+```
+
+## Learn more
+
+- [Backend SDK](/docs/business-tools/backend-sdk)
+- [Define Business Flows](/docs/guides/define-business-flows)
+- [SDK Framework](/docs/v1/sdk-framework)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'JavaScript SDK', to: '/docs/developer/sdk/javascript'},
+    {label: 'Python SDK', to: '/docs/developer/sdk/python'},
+  ]}
+/>

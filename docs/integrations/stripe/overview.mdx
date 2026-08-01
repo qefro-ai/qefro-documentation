@@ -1,0 +1,79 @@
+---
+title: "Stripe integration"
+description: "Connect Stripe to Qefro — installation, auth, events, tools, and examples."
+sidebar_label: "Overview"
+---
+
+import { InfoBox, RelatedTopics, WorkflowCard } from '@site/src/components';
+
+# Stripe
+
+Prefer verifying Stripe signatures in the connector, then emit to Qefro.
+
+<InfoBox>
+Namespace convention: events under <code>stripe.*</code>. Connectors emit only; FlowRunner stays in Qefro.
+</InfoBox>
+
+## Installation
+
+1. Deploy or enable the Stripe connector service (Qefro connectors monorepo / your fork).
+2. Configure credentials (below) and `QEFRO_API_BASE_URL`, `QEFRO_TENANT_ID`, API token.
+3. Point external webhooks at the connector public URL (not directly at FlowRunner).
+4. In Qefro, declare flows with `trigger.event` matching emitted names — [Event-Driven Triggers](/docs/guides/event-driven-triggers).
+5. Sync SDK tools if the connector exposes Backend SDK handlers.
+
+## Authentication
+
+Restricted API keys; verify Stripe webhook signatures before emit.
+
+Store secrets in the connector environment or secret manager — not in flow metadata.
+
+## Events
+
+| Event name | Notes |
+| --- | --- |
+| `stripe.invoice.paid` | Emit when source system notifies connector |
+| `stripe.invoice.payment_failed` | Emit when source system notifies connector |
+| `stripe.customer.subscription.updated` | Emit when source system notifies connector |
+
+Envelope fields (idempotency, correlation, TTL): [Event reference](/docs/reference/event-reference).
+
+## Tools
+
+Typical tool surface: **invoice lookup, subscription status**.
+
+Implement as Backend SDK tools or REST Business Tools. Keep PII minimization and least privilege scopes.
+
+## Webhooks
+
+1. Receive provider webhook → verify signature.
+2. Normalize payload → `EventEmitter.emit({ name: 'stripe.…', payload, idempotencyKey })`.
+3. Return 2xx quickly; let Qefro dispatch asynchronously.
+
+## Examples
+
+- Abandoned cart pattern: [Solutions — Abandoned cart](/docs/solutions/abandoned-cart) (Shopify-oriented; adapt event names).
+- Order tracking: [Solutions — Order tracking](/docs/solutions/order-tracking).
+
+## Workflow checklist
+
+<WorkflowCard
+  title="Stripe go-live"
+  steps={[
+    {title: 'Auth', description: 'Least-privilege credentials in connector env.'},
+    {title: 'Webhooks', description: 'Verify signatures; map to stripe.* events.'},
+    {title: 'Flows', description: 'Enable flows with matching trigger.event.'},
+    {title: 'Test emit', description: 'Idempotent test event; watch Flow Runs.'},
+    {title: 'Observe', description: 'Event list + tool logs + dead-letter retry.'},
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Integrations overview', to: '/docs/integrations/overview'},
+    {label: 'Connectors concept', to: '/docs/developer/concepts/connectors'},
+    {label: 'Event-Driven Triggers', to: '/docs/guides/event-driven-triggers'},
+  ]}
+/>

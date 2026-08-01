@@ -1,0 +1,61 @@
+---
+title: "Refund automation"
+description: "Policy-aware refunds with human approval gates and authenticated refund tools."
+sidebar_label: "Refund automation"
+---
+
+import { RelatedTopics, WorkflowCard } from '@site/src/components';
+
+# Refund automation
+
+Policy-aware refunds with human approval gates and authenticated refund tools.
+
+## Architecture
+
+Intent/flow → lookup order → condition policy → approval → refund tool (challenge) → complete
+
+## Prerequisites
+
+- Refund tool with auth required
+- Owner/Admin approvers
+- Policy knowledge in workspace
+
+## Installation
+
+1. Complete [User getting started](/docs/user/getting-started) for the Support (or commerce) workspace.
+2. Connect channels required by this solution.
+3. Register tools / connectors (see links below).
+4. Declare and **enable** flows; Accept versions after sync.
+5. Run a dry-end-to-end test in a non-production workspace when possible.
+
+## Flows
+
+See order-approval style flows with approval + auth:required tool
+
+## Deployment
+
+- Production checklist: [Production deployment](/docs/guides/production-deployment)
+- Observe Flow Runs and `/api/v1/org/events` for event-driven paths
+
+## Troubleshooting
+
+- No answer / weak citations → knowledge coverage ([Knowledge Base](/docs/user/knowledge-base/overview))
+- Tool failures → tool logs + SDK webhook health
+- Event flow never starts → namespaced name, Enabled+Valid+Accepted, `when` predicate ([Events](/docs/guides/event-driven-triggers))
+- Approval stuck → Owner/Admin role ([Approvals](/docs/user/approvals/overview))
+
+## Learn more
+
+- [Secure Business Actions](/docs/guides/secure-business-actions)
+- [User approvals](/docs/user/approvals/overview)
+- [Run Business Flows](/docs/guides/run-business-flows)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Solutions overview', to: '/docs/solutions/overview'},
+    {label: 'User Guide', to: '/docs/user/getting-started'},
+    {label: 'Developer Guide', to: '/docs/developer/quick-start'},
+  ]}
+/>

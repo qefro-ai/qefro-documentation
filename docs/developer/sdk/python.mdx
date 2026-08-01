@@ -1,0 +1,50 @@
+---
+title: "Python SDK"
+description: "Use qefro-backend to register tools and flows over the signed Qefro webhook protocol."
+sidebar_label: "Python"
+---
+
+import { RelatedTopics } from '@site/src/components';
+
+# Python SDK
+
+```bash
+pip install qefro-backend
+export QEFRO_SIGNING_SECRET="your-signing-secret"
+```
+
+```python
+from qefro_backend import Qefro
+
+app = Qefro(signing_secret="...")  # or env
+
+@app.tool({
+    "name": "order_status_check",
+    "description": "Look up order by ID",
+    "auth": "none",
+    "input_schema": {
+        "type": "object",
+        "properties": {"order_id": {"type": "string"}},
+        "required": ["order_id"],
+    },
+})
+def order_status(ctx):
+    return {"found": True, "status": "shipped", "order_id": ctx.parameters["order_id"]}
+
+app.run(8088)  # POST /qefro
+```
+
+## Learn more
+
+- [Register SDK Business Tools](/docs/guides/register-sdk-business-tools)
+- [Define Business Flows](/docs/guides/define-business-flows)
+- [Event-Driven Triggers](/docs/guides/event-driven-triggers)
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'JavaScript SDK', to: '/docs/developer/sdk/javascript'},
+    {label: 'Rust SDK', to: '/docs/developer/sdk/rust'},
+  ]}
+/>
