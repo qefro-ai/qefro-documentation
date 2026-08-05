@@ -75,7 +75,7 @@ Canonical product hosts:
 
 ## Solutions (outcomes)
 
-- [Solutions](https://docs.qefro.com/docs/solutions/overview/): Business-oriented playbooks — customer support, commerce, refunds, booking, and more.
+- [Solution Development](https://docs.qefro.com/docs/solutions/overview/): Build complete business solutions — restaurant, hospital, CRM, hotel, school, inventory — as declarative packages on the Qefro platform.
 - [Customer support](https://docs.qefro.com/docs/solutions/customer-support/): Grounded support assistant on website and WhatsApp with optional Business Tools and human handoff.
 - [WhatsApp commerce](https://docs.qefro.com/docs/solutions/whatsapp-commerce/): Sell and support on WhatsApp with grounded product answers, order tools, and optional event-driven journeys.
 - [Order tracking](https://docs.qefro.com/docs/solutions/order-tracking/): Customers ask where their order is; the assistant calls your order API via a Business Tool or flow.
