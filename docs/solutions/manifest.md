@@ -68,7 +68,7 @@ ui:
 | `connectors` | list | No | Connector dependencies — plain names or `name` + semver `version` constraint. |
 | `channels` | string[] | No | Channels the solution participates in (`widget`, `whatsapp`, `api`). |
 | `flows` | string[] | No | Workflow ids shipped under `workflows/`. Each id must resolve to a definition file. |
-| `permissions` | string[] | No | Plane permissions (`workflow.execute`, `storage.read|write|update|delete`, `customer.read`, …). |
+| `permissions` | string[] | No | Plane permissions (`workflow.execute`, `storage.read` / `write` / `update` / `delete`, `customer.read`, …). |
 | `capabilities` | string[] | No | Host UI capabilities requested by the UI; negotiated at install. See [Capabilities](/docs/solutions/capabilities). |
 | `settings` | list | No | Tenant-configurable settings; plain keys or full definitions. |
 | `ui` | object | No | UI branding block: `name`, `logo`, `icon`. |
