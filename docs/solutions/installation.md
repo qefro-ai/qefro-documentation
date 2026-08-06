@@ -72,10 +72,11 @@ flowchart LR
     X --> C[Granted set<br/>stored with the bundle]
 ```
 
-For `restaurant-pro`, requesting `workflow.trigger` and `connector.invoke`
-with the manifest permission `workflow.execute` and one declared connector
-grants both. The granted set is **re-checked on every host call** — it is
-not a one-time handshake. Reference: [Capabilities](/docs/solutions/capabilities).
+For `restaurant-pro@1.3.0`, requesting `workflow.trigger` and `storage.*`
+with matching `permissions` grants those capabilities. `connector.invoke`
+is not granted when `connectors: []`. The granted set is **re-checked on
+every host call** — it is not a one-time handshake. Reference:
+[Capabilities](/docs/solutions/capabilities).
 
 ## Settings
 

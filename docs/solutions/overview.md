@@ -12,23 +12,25 @@ hotel property system, a school administration portal, or an inventory
 back office — all shipped as a single declarative **solution package**.
 
 A solution is **data, never code**. You describe the manifest, UI, workflows
-and connector requirements in YAML; the Qefro platform validates, signs,
-installs, executes and renders everything on your behalf.
+and (optionally) connector requirements in YAML; the Qefro platform
+validates, signs, installs, executes and renders everything on your behalf.
+Solution-owned documents persist via [managed storage](/docs/solutions/managed-storage);
+external systems of record stay behind connectors.
 
 ## What you can build
 
 Any business domain that fits the Qefro model — entities, workflows, events,
-a connector-backed data plane, and a portal-rendered UI — can be packaged as
-a solution:
+a storage- and/or connector-backed data plane, and a portal-rendered UI —
+can be packaged as a solution:
 
-| Domain | Typical pages | Typical connectors |
+| Domain | Typical pages | Typical data plane |
 | --- | --- | --- |
-| Restaurant management | Dashboard, reservations, tables, kitchen, orders, payments | POS, payments |
-| Hospital management | Appointments, wards, billing, duty roster | HMS, lab systems |
-| CRM | Pipeline, contacts, activities, reports | CRM hub, email |
-| Hotel management | Rooms, bookings, housekeeping, folios | PMS, channel managers |
-| School management | Classes, attendance, fees, timetables | SIS, payment gateways |
-| Inventory management | Stock levels, transfers, purchase orders | WMS, marketplaces |
+| Restaurant management | Dashboard, reservations, tables, kitchen, orders, payments | Managed storage (+ optional POS) |
+| Hospital management | Appointments, wards, billing, duty roster | Managed storage + HMS connectors |
+| CRM | Pipeline, contacts, activities, reports | Managed storage + CRM hub |
+| Hotel management | Rooms, bookings, housekeeping, folios | Managed storage + PMS |
+| School management | Classes, attendance, fees, timetables | Managed storage + SIS |
+| Inventory management | Stock levels, transfers, purchase orders | Managed storage + WMS |
 
 Throughout this section, [`restaurant-pro`](/docs/solutions/examples/restaurant-pro)
 is the canonical reference solution. Every concept page uses it as the
@@ -75,17 +77,23 @@ flowchart TB
     A[Solution package] --> B[Registry]
     B --> C[Installer]
     C --> D[Runtime]
-    D --> E[Connector bridge]
-    E --> F[Portal renderer]
+    D --> E[SdkCore / Tool Invoker]
+    E --> S[Managed storage]
+    E --> F[Connector bridge]
+    C --> G[Portal renderer]
+    S --> G
+    F --> G
+    D --> G
 ```
 
 | Stage | Responsibility | Details |
 | --- | --- | --- |
-| Solution package | Manifest, UI, workflows, connectors, assets | [Package structure](#package-structure) |
+| Solution package | Manifest, UI, workflows, optional connectors, assets | [Package structure](#package-structure) |
 | Registry | Signed global catalog, version lifecycle | [Publishing](/docs/solutions/publishing) |
 | Installer | Tenant-scoped activation + capability negotiation | [Installation](/docs/solutions/installation) |
 | Runtime | Executes workflows, serves runtime data sources | [Workflows](/docs/solutions/workflows) |
-| Connector bridge | Routes capability-gated data calls to connectors | [Connectors](/docs/solutions/connectors) |
+| Managed storage | Solution documents in Mongo via `storage/*` | [Managed storage](/docs/solutions/managed-storage) |
+| Connector bridge | Routes capability-gated calls to external connectors | [Connectors](/docs/solutions/connectors) |
 | Portal renderer | Renders pages, widgets and themes natively | [Pages](/docs/solutions/pages) |
 
 The full architecture is covered in [Architecture](/docs/solutions/architecture).
@@ -96,17 +104,17 @@ Every solution is a directory with this layout:
 
 ```text
 restaurant-pro/
-├── manifest.yaml        # identity, dependencies, permissions, settings
+├── manifest.yaml        # identity, permissions, settings (connectors optional)
 ├── assets/              # images only (png/jpg/jpeg/svg/webp)
 ├── workflows/           # declarative workflow definitions
-├── connectors/          # connector declarations the solution depends on
+├── connectors/          # optional — only when depending on external connectors
 ├── ui/
 │   ├── theme.yaml       # brand tokens (scoped to the solution container)
 │   ├── navigation.yaml  # sidebar entries + icons
 │   ├── pages.yaml       # page definitions
 │   ├── layouts.yaml     # grid layout presets
 │   ├── widgets.yaml     # widget definitions
-│   └── sources.yaml     # capability-gated data sources
+│   └── sources.yaml     # capability-gated data sources (runtime / storage / connector)
 └── README.md            # publisher-facing documentation
 ```
 
@@ -128,6 +136,7 @@ signed at build time — see [Packaging](/docs/solutions/packaging).
 | Host capabilities | [Capabilities](/docs/solutions/capabilities) |
 | Event model | [Events](/docs/solutions/events) |
 | Data sources | [Sources](/docs/solutions/sources) |
+| Managed document storage | [Managed storage](/docs/solutions/managed-storage) |
 | Images & branding files | [Assets](/docs/solutions/assets) |
 | Connector dependencies | [Connectors](/docs/solutions/connectors) |
 | Workflow definitions | [Workflows](/docs/solutions/workflows) |
@@ -143,11 +152,13 @@ signed at build time — see [Packaging](/docs/solutions/packaging).
 [Solution playbooks](/docs/solutions/playbooks) are outcome-oriented guides
 that compose *existing* platform features (customer support, order tracking,
 refunds). Solution Development produces **new installable packages** with
-their own manifest, UI, workflows and connector requirements.
+their own manifest, UI, workflows and data-plane requirements (managed
+storage and/or connectors).
 
 ## Related platform concepts
 
 - [Runtime](/docs/developer/concepts/runtime) — the execution engine that runs installed workflows.
 - [Events](/docs/developer/concepts/events) — the platform event bus that solutions ride.
+- [Managed storage](/docs/solutions/managed-storage) — solution document plane (`storage/*`).
 - [Connectors](/docs/developer/concepts/connectors) — stateless integration containers behind the bridge.
 - [Business Flows](/docs/developer/concepts/flows) — the flow model workflows compile to.

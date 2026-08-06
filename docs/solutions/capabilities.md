@@ -25,8 +25,14 @@ list:
 | `workflow.trigger` | Trigger this solution's workflows | Requires manifest permission `workflow.execute` |
 | `customer.query` | Query customer-hub data | Requires manifest permission `customer.read` |
 | `connector.invoke` | Invoke declared connectors through the bridge | Requires ≥ 1 declared connector |
+| `storage.read` | Read managed documents (`storage/find`, `storage/get`) | Requires `storage.read` permission |
+| `storage.write` | Insert documents (`storage/insert`) | Requires `storage.write` permission |
+| `storage.update` | Patch documents (`storage/update`) | Requires `storage.update` permission |
+| `storage.delete` | Soft-delete documents (`storage/delete`) | Requires `storage.delete` permission |
 
-Unknown capability names are rejected at publish time.
+Unknown capability names are rejected at publish time. Reserved SDK
+namespaces (`storage`, `vector`, …) cannot be registered as connectors —
+see [Managed storage](/docs/solutions/managed-storage).
 
 ## Requesting capabilities
 
@@ -38,8 +44,11 @@ capabilities:
   - user.get
   - tenant.get
   - runtime.query
-  - connector.invoke
   - workflow.trigger
+  - storage.read
+  - storage.write
+  - storage.update
+  - storage.delete
 ```
 
 The install wizard shows this requested set next to the granted set before
@@ -63,10 +72,11 @@ flowchart LR
 - **Re-checked on every invocation** — a granted set is not cached trust.
 - Recomputed on upgrade; the wizard surfaces any change.
 
-Example: `restaurant-pro` requests `workflow.trigger` and `connector.invoke`,
-declares `permissions: [workflow.execute]` and one connector — both are
-granted. Removing the connector from the manifest would drop
-`connector.invoke` at the next negotiation.
+Example: `restaurant-pro@1.3.0` requests `workflow.trigger` and
+`storage.*`, declares matching `permissions`, and sets `connectors: []` —
+storage capabilities are granted; `connector.invoke` is not. An older
+package that declared a POS connector would negotiate `connector.invoke`
+instead (or in addition) for bridge-backed sources.
 
 ## The `ui.*` host API
 
@@ -94,11 +104,11 @@ sequenceDiagram
     participant W as Widget
     participant DS as Data source layer
     participant CAP as Capability check
-    participant RT as Runtime / Connector bridge
+    participant RT as Runtime / Storage / Connector bridge
     W->>DS: render needs source payload
     DS->>CAP: is the source capability granted?
     alt granted
-        CAP->>RT: fetch (runtime query or bridge route)
+        CAP->>RT: fetch (runtime, storage/*, or bridge)
         RT-->>W: payload
     else not granted
         CAP-->>W: no request fired — empty state
@@ -109,16 +119,18 @@ A widget whose capability is not granted **never fires a request**. This
 is why a missing permission renders as a calm empty state rather than a
 permission error.
 
-## Restaurant Pro granted set
+## Restaurant Pro granted set (1.3.0)
 
 | Requested | Granted? | Why |
 | --- | --- | --- |
 | `theme.get`, `user.get`, `tenant.get`, `runtime.query` | Yes | Always granted |
-| `connector.invoke` | Yes | `restaurant-pos` declared in manifest |
 | `workflow.trigger` | Yes | `workflow.execute` permission declared |
+| `storage.read` / `write` / `update` / `delete` | Yes | Matching `storage.*` permissions declared |
+| `connector.invoke` | No | `connectors: []` — not requested |
 
 ## Related topics
 
+- [Managed storage](/docs/solutions/managed-storage) — document plane capabilities
 - [Events](/docs/solutions/events) — what `ui.emit` puts on the bus
 - [Sources](/docs/solutions/sources) — capability-gated data fetching
 - [Security](/docs/solutions/security) — why mediation is mandatory

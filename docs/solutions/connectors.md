@@ -6,10 +6,20 @@ sidebar_label: "Connectors"
 
 # Connectors
 
-Connectors are how a solution reaches the outside world — POS systems,
-payment gateways, property management systems. A solution never talks to
-them directly: it declares dependencies, and the platform resolves,
-provisions and mediates every call.
+Connectors are how a solution reaches the **outside world** — Shopify,
+payment gateways, property management systems, legacy POS APIs. A solution
+never talks to them directly: it declares dependencies, and the platform
+resolves, provisions and mediates every call.
+
+For **solution-owned application documents** (reservations, menus, drafts),
+prefer [managed storage](/docs/solutions/managed-storage) (`storage/*`) —
+no connector required. `restaurant-pro@1.3.0` ships with `connectors: []`.
+
+## Reserved names
+
+These roots are platform SDK namespaces and **cannot** be declared as
+connectors: `storage`, `vector`, `object`, `cache`, `queue`, `secret`,
+`state`. Manifest validation rejects them.
 
 ## Two declaration layers
 
@@ -20,7 +30,7 @@ semver constraints:
 
 ```yaml title="manifest.yaml (excerpt)"
 connectors:
-  - name: restaurant-pos
+  - name: shopify
     version: ">=1.0.0"
 ```
 
@@ -34,25 +44,22 @@ The package's `connectors/` directory documents the connector contracts
 the solution relies on — the operations each source and workflow step
 uses:
 
-```yaml title="connectors/restaurant-pos.yaml"
-name: restaurant-pos
+```yaml title="connectors/shopify.yaml"
+name: shopify
 operations:
   - orders.list
-  - reservations.list
-  - reservations.create
-  - tables.list
-  - kitchen.tickets
-  - payments.summary
-  - revenue.series
-  - notify
+  - products.list
 auth:
-  type: api_key
+  type: oauth2
 ```
 
 These declarations are validated against the published connector's tool
 list at publish time: referencing an operation the connector does not
 expose is rejected. This keeps `sources.yaml` and `workflows/` honest
 before a tenant ever installs the solution.
+
+Omit `connectors/` entirely when the solution uses only managed storage
+and runtime sources.
 
 ## Resolution and provisioning
 
@@ -113,15 +120,15 @@ See [Secrets](/docs/security/secrets).
 
 ## Restaurant Pro
 
-| Declared | Version | Operations used |
-| --- | --- | --- |
-| `restaurant-pos` | `>=1.0.0` | `orders.list`, `reservations.list`, `reservations.create`, `tables.list`, `kitchen.tickets`, `payments.summary`, `revenue.series`, `notify` |
-
-All seven UI sources and the `reservation-reminder` workflow's `notify`
-step resolve against this single connector.
+From **1.3.0**, `restaurant-pro` declares `connectors: []`. Application
+state uses [managed storage](/docs/solutions/managed-storage). Older
+1.2.x packages that depended on `restaurant-pos` are superseded — do not
+mix POS connector ops with the 1.3.0 UI sources.
 
 ## Guidelines
 
+- Prefer managed storage for solution-owned documents; add connectors only
+  for external systems of record.
 - Prefer one well-chosen connector over several overlapping ones; every
   connector adds an install-time credential for the tenant.
 - Constrain versions (`>=1.0.0`) when your sources depend on specific
@@ -130,10 +137,14 @@ step resolve against this single connector.
 - Publish the connector first — a solution that references an unpublished
   connector cannot install. See the
   [connector reference](/docs/reference/connector-reference).
+- Never name a connector after a reserved SDK namespace (`storage`, …).
 
 ## Related topics
 
+- [Managed storage](/docs/solutions/managed-storage)
 - [Sources](/docs/solutions/sources) — capability-gated reads
-- [Workflows](/docs/solutions/workflows) — connector tool steps
+- [Capabilities](/docs/solutions/capabilities)
+- [Workflows](/docs/solutions/workflows) — connector / storage tool steps
 - [Installation](/docs/solutions/installation) — resolution + credentials
+- [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
 - [Connectors concept](/docs/developer/concepts/connectors)

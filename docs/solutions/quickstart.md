@@ -18,8 +18,9 @@ into a tenant, and open the rendered UI in the portal.
 - A signing key for publishing: either `QEFRO_SIGNING_KEY_HEX` (32 bytes
   of hex) or a keys file containing `REGISTRY_PRIVATE_KEY` pointed to by
   `QEFRO_KEYS_FILE`.
-- At least one published connector for the POS integration
-  (`restaurant-pos >= 1.0.0`) — see [Connectors](/docs/solutions/connectors).
+- Platform **managed storage** deployed (`storage-service` + Mongo
+  `managed_apps`) if your solution uses `storage/*` — see
+  [Managed storage](/docs/solutions/managed-storage).
 
 :::note
 Publishing is an admin action. Tenants can always *install* published
@@ -31,7 +32,7 @@ solutions; only publishers with registry credentials can *publish*.
 Create the standard layout:
 
 ```bash
-mkdir -p restaurant-pro/{assets,workflows,connectors,ui}
+mkdir -p restaurant-pro/{assets,workflows,prompts,ui}
 cd restaurant-pro
 ```
 
@@ -40,7 +41,7 @@ restaurant-pro/
 ├── manifest.yaml
 ├── assets/
 ├── workflows/
-├── connectors/
+├── prompts/
 ├── ui/
 │   ├── theme.yaml
 │   ├── navigation.yaml
@@ -51,37 +52,44 @@ restaurant-pro/
 └── README.md
 ```
 
+Add a `connectors/` directory only when you depend on external connectors.
+
 ## Step 2 — Write the manifest
 
-`manifest.yaml` declares identity, dependencies and permissions:
+`manifest.yaml` declares identity, permissions and (optionally) connectors:
 
 ```yaml
 id: restaurant-pro
 name: Restaurant Pro
-version: 1.0.0
-description: Reservations, kitchen ops, orders and payments for restaurants
+version: 1.3.0
+description: Reservations, takeaway, menu, kitchen ops, orders and payments for restaurants
 category: hospitality
 tags:
   - restaurant
-  - pos
   - reservations
-connectors:
-  - name: restaurant-pos
-    version: ">=1.0.0"
+  - storage
+connectors: []
 channels:
   - widget
   - whatsapp
 flows:
-  - reservation-reminder
+  - reservation
 permissions:
   - workflow.execute
+  - storage.read
+  - storage.write
+  - storage.update
+  - storage.delete
 capabilities:
   - theme.get
   - user.get
   - tenant.get
   - runtime.query
-  - connector.invoke
   - workflow.trigger
+  - storage.read
+  - storage.write
+  - storage.update
+  - storage.delete
 settings: []
 ui:
   name: Restaurant Pro
@@ -171,32 +179,34 @@ Reference pages: [Themes](/docs/solutions/themes),
 
 ## Step 4 — Add a workflow
 
-`workflows/reservation-reminder.yaml` — executed by the runtime, never by
-the package:
+Persist with managed storage — executed by the runtime, never by the package:
 
-```yaml
-id: reservation-reminder
-name: Reservation reminder
+```yaml title="workflows/reservation.yaml (excerpt)"
+id: reservation
+name: Table reservation
 trigger:
-  event: reservation.confirmed
+  type: conversation
 steps:
-  - type: tool
-    tool: restaurant-pos/reservations.create
+  - id: collect_details
+    type: ask
+    prompt: reservation-assistant
+    variable: reservation_input
+  - id: create_reservation
+    type: tool
+    tool: storage/insert
     params:
-      guest: "{{ event.payload.guest_name }}"
-      covers: "{{ event.payload.covers }}"
-  - type: tool
-    tool: restaurant-pos/notify
-    params:
-      message: "Your table is confirmed — see you soon!"
-  - type: delay
-    duration: 2h
-  - type: tool
-    tool: restaurant-pos/notify
-    params:
-      message: "Reminder: your table is ready in 2 hours."
-  - type: complete
+      collection: reservations
+      document:
+        customer_name: "{{ variables.reservation_input.guest_name }}"
+        guest_count: "{{ variables.reservation_input.covers }}"
+        status: confirmed
+  - id: done
+    type: complete
 ```
+
+Wire UI lists with `storage/find` sources (gated on `storage.read`) — see
+[Sources](/docs/solutions/sources) and
+[Managed storage](/docs/solutions/managed-storage).
 
 Details: [Workflows](/docs/solutions/workflows).
 
@@ -208,14 +218,14 @@ qefro solution build .
 
 The build:
 
-1. Assembles `manifest.yaml`, `ui/`, `workflows/` and `connectors/` into a
-   single canonical JSON document (sorted keys, compact separators).
+1. Assembles `manifest.yaml`, `ui/`, `workflows/` and optional `connectors/`
+   into a single canonical JSON document (sorted keys, compact separators).
 2. Computes the SHA-256 checksum of the canonical form.
 3. Signs `id|version|checksum` with Ed25519.
 4. Writes `dist/package.json`.
 
 ```text
-built restaurant-pro@1.0.0
+built restaurant-pro@1.3.0
   checksum:  9f2c…
   signature: 71ab…
   package:   ./dist/package.json
@@ -241,26 +251,28 @@ registry verifies the signature and stores the version. See
 qefro solution install restaurant-pro
 ```
 
-or install from the portal's **Solutions → Marketplace** wizard, which
+or install from the portal's **Managed solution** marketplace wizard, which
 shows the requested vs granted capability set before activation. The
-installer resolves `restaurant-pos >= 1.0.0`, negotiates capabilities,
-registers the workflow with the runtime and stores the UI bundle. See
+installer negotiates `storage.*` capabilities, registers workflows with
+the runtime and stores the UI bundle. See
 [Installation](/docs/solutions/installation).
 
 ## Step 8 — Open the UI
 
-In the portal, open **Solutions → Restaurant Pro**, or navigate directly:
+In the portal, open **Managed solution → Restaurant Pro**, or navigate
+directly:
 
 ```text
 /app/solutions/ui/restaurant-pro/dashboard
 ```
 
-You should see the branded dashboard: the `active_orders` metric fed by the
-runtime and the `order_table` fed by the POS connector through the bridge.
+You should see the branded dashboard with tables fed by `storage/find`
+sources (gated on `storage.read`).
 
 ## What's next
 
 - Full package walkthrough: [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
+- Document plane: [Managed storage](/docs/solutions/managed-storage)
 - Understand every publish-time check: [Validation](/docs/solutions/validation)
 - Lock down the model: [Security](/docs/solutions/security)
 - When something breaks: [Troubleshooting](/docs/solutions/troubleshooting)

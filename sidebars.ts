@@ -369,6 +369,7 @@ const sidebars: SidebarsConfig = {
         'solutions/capabilities',
         'solutions/events',
         'solutions/sources',
+        'solutions/managed-storage',
         'solutions/assets',
         'solutions/connectors',
         'solutions/workflows',

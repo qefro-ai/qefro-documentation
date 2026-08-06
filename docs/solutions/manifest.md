@@ -18,30 +18,36 @@ The canonical `restaurant-pro` manifest:
 ```yaml title="manifest.yaml"
 id: restaurant-pro
 name: Restaurant Pro
-version: 1.0.0
-description: Reservations, kitchen ops, orders and payments for restaurants
+version: 1.3.0
+description: Reservations, takeaway, menu, kitchen ops, orders and payments for restaurants
 category: hospitality
 tags:
   - restaurant
-  - pos
   - reservations
-connectors:
-  - name: restaurant-pos
-    version: ">=1.0.0"
+  - storage
+connectors: []
 channels:
   - widget
   - whatsapp
 flows:
+  - reservation
   - reservation-reminder
 permissions:
   - workflow.execute
+  - storage.read
+  - storage.write
+  - storage.update
+  - storage.delete
 capabilities:
   - theme.get
   - user.get
   - tenant.get
   - runtime.query
-  - connector.invoke
   - workflow.trigger
+  - storage.read
+  - storage.write
+  - storage.update
+  - storage.delete
 settings: []
 ui:
   name: Restaurant Pro
@@ -62,7 +68,7 @@ ui:
 | `connectors` | list | No | Connector dependencies — plain names or `name` + semver `version` constraint. |
 | `channels` | string[] | No | Channels the solution participates in (`widget`, `whatsapp`, `api`). |
 | `flows` | string[] | No | Workflow ids shipped under `workflows/`. Each id must resolve to a definition file. |
-| `permissions` | string[] | No | Plane permissions requested by the installation (`workflow.execute`, `customer.read`, `runtime.read`). |
+| `permissions` | string[] | No | Plane permissions (`workflow.execute`, `storage.read|write|update|delete`, `customer.read`, …). |
 | `capabilities` | string[] | No | Host UI capabilities requested by the UI; negotiated at install. See [Capabilities](/docs/solutions/capabilities). |
 | `settings` | list | No | Tenant-configurable settings; plain keys or full definitions. |
 | `ui` | object | No | UI branding block: `name`, `logo`, `icon`. |
@@ -91,6 +97,13 @@ Constraints are resolved against the registry during installation. If no
 published version satisfies a constraint, installation fails cleanly —
 nothing is activated. See [Connectors](/docs/solutions/connectors).
 
+:::tip
+Managed solutions that only need application documents can set
+`connectors: []` and use [managed storage](/docs/solutions/managed-storage)
+instead. Do **not** declare a connector named `storage` (or other reserved
+SDK namespaces) — publish rejects those names.
+:::
+
 ## Permissions
 
 `permissions` declare what the installation may do on the plane. They gate
@@ -101,10 +114,14 @@ UI capability negotiation at install time:
 | `workflow.execute` | `workflow.trigger` — UI can trigger this solution's workflows |
 | `customer.read` | `customer.query` — UI can query customer-hub data |
 | `runtime.read` | `runtime.query` — UI can read runtime metrics/executions/workflows |
+| `storage.read` | `storage.read` — UI / workflows can find and get documents |
+| `storage.write` | `storage.write` — insert documents |
+| `storage.update` | `storage.update` — patch documents |
+| `storage.delete` | `storage.delete` — soft-delete documents |
 
-`restaurant-pro` declares `workflow.execute` so its reservation form can
-trigger the `reservation-reminder` workflow. Reference:
-[Capabilities](/docs/solutions/capabilities).
+`restaurant-pro@1.3.0` declares `workflow.execute` plus the full
+`storage.*` set so WhatsApp flows and staff UI share one document plane.
+Reference: [Capabilities](/docs/solutions/capabilities).
 
 ## Settings
 
@@ -156,6 +173,7 @@ version, see [Publishing](/docs/solutions/publishing).
 
 ## Related topics
 
+- [Managed storage](/docs/solutions/managed-storage)
 - [Validation](/docs/solutions/validation) — every check applied to the manifest
 - [Packaging](/docs/solutions/packaging) — how the manifest enters the signed package
 - [restaurant-pro example](/docs/solutions/examples/restaurant-pro)

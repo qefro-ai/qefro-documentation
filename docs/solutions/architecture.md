@@ -1,12 +1,12 @@
 ---
 title: "Architecture"
-description: "The solution delivery pipeline: package, registry, installer, runtime, connector bridge and portal renderer."
+description: "The solution delivery pipeline: package, registry, installer, runtime, managed storage, connector bridge and portal renderer."
 sidebar_label: "Architecture"
 ---
 
 # Architecture
 
-A solution never runs by itself. It is declarative data that six platform
+A solution never runs by itself. It is declarative data that platform
 stages validate, store, install, execute, mediate and render. This page
 describes each stage and the contracts between them.
 
@@ -15,7 +15,7 @@ describes each stage and the contracts between them.
 ```mermaid
 flowchart TB
     subgraph Build
-        A[Solution package<br/>manifest.yaml · ui/ · workflows/ · connectors/ · assets/]
+        A[Solution package<br/>manifest · ui · workflows · optional connectors]
     end
     subgraph Control plane
         B[Registry<br/>publish · sign · version lifecycle]
@@ -23,19 +23,23 @@ flowchart TB
     end
     subgraph Execution plane
         D[Runtime<br/>workflow execution · runtime data]
-        E[Connector bridge<br/>capability-gated routing]
+        E[SdkCore / Tool Invoker]
+        S[Managed storage<br/>storage-service · Mongo managed_apps]
+        F[Connector bridge<br/>shared pool]
     end
     subgraph Presentation plane
-        F[Portal renderer<br/>themes · navigation · pages · widgets]
+        G[Portal renderer<br/>themes · navigation · pages · widgets]
     end
     A -->|signed package| B
     B -->|resolve version + deps| C
     C -->|register workflows / prompts| D
-    D -->|connector sources| E
-    E -->|tool results| D
-    C -->|UI bundle + granted capabilities| F
-    D -->|runtime sources| F
-    E -->|connector sources| F
+    D --> E
+    E --> S
+    E --> F
+    C -->|UI bundle + granted capabilities| G
+    D -->|runtime sources| G
+    S -->|storage sources| G
+    F -->|connector sources| G
 ```
 
 | Stage | Component | Tenant-scoped | Page |
@@ -44,8 +48,10 @@ flowchart TB
 | Registry | Global signed catalog | No | [Publishing](/docs/solutions/publishing) |
 | Installer | Tenant activation pipeline | Yes | [Installation](/docs/solutions/installation) |
 | Runtime | Flow engine + event bus | Yes | [Workflows](/docs/solutions/workflows) |
+| Managed storage | Document plane (`storage/*`) | Yes (per op) | [Managed storage](/docs/solutions/managed-storage) |
 | Connector bridge | Shared connector pool + router | Pool is shared; calls carry tenant context | [Connectors](/docs/solutions/connectors) |
 | Portal renderer | Native widget registry | Yes | [Pages](/docs/solutions/pages) |
+
 
 ## Registry
 
@@ -120,10 +126,27 @@ A solution never executes workflows itself. Installation *registers*
 definitions; the runtime *owns* execution.
 :::
 
+## Managed storage
+
+Solution-owned documents (reservations, orders, drafts, …) go through
+platform `storage/*` tools — never through the connector pool and never
+via a Mongo connection string in the package.
+
+```text
+workflow / UI source
+  → SdkCore → PlatformStorage
+  → storage-service /v1/internal/storage/*
+  → MongoDB `managed_apps`  ({solution_slug}__{logical})
+```
+
+Isolation, reserved metadata, soft delete, and audit are enforced by
+storage-service. See [Managed storage](/docs/solutions/managed-storage).
+
 ## Connector bridge
 
-`connector` data sources never call a connector directly. They are
-forwarded through the connector bridge, which:
+`connector` data sources that target **declared external connectors**
+never call a connector directly. They are forwarded through the connector
+bridge, which:
 
 - routes `POST /v1/route` calls to a **shared, stateless connector pool**
   (containers named `qefro-connector-{name}-{version}-{id}` — never
@@ -131,6 +154,9 @@ forwarded through the connector bridge, which:
 - attaches the tenant context to every call,
 - enforces that the calling solution holds `connector.invoke` and declared
   the connector in its manifest.
+
+Sources whose `target` is `storage/*` bypass this bridge and use managed
+storage instead (gated on `storage.read`).
 
 See [Connectors](/docs/solutions/connectors) and the
 [connector reference](/docs/reference/connector-reference).
@@ -144,10 +170,10 @@ The portal renders solution UIs **natively** at
 | --- | --- |
 | Solution UI host | Loads the tenant bundle, scoped theme container, page tabs, lifecycle events |
 | Theme engine | `theme.yaml` → CSS custom properties on the solution container only |
-| Navigation engine | Bundle navigation injected as a `Solutions · {name}` sidebar group |
+| Navigation engine | Bundle navigation under **Managed solution** in the portal sidebar |
 | Widget registry | Closed widget-kind list rendered with platform UI primitives |
 | Layout engine | Responsive grid (1 column on mobile, `columns` at ≥ 1024 px) |
-| Data sources | Capability-gated fetches from runtime or connector bridge |
+| Data sources | Capability-gated fetches from runtime, storage, or connector bridge |
 | Capabilities | The `ui.*` host API, implemented in-process |
 | UI boundary | Error boundary + schema coercion — broken definitions degrade to a scoped error card |
 
@@ -158,9 +184,10 @@ injected scripts. See [Security](/docs/solutions/security).
 
 | Data | Owner | Tenant-scoped |
 | --- | --- | --- |
-| Published packages (manifest, UI, workflows) | Registry | No — global catalog |
-| Installations, settings, granted capabilities | Installer | Yes |
+| Published packages (manifest, UI, workflows) | Registry / solution-service | No — global catalog |
+| Installations, settings, granted capabilities | Installer / solution-service | Yes |
 | Workflow executions | Runtime | Yes |
+| Solution application documents | storage-service → Mongo `managed_apps` | Yes (per op) |
 | Running connector containers | Connector manager | No — shared pool |
 | Connector credentials | Secret manager | Yes |
 | UI event log (`ui_events`) | Runtime | Yes |

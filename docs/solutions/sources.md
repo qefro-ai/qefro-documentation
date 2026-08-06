@@ -1,15 +1,24 @@
 ---
 title: "Sources"
-description: "sources.yaml — capability-gated data sources that feed widgets, served from the runtime plane or through the connector bridge."
+description: "sources.yaml — capability-gated data sources that feed widgets from runtime, managed storage, or the connector bridge."
 sidebar_label: "Sources"
 ---
 
 # Sources
 
-`ui/sources.yaml` declares where widget data comes from. There are exactly
-two source types: **runtime** (the tenant's own runtime data) and
-**connector** (operations routed through the connector bridge). Solutions
-have **no direct network access** — a source is the only data path.
+`ui/sources.yaml` declares where widget data comes from. Solutions have
+**no direct network access** — a source is the only data path.
+
+In YAML there are two `type` values:
+
+| `type` | Meaning |
+| --- | --- |
+| `runtime` | Tenant runtime plane (`metrics`, `executions`, `workflows`) |
+| `connector` | Tool target — either a **declared connector** op or a **platform** tool such as `storage/find` |
+
+Platform tools under reserved namespaces (`storage/*`, …) still use
+`type: connector` in the schema today; routing and capability gates
+differ from pool connectors. See [Managed storage](/docs/solutions/managed-storage).
 
 ## Definition
 
@@ -18,44 +27,31 @@ have **no direct network access** — a source is the only data path.
   type: runtime
   target: metrics
 
-- id: orders
-  type: connector
-  target: orders.list
-  params:
-    limit: 25
-
 - id: reservations
   type: connector
-  target: reservations.list
+  target: storage/find
+  params:
+    collection: reservations
+    limit: 50
 
-- id: tables
+- id: orders
   type: connector
-  target: tables.list
-
-- id: kitchen
-  type: connector
-  target: kitchen.tickets
-
-- id: payments
-  type: connector
-  target: payments.summary
-
-- id: revenue
-  type: connector
-  target: revenue.series
+  target: storage/find
+  params:
+    collection: orders
+    limit: 25
 ```
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `id` | string | Yes | Source id referenced by widget `source:` fields. |
 | `type` | string | Yes | `runtime` or `connector`. |
-| `target` | string | Yes | Runtime query name or connector operation. |
+| `target` | string | Yes | Runtime query name, connector operation, or platform tool (`storage/find`). |
 | `params` | map | No | Static parameters sent with every query. |
 
 ## Runtime sources
 
-`type: runtime` sources are served from the runtime plane. Host-side
-targets read the tenant's **own** runtime data:
+`type: runtime` sources are served from the runtime plane:
 
 | Target | Returns |
 | --- | --- |
@@ -64,14 +60,34 @@ targets read the tenant's **own** runtime data:
 | `workflows` | Registered workflow definitions |
 
 Runtime sources require the `runtime.query` capability (always granted).
-`restaurant-pro` uses `runtime_metrics` for the `active_orders` metric
-widget.
 
-## Connector sources
+## Managed storage sources
 
-`type: connector` sources are forwarded through the **connector bridge**
-(`POST /v1/route` on the connector manager) — the bridge is never
-bypassed:
+When `target` is a `storage/*` tool, the portal gates on **`storage.read`**
+and calls storage-service (via the API / SdkCore path) — not the shared
+connector pool:
+
+```yaml title="storage source"
+- id: reservations
+  type: connector
+  target: storage/find
+  params:
+    collection: reservations
+    limit: 50
+```
+
+Guards:
+
+1. `storage.read` must be granted.
+2. The solution must declare storage permissions in the manifest.
+3. Isolation filters (`tenant_id`, `workspace_id`, `installation_id`) are
+   applied by storage-service — never trust client-supplied scope fields.
+
+## External connector sources
+
+For **declared** connectors (POS, Shopify, …), `type: connector` sources
+are forwarded through the **connector bridge** and gated on
+`connector.invoke`:
 
 ```mermaid
 flowchart LR
@@ -83,43 +99,36 @@ flowchart LR
     POOL --> B --> DS
 ```
 
-Guards applied to every connector source:
+1. `connector.invoke` must be granted.
+2. The connector must be listed in `manifest.connectors`.
+3. Calls carry tenant context; connectors stay in the shared pool.
 
-1. `connector.invoke` must be in the granted capability set.
-2. The connector must be declared in the manifest's `connectors` list.
-3. The call is routed to the shared pool with the tenant context attached —
-   connectors are stateless and never hold tenant data.
+## Restaurant Pro source map (1.3.0)
 
-`params` are static per source; there is no per-render scripting. If a
-page needs different slices of data, declare separate sources (as
-`restaurant-pro` splits `orders`, `payments` and `revenue` on one
-connector).
-
-## Restaurant Pro source map
-
-| Source | Type | Target | Feeds |
+| Source | Target | Gate | Feeds |
 | --- | --- | --- | --- |
-| `runtime_metrics` | runtime | `metrics` | `active_orders` metric |
-| `orders` | connector | `orders.list` | `order_table`, `orders_timeline` |
-| `reservations` | connector | `reservations.list` | Reservations calendar |
-| `tables` | connector | `tables.list` | Tables status |
-| `kitchen` | connector | `kitchen.tickets` | Kitchen kanban |
-| `payments` | connector | `payments.summary` | Payments chart |
-| `revenue` | connector | `revenue.series` | `revenue_chart` |
+| `runtime_metrics` | `metrics` | `runtime.query` | Dashboard metrics |
+| `reservations` | `storage/find` → `reservations` | `storage.read` | Reservations table |
+| `orders` | `storage/find` → `orders` | `storage.read` | Orders / kitchen |
+| `takeaway` | `storage/find` → `orders` + filter | `storage.read` | Takeaway list |
+| `menu` | `storage/find` → `menu_items` | `storage.read` | Menu |
+| `tables` | `storage/find` → `tables` | `storage.read` | Tables |
+| `payments` | `storage/find` → `payments` | `storage.read` | Payments |
 
 ## Guidelines
 
 - One source per **query shape**, not per widget — multiple widgets can
   share a source.
-- Pre-aggregate on the connector side (`payments.summary`,
-  `revenue.series`); keep payloads small.
+- Prefer `storage/*` for solution-owned documents; use connectors for
+  external systems of record.
 - Use `params.limit` everywhere a list is unbounded.
-- Never model a connector call as a runtime source or vice versa; the
-  capability gates differ.
+- Match the capability gate to the target (`storage.read` vs
+  `connector.invoke` vs `runtime.query`).
 
 ## Related topics
 
-- [Capabilities](/docs/solutions/capabilities) — the gates on every fetch
-- [Connectors](/docs/solutions/connectors) — the other side of the bridge
-- [Widgets](/docs/solutions/widgets/metric) — consumers of source payloads
-- [Backend SDK tools](/docs/business-tools/backend-sdk) — how connector operations map to tools
+- [Managed storage](/docs/solutions/managed-storage)
+- [Capabilities](/docs/solutions/capabilities)
+- [Connectors](/docs/solutions/connectors)
+- [Widgets](/docs/solutions/widgets/metric)
+- [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
