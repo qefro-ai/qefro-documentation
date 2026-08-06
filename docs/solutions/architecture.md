@@ -1,31 +1,42 @@
 ---
 title: "Architecture"
-description: "The solution delivery pipeline: package, registry, installer, runtime, managed storage, connector bridge and portal renderer."
+description: "The solution delivery pipeline: SDK app (/qefro), registry, installer, runtime, managed storage, connector bridge and portal renderer (ADR-003)."
 sidebar_label: "Architecture"
 ---
 
 # Architecture
 
-A solution never runs by itself. It is declarative data that platform
-stages validate, store, install, execute, mediate and render. This page
-describes each stage and the contracts between them.
+An installable solution is an **SDK application** plus optional declarative
+UI/workflows. The platform validates, stores, installs, routes tools,
+persists documents, and renders the staff UI — it never owns domain rules.
+
+## SDK application (ADR-003)
+
+```text
+runtime → tool invoker → installation binding → /qefro → app tools → ctx.storage → Mongo
+```
+
+Required: `src/`, signed `/qefro`, `hosting` + endpoint. Optional: UI,
+workflows, prompts, assets. Workflows and UI call `{solution}/{tool}` —
+never platform `storage/*` directly. See [Managed apps](/docs/solutions/managed-apps).
 
 ## The pipeline
 
 ```mermaid
 flowchart TB
     subgraph Build
-        A[Solution package<br/>manifest · ui · workflows · optional connectors]
+        A[Solution package<br/>src · manifest · optional ui/workflows]
     end
     subgraph Control plane
         B[Registry<br/>publish · sign · version lifecycle]
-        C[Installer<br/>tenant activation · capability negotiation]
+        C[Installer<br/>capabilities · installation_bindings]
     end
     subgraph Execution plane
         D[Runtime<br/>workflow execution · runtime data]
-        E[SdkCore / Tool Invoker]
+        E[Tool invoker]
+        APP[Install SDK /qefro]
         S[Managed storage<br/>storage-service · Mongo managed_apps]
-        F[Connector bridge<br/>shared pool]
+        F[Pool connector bridge]
     end
     subgraph Presentation plane
         G[Portal renderer<br/>themes · navigation · pages · widgets]
@@ -33,23 +44,26 @@ flowchart TB
     A -->|signed package| B
     B -->|resolve version + deps| C
     C -->|register workflows / prompts| D
+    C -->|binding endpoint| APP
     D --> E
-    E --> S
+    E --> APP
+    APP --> S
     E --> F
     C -->|UI bundle + granted capabilities| G
     D -->|runtime sources| G
-    S -->|storage sources| G
-    F -->|connector sources| G
+    APP -->|own-app UI sources| G
+    F -->|pool connector sources| G
 ```
 
 | Stage | Component | Tenant-scoped | Page |
 | --- | --- | --- | --- |
-| Solution package | Your source directory | n/a | [Manifest](/docs/solutions/manifest) |
+| Solution package | Your source directory (`src/` required) | n/a | [Manifest](/docs/solutions/manifest) |
 | Registry | Global signed catalog | No | [Publishing](/docs/solutions/publishing) |
-| Installer | Tenant activation pipeline | Yes | [Installation](/docs/solutions/installation) |
+| Installer | Tenant activation + binding | Yes | [Installation](/docs/solutions/installation) |
 | Runtime | Flow engine + event bus | Yes | [Workflows](/docs/solutions/workflows) |
-| Managed storage | Document plane (`storage/*`) | Yes (per op) | [Managed storage](/docs/solutions/managed-storage) |
-| Connector bridge | Shared connector pool + router | Pool is shared; calls carry tenant context | [Connectors](/docs/solutions/connectors) |
+| SDK app | Domain tools on `/qefro` | Yes (per install) | [Managed apps](/docs/solutions/managed-apps) |
+| Managed storage | Documents via `ctx.storage` | Yes (per op) | [Managed storage](/docs/solutions/managed-storage) |
+| Connector bridge | Shared pool for external SoR | Pool shared; calls carry tenant | [Connectors](/docs/solutions/connectors) |
 | Portal renderer | Native widget registry | Yes | [Pages](/docs/solutions/pages) |
 
 
@@ -128,13 +142,13 @@ definitions; the runtime *owns* execution.
 
 ## Managed storage
 
-Solution-owned documents (reservations, orders, drafts, …) go through
-platform `storage/*` tools — never through the connector pool and never
-via a Mongo connection string in the package.
+Solution-owned documents go through the install’s SDK (`ctx.storage`) —
+never from workflow/UI YAML targeting `storage/*`, and never via a Mongo
+connection string in the package.
 
 ```text
-workflow / UI source
-  → SdkCore → PlatformStorage
+app tool on /qefro
+  → ctx.storage.*
   → storage-service /v1/internal/storage/*
   → MongoDB `managed_apps`  ({solution_slug}__{logical})
 ```
@@ -144,7 +158,7 @@ storage-service. See [Managed storage](/docs/solutions/managed-storage).
 
 ## Connector bridge
 
-`connector` data sources that target **declared external connectors**
+`connector` data sources that target **declared external pool connectors**
 never call a connector directly. They are forwarded through the connector
 bridge, which:
 
@@ -155,8 +169,8 @@ bridge, which:
 - enforces that the calling solution holds `connector.invoke` and declared
   the connector in its manifest.
 
-Sources whose `target` is `storage/*` bypass this bridge and use managed
-storage instead (gated on `storage.read`).
+Sources whose `target` is `{solution}/{tool}` for **this install** skip the
+pool bridge and call the installation `/qefro` (gated on `runtime.query`).
 
 See [Connectors](/docs/solutions/connectors) and the
 [connector reference](/docs/reference/connector-reference).
@@ -173,7 +187,7 @@ The portal renders solution UIs **natively** at
 | Navigation engine | Bundle navigation under **Managed solution** in the portal sidebar |
 | Widget registry | Closed widget-kind list rendered with platform UI primitives |
 | Layout engine | Responsive grid (1 column on mobile, `columns` at ≥ 1024 px) |
-| Data sources | Capability-gated fetches from runtime, storage, or connector bridge |
+| Data sources | Capability-gated fetches from runtime, own-app `/qefro`, or pool bridge |
 | Capabilities | The `ui.*` host API, implemented in-process |
 | UI boundary | Error boundary + schema coercion — broken definitions degrade to a scoped error card |
 

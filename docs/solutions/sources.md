@@ -1,24 +1,21 @@
 ---
 title: "Sources"
-description: "sources.yaml — capability-gated data sources that feed widgets from runtime, managed storage, or the connector bridge."
+description: "sources.yaml — capability-gated data sources that feed widgets from runtime, the install’s /qefro tools, or the connector bridge."
 sidebar_label: "Sources"
 ---
 
 # Sources
 
 `ui/sources.yaml` declares where widget data comes from. Solutions have
-**no direct network access** — a source is the only data path.
+**no direct network access** — a source is the only data path for the
+declarative UI.
 
 In YAML there are two `type` values:
 
 | `type` | Meaning |
 | --- | --- |
 | `runtime` | Tenant runtime plane (`metrics`, `executions`, `workflows`) |
-| `connector` | Tool target — either a **declared connector** op or a **platform** tool such as `storage/find` |
-
-Platform tools under reserved namespaces (`storage/*`, …) still use
-`type: connector` in the schema today; routing and capability gates
-differ from pool connectors. See [Managed storage](/docs/solutions/managed-storage).
+| `connector` | Tool target — **own-app** `{solution}/{tool}`, a **pool connector** op, or (deprecated) platform `storage/*` |
 
 ## Definition
 
@@ -29,16 +26,16 @@ differ from pool connectors. See [Managed storage](/docs/solutions/managed-stora
 
 - id: reservations
   type: connector
-  target: storage/find
+  target: restaurant-pro/restaurant.listReservations
   params:
-    collection: reservations
     limit: 50
+    sort:
+      created_at: -1
 
 - id: orders
   type: connector
-  target: storage/find
+  target: restaurant-pro/restaurant.listOrders
   params:
-    collection: orders
     limit: 25
 ```
 
@@ -46,7 +43,7 @@ differ from pool connectors. See [Managed storage](/docs/solutions/managed-stora
 | --- | --- | --- | --- |
 | `id` | string | Yes | Source id referenced by widget `source:` fields. |
 | `type` | string | Yes | `runtime` or `connector`. |
-| `target` | string | Yes | Runtime query name, connector operation, or platform tool (`storage/find`). |
+| `target` | string | Yes | Runtime name, `{solution}/{tool}`, or pool `{connector}/{op}`. |
 | `params` | map | No | Static parameters sent with every query. |
 
 ## Runtime sources
@@ -61,32 +58,32 @@ differ from pool connectors. See [Managed storage](/docs/solutions/managed-stora
 
 Runtime sources require the `runtime.query` capability (always granted).
 
-## Managed storage sources
+## Own-app sources (ADR-003)
 
-When `target` is a `storage/*` tool, the portal gates on **`storage.read`**
-and calls storage-service (via the API / SdkCore path) — not the shared
-connector pool:
+When `target` is `{solution}/{tool}` and `solution` is **this install**
+(e.g. `restaurant-pro/restaurant.listReservations`), the host:
 
-```yaml title="storage source"
+1. Gates on **`runtime.query`** (not `connector.invoke`).
+2. Resolves the installation binding and calls the app’s signed `/qefro`.
+3. Passes workspace-scoped `platform.storage` context so the tool’s
+   `ctx.storage` hits the correct partition.
+
+```yaml title="own-app source"
 - id: reservations
   type: connector
-  target: storage/find
+  target: restaurant-pro/restaurant.listReservations
   params:
-    collection: reservations
+    collection: reservations   # only if your tool accepts it
     limit: 50
 ```
 
-Guards:
-
-1. `storage.read` must be granted.
-2. The solution must declare storage permissions in the manifest.
-3. Isolation filters (`tenant_id`, `workspace_id`, `installation_id`) are
-   applied by storage-service — never trust client-supplied scope fields.
+This is the **required** path for solution-owned lists. The app tool
+implements filters, validation, and `ctx.storage.find`.
 
 ## External connector sources
 
-For **declared** connectors (POS, Shopify, …), `type: connector` sources
-are forwarded through the **connector bridge** and gated on
+For **declared pool** connectors (POS, Shopify, …), `type: connector`
+sources are forwarded through the **connector bridge** and gated on
 `connector.invoke`:
 
 ```mermaid
@@ -103,30 +100,48 @@ flowchart LR
 2. The connector must be listed in `manifest.connectors`.
 3. Calls carry tenant context; connectors stay in the shared pool.
 
-## Restaurant Pro source map (1.3.0)
+## Deprecated: `storage/*` UI sources
+
+```yaml
+# FORBIDDEN — do not ship
+- id: reservations
+  type: connector
+  target: storage/find
+  params:
+    collection: reservations
+```
+
+Replace with an app list tool. Direct `storage/find` from the UI put
+business shape on the platform path and skipped the SDK process.
+
+## Restaurant Pro source map (1.7.0)
 
 | Source | Target | Gate | Feeds |
 | --- | --- | --- | --- |
 | `runtime_metrics` | `metrics` | `runtime.query` | Dashboard metrics |
-| `reservations` | `storage/find` → `reservations` | `storage.read` | Reservations table |
-| `orders` | `storage/find` → `orders` | `storage.read` | Orders / kitchen |
-| `takeaway` | `storage/find` → `orders` + filter | `storage.read` | Takeaway list |
-| `menu` | `storage/find` → `menu_items` | `storage.read` | Menu |
-| `tables` | `storage/find` → `tables` | `storage.read` | Tables |
-| `payments` | `storage/find` → `payments` | `storage.read` | Payments |
+| `reservations` | `restaurant-pro/restaurant.listReservations` | `runtime.query` | Reservations table |
+| `orders` | `restaurant-pro/restaurant.listOrders` | `runtime.query` | Orders / kitchen |
+| `takeaway` | `restaurant-pro/restaurant.listOrders` + filter | `runtime.query` | Takeaway list |
+| `menu` | `restaurant-pro/restaurant.listMenu` | `runtime.query` | Menu |
+| `tables` | `restaurant-pro/restaurant.listTables` | `runtime.query` | Tables |
+| `payments` | `restaurant-pro/restaurant.listPayments` | `runtime.query` | Payments |
+| `customers` | `restaurant-pro/restaurant.listCustomers` | `runtime.query` | CRM |
 
 ## Guidelines
 
 - One source per **query shape**, not per widget — multiple widgets can
   share a source.
-- Prefer `storage/*` for solution-owned documents; use connectors for
-  external systems of record.
+- Prefer **own-app tools** for solution-owned documents; use pool
+  connectors for external systems of record.
 - Use `params.limit` everywhere a list is unbounded.
-- Match the capability gate to the target (`storage.read` vs
-  `connector.invoke` vs `runtime.query`).
+- Match the capability gate to the target (`runtime.query` for own-app,
+  `connector.invoke` for pool, `runtime.query` for runtime metrics).
+- Always pass install `workspace_id` on UI data queries (portal host does
+  this for workspace-scoped installs).
 
 ## Related topics
 
+- [Managed apps](/docs/solutions/managed-apps)
 - [Managed storage](/docs/solutions/managed-storage)
 - [Capabilities](/docs/solutions/capabilities)
 - [Connectors](/docs/solutions/connectors)

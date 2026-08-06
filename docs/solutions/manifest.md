@@ -18,13 +18,16 @@ The canonical `restaurant-pro` manifest:
 ```yaml title="manifest.yaml"
 id: restaurant-pro
 name: Restaurant Pro
-version: 1.3.0
+version: 1.7.0
+hosting: managed
+endpoint: http://restaurant-pro:8080
 description: Reservations, takeaway, menu, kitchen ops, orders and payments for restaurants
 category: hospitality
 tags:
   - restaurant
   - reservations
   - storage
+  - sdk
 connectors: []
 channels:
   - widget
@@ -62,6 +65,8 @@ ui:
 | `id` | string | Yes | Unique solution id. **kebab-case**: lowercase letters, digits, `-`; must start with a letter. |
 | `name` | string | Yes | Human-readable display name. |
 | `version` | string | Yes | Semver version of this package. Immutable once published. |
+| `hosting` | string | Yes* | `managed` or `external` — how the SDK `/qefro` process is reached (*required for ADR-003 apps). |
+| `endpoint` | string | Yes* | Base URL of the SDK process (platform calls `{endpoint}/qefro`). |
 | `description` | string | No | One-line summary shown in the marketplace. |
 | `category` | string | No | Marketplace grouping, e.g. `hospitality`, `healthcare`, `retail`. |
 | `tags` | string[] | No | Search keywords. |
@@ -98,10 +103,10 @@ published version satisfies a constraint, installation fails cleanly —
 nothing is activated. See [Connectors](/docs/solutions/connectors).
 
 :::tip
-Managed solutions that only need application documents can set
-`connectors: []` and use [managed storage](/docs/solutions/managed-storage)
-instead. Do **not** declare a connector named `storage` (or other reserved
-SDK namespaces) — publish rejects those names.
+Apps that own their documents set `connectors: []`, ship `src/` +
+`hosting`/`endpoint`, and use [managed storage](/docs/solutions/managed-storage)
+from inside the SDK (`ctx.storage`). Do **not** declare a connector named
+`storage` (or other reserved SDK namespaces) — publish rejects those names.
 :::
 
 ## Permissions
@@ -114,14 +119,15 @@ UI capability negotiation at install time:
 | `workflow.execute` | `workflow.trigger` — UI can trigger this solution's workflows |
 | `customer.read` | `customer.query` — UI can query customer-hub data |
 | `runtime.read` | `runtime.query` — UI can read runtime metrics/executions/workflows |
-| `storage.read` | `storage.read` — UI / workflows can find and get documents |
-| `storage.write` | `storage.write` — insert documents |
-| `storage.update` | `storage.update` — patch documents |
-| `storage.delete` | `storage.delete` — soft-delete documents |
+| `storage.read` | `storage.read` — SDK may find/get documents via `ctx.storage` |
+| `storage.write` | `storage.write` — SDK may insert documents |
+| `storage.update` | `storage.update` — SDK may patch documents |
+| `storage.delete` | `storage.delete` — SDK may soft-delete documents |
 
-`restaurant-pro@1.3.0` declares `workflow.execute` plus the full
-`storage.*` set so WhatsApp flows and staff UI share one document plane.
-Reference: [Capabilities](/docs/solutions/capabilities).
+`restaurant-pro@1.7.0` declares `workflow.execute` plus the full
+`storage.*` set so the SDK app can persist; UI/workflows call
+`restaurant-pro/restaurant.*` tools. Reference:
+[Capabilities](/docs/solutions/capabilities).
 
 ## Settings
 

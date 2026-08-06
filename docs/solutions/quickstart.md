@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Scaffold, build, sign, publish and install your first solution package — restaurant-pro — in under an hour."
+description: "Scaffold, build, sign, publish and install your first SDK application — restaurant-pro — in under an hour."
 sidebar_label: "Quickstart"
 ---
 
@@ -8,20 +8,20 @@ sidebar_label: "Quickstart"
 
 This guide walks the full loop with the canonical
 [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) solution:
-scaffold the package, build and sign it, publish to the registry, install
-into a tenant, and open the rendered UI in the portal.
+scaffold the **SDK app** + optional UI/workflows, build and sign, publish,
+install into a tenant, and open the rendered UI in the portal.
 
 ## Prerequisites
 
 - A Qefro organization with admin access to the portal (`app.qefro.com`).
-- The `qefro` CLI on your `PATH`.
+- The `qefro` CLI on your `PATH` (create-app / build require a `src/` tree).
 - A signing key for publishing: either `QEFRO_SIGNING_KEY_HEX` (32 bytes
   of hex) or a keys file containing `REGISTRY_PRIVATE_KEY` pointed to by
   `QEFRO_KEYS_FILE`.
 - Platform **managed storage** deployed (`storage-service` + Mongo
-  `managed_apps`) if your solution uses `storage/*` — see
-  [Managed storage](/docs/solutions/managed-storage) and the
-  [Managed apps](/docs/solutions/managed-apps) developer guide.
+  `managed_apps`) and a place to run your `/qefro` process (managed image
+  or external URL). See [Managed apps](/docs/solutions/managed-apps) and
+  [Managed storage](/docs/solutions/managed-storage).
 
 :::note
 Publishing is an admin action. Tenants can always *install* published
@@ -30,45 +30,47 @@ solutions; only publishers with registry credentials can *publish*.
 
 ## Step 1 — Scaffold the package
 
-Create the standard layout:
+Prefer the CLI (ensures `src/` + Dockerfile):
 
 ```bash
-mkdir -p restaurant-pro/{assets,workflows,prompts,ui}
+qefro create-app restaurant-pro
 cd restaurant-pro
 ```
+
+Or mirror the reference layout:
 
 ```text
 restaurant-pro/
 ├── manifest.yaml
+├── src/                 # required SDK app
+├── package.json
+├── Dockerfile
 ├── assets/
 ├── workflows/
 ├── prompts/
-├── ui/
-│   ├── theme.yaml
-│   ├── navigation.yaml
-│   ├── pages.yaml
-│   ├── layouts.yaml
-│   ├── widgets.yaml
-│   └── sources.yaml
-└── README.md
+└── ui/
+    ├── theme.yaml
+    ├── navigation.yaml
+    ├── pages.yaml
+    ├── layouts.yaml
+    ├── widgets.yaml
+    └── sources.yaml
 ```
 
-Add a `connectors/` directory only when you depend on external connectors.
-
 ## Step 2 — Write the manifest
-
-`manifest.yaml` declares identity, permissions and (optionally) connectors:
 
 ```yaml
 id: restaurant-pro
 name: Restaurant Pro
-version: 1.3.0
+version: 1.7.0
+hosting: managed
+endpoint: http://restaurant-pro:8080
 description: Reservations, takeaway, menu, kitchen ops, orders and payments for restaurants
 category: hospitality
 tags:
   - restaurant
   - reservations
-  - storage
+  - sdk
 connectors: []
 channels:
   - widget
@@ -100,20 +102,35 @@ ui:
 
 Every field is documented in [Manifest](/docs/solutions/manifest).
 
-## Step 3 — Define the UI
+## Step 3 — Implement the SDK app
 
-The minimum viable UI for `restaurant-pro`:
+Business logic lives in `src/` — tools call `ctx.storage`, never Mongo:
 
-```yaml title="ui/navigation.yaml"
-- id: dashboard
-  page: dashboard
-  title: Dashboard
-  icon: home
-- id: orders
-  page: orders
-  title: Orders
-  icon: receipt
+```js title="src/index.js (excerpt)"
+import { Qefro } from '@qefro-ai/backend';
+
+const app = new Qefro({
+  signingSecret: process.env.QEFRO_SIGNING_SECRET,
+  endpointPath: '/qefro',
+});
+
+app.tool(
+  { name: 'restaurant.createReservation', /* … */ },
+  async (ctx) => {
+    /* validate then */
+    return ctx.storage.insert('reservations', { /* … */ });
+  },
+);
+
+app.tool(
+  { name: 'restaurant.listReservations', /* … */ },
+  async (ctx) => ctx.storage.find('reservations', { limit: 50 }),
+);
+
+await app.listen({ port: Number(process.env.PORT || 8080) });
 ```
+
+## Step 4 — Define the UI (optional)
 
 ```yaml title="ui/sources.yaml"
 - id: runtime_metrics
@@ -121,7 +138,7 @@ The minimum viable UI for `restaurant-pro`:
   target: metrics
 - id: orders
   type: connector
-  target: orders.list
+  target: restaurant-pro/restaurant.listOrders
   params:
     limit: 25
 ```
@@ -143,44 +160,16 @@ The minimum viable UI for `restaurant-pro`:
     limit: 25
     columns:
       - { key: id, header: Order }
-      - { key: table, header: Table }
       - { key: status, header: Status }
       - { key: total, header: Total }
 ```
 
-```yaml title="ui/pages.yaml"
-- id: dashboard
-  title: Dashboard
-  layout: dashboard-grid
-  widgets:
-    - { widget: active_orders, span: 3 }
-    - { widget: order_table, span: 9 }
-```
+Wire navigation, pages, layouts, and theme as in
+[Themes](/docs/solutions/themes), [Sources](/docs/solutions/sources).
 
-```yaml title="ui/layouts.yaml"
-- id: dashboard-grid
-  type: grid
-  columns: 12
-```
+## Step 5 — Add a workflow (optional)
 
-```yaml title="ui/theme.yaml"
-primary: "#ea580c"
-secondary: "#1c1917"
-accent: "#f59e0b"
-background: "#fffbf5"
-surface: "#ffffff"
-text: "#1c1917"
-radius: 14px
-```
-
-Reference pages: [Themes](/docs/solutions/themes),
-[Navigation](/docs/solutions/navigation), [Pages](/docs/solutions/pages),
-[Layouts](/docs/solutions/layouts), [Widgets](/docs/solutions/widgets/metric),
-[Sources](/docs/solutions/sources).
-
-## Step 4 — Add a workflow
-
-Persist with managed storage — executed by the runtime, never by the package:
+Orchestrate only — call the **app** tool:
 
 ```yaml title="workflows/reservation.yaml (excerpt)"
 id: reservation
@@ -194,86 +183,72 @@ steps:
     variable: reservation_input
   - id: create_reservation
     type: tool
-    tool: storage/insert
+    tool: restaurant-pro/restaurant.createReservation
     params:
-      collection: reservations
-      document:
-        customer_name: "{{ variables.reservation_input.guest_name }}"
-        guest_count: "{{ variables.reservation_input.covers }}"
-        status: confirmed
+      guest_name: "{{ variables.reservation_input.guest_name }}"
+      covers: "{{ variables.reservation_input.covers }}"
+      date: "{{ variables.reservation_input.date }}"
+      time: "{{ variables.reservation_input.time }}"
   - id: done
     type: complete
 ```
 
-Wire UI lists with `storage/find` sources (gated on `storage.read`) — see
-[Sources](/docs/solutions/sources) and
+:::danger Do not use `storage/insert` in workflows
+Persist only inside the SDK via `ctx.storage`. See
 [Managed storage](/docs/solutions/managed-storage).
+:::
 
 Details: [Workflows](/docs/solutions/workflows).
 
-## Step 5 — Build and sign
+## Step 6 — Build and sign
 
 ```bash
 qefro solution build .
 ```
 
-The build:
-
-1. Assembles `manifest.yaml`, `ui/`, `workflows/` and optional `connectors/`
-   into a single canonical JSON document (sorted keys, compact separators).
-2. Computes the SHA-256 checksum of the canonical form.
-3. Signs `id|version|checksum` with Ed25519.
-4. Writes `dist/package.json`.
+The build requires `src/`, assembles the package, checksums, and signs
+`id|version|checksum`. See [Validation](/docs/solutions/validation) and
+[Packaging](/docs/solutions/packaging).
 
 ```text
-built restaurant-pro@1.3.0
+built restaurant-pro@1.7.0
   checksum:  9f2c…
   signature: 71ab…
   package:   ./dist/package.json
 ```
 
-If validation fails here, fix it before publishing — the registry applies
-the same checks. See [Validation](/docs/solutions/validation) and
-[Packaging](/docs/solutions/packaging).
-
-## Step 6 — Publish
+## Step 7 — Publish
 
 ```bash
 qefro solution publish
 ```
 
-The CLI posts the signed package to the registry's publish endpoint. The
-registry verifies the signature and stores the version. See
-[Publishing](/docs/solutions/publishing).
+See [Publishing](/docs/solutions/publishing).
 
-## Step 7 — Install into a tenant
+## Step 8 — Install into a tenant
 
 ```bash
 qefro solution install restaurant-pro
 ```
 
-or install from the portal's **Managed solution** marketplace wizard, which
-shows the requested vs granted capability set before activation. The
-installer negotiates `storage.*` capabilities, registers workflows with
-the runtime and stores the UI bundle. See
+or install from the portal marketplace wizard. The installer negotiates
+capabilities, registers workflows, stores the UI bundle, and creates an
+**installation binding** to your `/qefro` endpoint. See
 [Installation](/docs/solutions/installation).
 
-## Step 8 — Open the UI
-
-In the portal, open **Managed solution → Restaurant Pro**, or navigate
-directly:
+## Step 9 — Open the UI
 
 ```text
 /app/solutions/ui/restaurant-pro/dashboard
 ```
 
-You should see the branded dashboard with tables fed by `storage/find`
-sources (gated on `storage.read`).
+or `https://restaurant-pro.portal.qefro.com/`. Tables are fed by
+`restaurant-pro/restaurant.list*` sources (gated on `runtime.query`).
 
 ## What's next
 
 - Full package walkthrough: [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
+- Developer guide: [Managed apps](/docs/solutions/managed-apps)
 - Document plane: [Managed storage](/docs/solutions/managed-storage)
-- Understand every publish-time check: [Validation](/docs/solutions/validation)
-- Lock down the model: [Security](/docs/solutions/security)
-- When something breaks: [Troubleshooting](/docs/solutions/troubleshooting)
+- [Validation](/docs/solutions/validation) · [Security](/docs/solutions/security) ·
+  [Troubleshooting](/docs/solutions/troubleshooting)

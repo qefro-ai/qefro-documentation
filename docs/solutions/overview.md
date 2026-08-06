@@ -1,6 +1,6 @@
 ---
 title: "Solution Development"
-description: "Build complete business solutions — restaurant, hospital, CRM, hotel, school, inventory — as declarative packages on the Qefro platform."
+description: "Build installable SDK applications — required /qefro process, optional declarative UI/workflows, managed storage via ctx.storage (ADR-003)."
 sidebar_label: "Overview"
 ---
 
@@ -9,28 +9,34 @@ sidebar_label: "Overview"
 **Solution Development** is how you build complete, branded business
 applications on Qefro: a restaurant manager, a hospital front desk, a CRM, a
 hotel property system, a school administration portal, or an inventory
-back office — all shipped as a single declarative **solution package**.
+back office — all shipped as a single **installable package**.
 
-A solution is **data, never code**. You describe the manifest, UI, workflows
-and (optionally) connector requirements in YAML; the Qefro platform
-validates, signs, installs, executes and renders everything on your behalf.
-Solution-owned documents persist via [managed storage](/docs/solutions/managed-storage);
-external systems of record stay behind connectors.
+**The SDK process is the application** ([ADR-003](/docs/solutions/managed-apps)):
+domain logic lives in required `src/` (Node / Rust / Python) on signed
+`/qefro`. Optional YAML workflows, prompts, and UI only orchestrate and
+present. Solution-owned documents persist via
+[managed storage](/docs/solutions/managed-storage) **from inside the SDK**
+(`ctx.storage`). External systems of record stay behind pool connectors.
+
+:::danger Deprecated
+YAML-only packages that call `storage/*` from workflows or UI sources are
+incorrect. See [Managed apps](/docs/solutions/managed-apps).
+:::
 
 ## What you can build
 
-Any business domain that fits the Qefro model — entities, workflows, events,
-a storage- and/or connector-backed data plane, and a portal-rendered UI —
-can be packaged as a solution:
+Any business domain that fits the Qefro model — an SDK app with tools,
+optional workflows/events, managed storage and/or pool connectors, and an
+optional portal-rendered UI — can be packaged as a solution:
 
 | Domain | Typical pages | Typical data plane |
 | --- | --- | --- |
-| Restaurant management | Dashboard, reservations, tables, kitchen, orders, payments | Managed storage (+ optional POS) |
-| Hospital management | Appointments, wards, billing, duty roster | Managed storage + HMS connectors |
-| CRM | Pipeline, contacts, activities, reports | Managed storage + CRM hub |
-| Hotel management | Rooms, bookings, housekeeping, folios | Managed storage + PMS |
-| School management | Classes, attendance, fees, timetables | Managed storage + SIS |
-| Inventory management | Stock levels, transfers, purchase orders | Managed storage + WMS |
+| Restaurant management | Dashboard, reservations, tables, kitchen, orders, payments | SDK + managed storage (+ optional POS) |
+| Hospital management | Appointments, wards, billing, duty roster | SDK + storage + HMS connectors |
+| CRM | Pipeline, contacts, activities, reports | SDK + storage + CRM hub |
+| Hotel management | Rooms, bookings, housekeeping, folios | SDK + storage + PMS |
+| School management | Classes, attendance, fees, timetables | SDK + storage + SIS |
+| Inventory management | Stock levels, transfers, purchase orders | SDK + storage + WMS |
 
 Throughout this section, [`restaurant-pro`](/docs/solutions/examples/restaurant-pro)
 is the canonical reference solution. Every concept page uses it as the
@@ -38,17 +44,17 @@ running example.
 
 ## Core principles
 
-1. **Solutions ship data, never code.** Every file in a package is YAML,
-   JSON or an image. Nothing from a package ever executes.
-2. **Capability mediation is mandatory.** Every interaction between a
-   solution and the host platform passes through the capability registry;
-   calls are negotiated at install and re-checked on every invocation.
-3. **Event-driven communication is mandatory.** Solutions react to the
-   platform event bus and emit `ui.*` lifecycle events onto it — there is
-   no out-of-band signaling.
-4. **The portal renders natively.** Solution UIs are rendered inside the
-   portal by the platform's own widget registry — no iframes, no injected
-   scripts.
+1. **The SDK process is required.** Business logic runs in `src/` on
+   `/qefro`. The platform must not encode domain rules (reservation, menu, …).
+2. **UI is declarative data.** Theme, nav, pages, and widgets are YAML —
+   no package JS in the portal UI (no iframes, no injected scripts).
+3. **Capability mediation is mandatory.** Host interactions pass through
+   the capability registry; negotiated at install and re-checked on every call.
+4. **Event-driven communication is mandatory.** Solutions react to the
+   platform event bus and emit `ui.*` lifecycle events — no out-of-band
+   signaling.
+5. **Persist only via `ctx.storage`.** Workflows/UI call app tools
+   (`{solution}/{tool}`), never `storage/*` directly.
 
 ### Platform rules
 
@@ -74,27 +80,29 @@ A solution travels a fixed pipeline from your editor to a tenant's portal:
 
 ```mermaid
 flowchart TB
-    A[Solution package] --> B[Registry]
+    A[Solution package<br/>src + optional UI/workflows] --> B[Registry]
     B --> C[Installer]
     C --> D[Runtime]
-    D --> E[SdkCore / Tool Invoker]
-    E --> S[Managed storage]
-    E --> F[Connector bridge]
+    D --> E[Tool invoker]
+    E --> APP[Install /qefro SDK app]
+    APP --> S[ctx.storage → storage-service]
+    E --> F[Pool connector bridge]
     C --> G[Portal renderer]
-    S --> G
+    APP --> G
     F --> G
     D --> G
 ```
 
 | Stage | Responsibility | Details |
 | --- | --- | --- |
-| Solution package | Manifest, UI, workflows, optional connectors, assets | [Package structure](#package-structure) |
+| Solution package | Required `src/` SDK + optional UI/workflows/connectors | [Package structure](#package-structure) |
 | Registry | Signed global catalog, version lifecycle | [Publishing](/docs/solutions/publishing) |
-| Installer | Tenant-scoped activation + capability negotiation | [Installation](/docs/solutions/installation) |
+| Installer | Activation, capabilities, installation binding | [Installation](/docs/solutions/installation) |
 | Runtime | Executes workflows, serves runtime data sources | [Workflows](/docs/solutions/workflows) |
-| Managed storage | Solution documents in Mongo via `storage/*` | [Managed storage](/docs/solutions/managed-storage) |
-| Connector bridge | Routes capability-gated calls to external connectors | [Connectors](/docs/solutions/connectors) |
-| Portal renderer | Renders pages, widgets and themes natively | [Pages](/docs/solutions/pages) |
+| SDK app | Domain tools on `/qefro` | [Managed apps](/docs/solutions/managed-apps) |
+| Managed storage | Documents via `ctx.storage` → Mongo | [Managed storage](/docs/solutions/managed-storage) |
+| Connector bridge | External pool connectors | [Connectors](/docs/solutions/connectors) |
+| Portal renderer | Declarative pages/widgets/themes | [Pages](/docs/solutions/pages) |
 
 The full architecture is covered in [Architecture](/docs/solutions/architecture).
 
@@ -104,18 +112,21 @@ Every solution is a directory with this layout:
 
 ```text
 restaurant-pro/
-├── manifest.yaml        # identity, permissions, settings (connectors optional)
+├── manifest.yaml        # identity, hosting, endpoint, permissions, settings
+├── src/                 # required — SDK application (/qefro)
+├── package.json         # and/or Cargo.toml / pyproject.toml
+├── Dockerfile           # required for hosting: managed
 ├── assets/              # images only (png/jpg/jpeg/svg/webp)
-├── workflows/           # declarative workflow definitions
-├── connectors/          # optional — only when depending on external connectors
-├── ui/
-│   ├── theme.yaml       # brand tokens (scoped to the solution container)
-│   ├── navigation.yaml  # sidebar entries + icons
-│   ├── pages.yaml       # page definitions
-│   ├── layouts.yaml     # grid layout presets
-│   ├── widgets.yaml     # widget definitions
-│   └── sources.yaml     # capability-gated data sources (runtime / storage / connector)
-└── README.md            # publisher-facing documentation
+├── workflows/           # optional — tool steps → {solution}/{tool}
+├── connectors/          # optional — external pool connector contracts
+├── ui/                  # optional declarative staff UI
+│   ├── theme.yaml
+│   ├── navigation.yaml
+│   ├── pages.yaml
+│   ├── layouts.yaml
+│   ├── widgets.yaml
+│   └── sources.yaml     # runtime | {solution}/{tool} | pool connector
+└── README.md
 ```
 
 YAML sources are assembled into a canonical JSON package, checksummed and
@@ -160,6 +171,6 @@ storage and/or connectors).
 
 - [Runtime](/docs/developer/concepts/runtime) — the execution engine that runs installed workflows.
 - [Events](/docs/developer/concepts/events) — the platform event bus that solutions ride.
-- [Managed storage](/docs/solutions/managed-storage) — solution document plane (`storage/*`).
+- [Managed storage](/docs/solutions/managed-storage) — document plane via `ctx.storage` (SDK-only).
 - [Connectors](/docs/developer/concepts/connectors) — stateless integration containers behind the bridge.
 - [Business Flows](/docs/developer/concepts/flows) — the flow model workflows compile to.

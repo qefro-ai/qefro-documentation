@@ -1,52 +1,61 @@
 ---
 title: "Managed storage"
-description: "Platform document storage for managed solutions — sdk.storage tools, capabilities, collection naming, and isolation (ADR-002)."
+description: "Platform document storage for installable apps — ctx.storage / sdk.storage from the SDK process only (ADR-002), isolation, and collection naming."
 sidebar_label: "Managed storage"
 ---
 
 # Managed storage
 
-Managed solutions need durable application state (reservations, orders,
+Installable apps need durable application state (reservations, orders,
 drafts, …) without direct database access. **Managed storage** is the
-platform document plane: workflows and UI sources call `storage/*` tools;
-the platform writes to MongoDB on your behalf.
+platform document plane ([ADR-002](https://github.com/qefro-ai/qefro-plugin-platform/blob/main/docs/adr-002-managed-storage.md)).
 
-Solutions never receive a Mongo connection string and never call storage
-HTTP APIs. Every op is scoped by tenant, workspace, and installation.
+**Who may call it:** only the install’s **SDK application** via
+`ctx.storage` / `sdk.storage.*` (injected on `/qefro` `tool.invoke`).
+
+**Who must not:** workflows, UI sources, or any YAML that targets
+`storage/insert`, `storage/find`, etc. That path is **deprecated** and
+forbidden under [ADR-003](/docs/solutions/managed-apps) — business logic
+belongs in the app process.
+
+Solutions never receive a Mongo connection string and never invent
+storage-service URLs. Every op is scoped by tenant, workspace, and
+installation.
 
 ## Mental model
 
 ```text
 Widget / WhatsApp / staff form
-  → SdkCore → Capability Layer → Tool Invoker (PlatformStorage)
+  → runtime → tool invoker → installation /qefro
+  → app tool (e.g. restaurant.createReservation)
+  → ctx.storage.insert|find|…
   → storage-service  /v1/internal/storage/*
   → MongoDB database `managed_apps`
 ```
 
 | Layer | Role |
 | --- | --- |
-| Solution package | Declares `storage.*` permissions/capabilities; uses logical collection names |
-| SdkCore / Tool Invoker | Routes `storage/*` to the platform backend (not the connector pool) |
-| storage-service | Enforces isolation, injects metadata, soft-deletes, audits |
-| MongoDB `managed_apps` | Single shared DB; physical collections `{solution_slug}__{logical}` |
+| SDK app (`src/`) | Domain tools; only caller of `ctx.storage` |
+| Workflows / UI | Call `{solution}/{tool}` — never `storage/*` |
+| storage-service | Isolation, metadata, soft-delete, audit |
+| MongoDB `managed_apps` | Physical collections `{solution_slug}__{logical}` |
 
-Control-plane data (packages, installs, secrets) stays in Postgres. App
-documents for solutions live in Mongo via storage-service.
+Control-plane data (packages, installs, secrets) stays in Postgres.
 
 ## When to use storage vs connectors
 
 | Need | Use |
 | --- | --- |
-| Solution-owned app state (reservations, menus, drafts) | **Managed storage** (`storage/*`) |
-| External system of record (Shopify, Stripe, PMS, POS) | **Connector** (`connectors:` + bridge) |
+| Solution-owned app state | **Managed storage** from inside the SDK |
+| External system of record (Shopify, Stripe, PMS, POS) | **Pool connector** (`connectors:` + bridge) |
 | Tenant runtime metrics / executions | **Runtime** sources (`type: runtime`) |
 
-`restaurant-pro@1.3.0` is the reference: `connectors: []` and all app
-state goes through storage.
+`restaurant-pro@1.7.0` is the reference: `connectors: []`, self-hosted
+`/qefro`, all app state through `ctx.storage`.
 
 ## Capabilities and permissions
 
-Request both planes in the manifest:
+Request both planes in the manifest so the **SDK** may use storage:
 
 ```yaml title="manifest.yaml (excerpt)"
 permissions:
@@ -61,33 +70,33 @@ capabilities:
   - storage.update
   - storage.delete
   - workflow.trigger
-  # … theme.get, user.get, tenant.get, runtime.query
+  - runtime.query
+  # … theme.get, user.get, tenant.get
 ```
 
-| Capability | Typical use |
+| Capability | Who uses it |
 | --- | --- |
-| `storage.read` | UI sources (`storage/find`, `storage/get`); workflow reads |
-| `storage.write` | `storage/insert` |
-| `storage.update` | `storage/update` |
-| `storage.delete` | Soft-delete via `storage/delete` |
+| `storage.*` | SDK handlers via `ctx.storage` (platform enforces on storage-service) |
+| `runtime.query` | UI sources targeting this install’s own tools (`{solution}/…`) |
+| `connector.invoke` | UI/workflow calls to **declared pool** connectors only |
 
-Portal UI sources that target `storage/*` are gated on **`storage.read`**
-(not `connector.invoke`).
+UI sources must **not** target `storage/*`. Prefer app list tools gated on
+`runtime.query`. See [Sources](/docs/solutions/sources).
 
 ## Collection naming
 
 | Form | Example |
 | --- | --- |
-| Logical (what you write in YAML) | `reservations` |
+| Logical (what you pass to `ctx.storage`) | `reservations` |
 | Qualified | `restaurant-pro.reservations` |
 | Physical (Mongo) | `restaurant_pro__reservations` |
 
-Use the **logical** name in tools and sources. The platform derives the
-physical name (`kebab-case` → `snake_case`, then `__`).
+Use the **logical** name in the SDK. The platform derives the physical
+name (`kebab-case` → `snake_case`, then `__`).
 
-There is **one** shared Mongo database (`managed_apps`) — no per-tenant
-or per-solution databases. Isolation is enforced by injected filters on
-every op.
+There is **one** shared Mongo database (`managed_apps`). Isolation is
+enforced by injected filters on every op (`tenant_id`, `workspace_id`,
+`installation_id`, `solution_id`).
 
 ## Reserved document fields
 
@@ -98,48 +107,49 @@ are stripped or ignored:
 `schema_version`, `created_at`, `updated_at`, `created_by`, `updated_by`,
 `deleted_at`, `deleted_by`.
 
-`delete` is **soft-delete**. Hard purge and restore are admin-only
-operations on storage-service.
+`delete` is **soft-delete**. Hard purge and restore are admin-only.
 
-## Workflow tools
+## SDK API (canonical)
 
-```yaml title="workflows/reservation.yaml (excerpt)"
-- id: create_reservation
-  type: tool
-  tool: storage/insert
-  params:
-    collection: reservations
-    document:
-      customer_name: "{{ variables.reservation_input.guest_name }}"
-      phone_number: "{{ variables.reservation_input.phone }}"
-      guest_count: "{{ variables.reservation_input.covers }}"
-      reservation_time: "{{ variables.reservation_input.date }} {{ variables.reservation_input.time }}"
-      status: confirmed
+Inside a tool handler:
+
+```js
+await ctx.storage.insert('reservations', { customer_name, guest_count, status: 'confirmed' });
+await ctx.storage.find('reservations', { filter: { status: 'confirmed' }, limit: 50 });
+await ctx.storage.get('reservations', id);
+await ctx.storage.update('reservations', id, { status: 'cancelled' });
+await ctx.storage.delete('reservations', id);
 ```
 
-| Tool | Capability | Body highlights |
+| Op | Capability | Notes |
 | --- | --- | --- |
-| `storage/insert` | `storage.write` | `collection`, `document` |
-| `storage/find` | `storage.read` | `collection`, optional `filter`, `limit`, `sort` |
-| `storage/get` | `storage.read` | `collection`, `id` |
-| `storage/update` | `storage.update` | `collection`, `id`, `patch` |
-| `storage/delete` | `storage.delete` | `collection`, `id` (soft) |
+| `insert` | `storage.write` | Optional readable `code` allocation via platform helpers |
+| `find` | `storage.read` | Optional `filter`, `limit`, `sort` |
+| `get` | `storage.read` | By id |
+| `update` | `storage.update` | Patch by id |
+| `delete` | `storage.delete` | Soft |
 
-## UI sources
+Internal HTTP shapes used by the platform (not by packages) are documented
+in the plugin platform [storage API](https://github.com/qefro-ai/qefro-plugin-platform/blob/main/docs/storage-api.md).
 
-Sources still use `type: connector` in YAML for historical reasons, but
-the **target** is a platform tool and the gate is `storage.read`:
+## Deprecated: direct `storage/*` from YAML
 
-```yaml title="ui/sources.yaml (excerpt)"
+```yaml
+# FORBIDDEN — do not ship this
+- type: tool
+  tool: storage/insert
+  params: { collection: reservations, document: { … } }
+```
+
+```yaml
+# FORBIDDEN — do not ship this
 - id: reservations
   type: connector
   target: storage/find
-  params:
-    collection: reservations
-    limit: 50
 ```
 
-See [Sources](/docs/solutions/sources).
+Replace with app tools, e.g. `restaurant-pro/restaurant.createReservation`
+and `restaurant-pro/restaurant.listReservations`.
 
 ## Reserved SDK namespaces
 
@@ -149,7 +159,7 @@ named `storage`, `vector`, `object`, `cache`, `queue`, `secret`, or
 
 | Namespace | Status |
 | --- | --- |
-| `storage.*` | Implemented (this page) |
+| `storage.*` | Implemented (this page) — SDK-only |
 | `vector.*`, `object.*`, `cache.*`, `queue.*`, `secret.*`, `state.*` | Reserved — fail closed if invoked |
 
 ## What is deferred
@@ -160,8 +170,9 @@ migration of legacy connector mock data.
 
 ## Related topics
 
-- [restaurant-pro example](/docs/solutions/examples/restaurant-pro) — full package on storage
-- [Sources](/docs/solutions/sources) — `storage/find` sources
-- [Capabilities](/docs/solutions/capabilities) — `storage.*` grants
+- [Managed apps](/docs/solutions/managed-apps) — ADR-003 packaging
+- [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
+- [Sources](/docs/solutions/sources) — UI → `{solution}/{tool}`
+- [Capabilities](/docs/solutions/capabilities)
 - [Connectors](/docs/solutions/connectors) — external systems (orthogonal)
-- [Architecture](/docs/solutions/architecture) — where storage sits in the pipeline
+- [Architecture](/docs/solutions/architecture)

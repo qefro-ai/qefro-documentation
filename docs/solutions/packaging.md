@@ -10,6 +10,15 @@ Packaging turns your solution directory into a single immutable artifact:
 a canonical JSON document with a SHA-256 checksum and an Ed25519
 signature. The registry accepts nothing else.
 
+:::info ADR-003
+Installable apps must include a **`src/`** SDK tree (and usually a
+`Dockerfile` for `hosting: managed`). The signed registry package still
+carries declarative `manifest` + `components` (workflows, UI, …); the
+runnable `/qefro` process is the container (or external endpoint) bound
+at install time. `qefro solution build` / `create-app` reject packages
+without `src/`. See [Managed apps](/docs/solutions/managed-apps).
+:::
+
 ## Build command
 
 ```bash

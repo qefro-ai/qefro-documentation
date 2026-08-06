@@ -1,36 +1,38 @@
 ---
 title: "Example: restaurant-pro"
-description: "The restaurant-pro reference managed app (1.5.0) — storage collections, brand settings, menu/floor/CRM staff UI, and publish/install."
+description: "The restaurant-pro reference SDK app (1.7.0) — /qefro tools, managed storage via ctx.storage, brand settings, and staff UI."
 sidebar_label: "restaurant-pro"
 ---
 
 # Example: restaurant-pro
 
-`restaurant-pro` is the canonical **managed app**: reservations, takeaway,
-menu, kitchen, floor plan, orders, payments, and a light CRM (customers +
-offers). From **1.3.0** application state lives on platform
-[managed storage](/docs/solutions/managed-storage). From **1.5.0** the
-package also ships menu/table CRUD, customers/VIP offers, and per-install
-[brand settings](/docs/solutions/managed-apps#brand-customization-per-install).
+`restaurant-pro` is the canonical **installable SDK application**
+([ADR-003](/docs/solutions/managed-apps)): reservations, takeaway, menu,
+kitchen, floor plan, orders, payments, and a light CRM. From **1.7.0**
+the package ships a required `src/` process; workflows and UI call
+`restaurant-pro/restaurant.*` tools only.
 
 ```text
 widget / WhatsApp / staff UI
-  → runtime → SdkCore → storage/* → storage-service → MongoDB
+  → runtime → tool invoker → restaurant-pro /qefro
+  → restaurant.* → ctx.storage.* → storage-service → MongoDB
 ```
 
-`connectors: []` — no POS connector dependency.
+`connectors: []` — no POS pool dependency. The app **is** the connector
+for its own domain (`hosting: managed`, `endpoint: http://restaurant-pro:8080`).
 
 ## Package layout
 
 ```text
 restaurant-pro/
 ├── manifest.yaml
+├── src/                 # required SDK app (@qefro-ai/backend)
+├── package.json
+├── Dockerfile
 ├── assets/
-│   ├── logo.svg
-│   └── icon.svg
-├── workflows/          # conversation + staff flows (storage tools)
+├── workflows/           # optional — tool: restaurant-pro/restaurant.*
 ├── prompts/
-└── ui/
+└── ui/                  # optional — sources → restaurant-pro/restaurant.list*
     ├── theme.yaml
     ├── navigation.yaml
     ├── pages.yaml
@@ -39,7 +41,7 @@ restaurant-pro/
     └── sources.yaml
 ```
 
-## Collections
+## Collections (via `ctx.storage`)
 
 | Logical | Purpose |
 | --- | --- |
@@ -53,13 +55,13 @@ restaurant-pro/
 
 Physical Mongo collections: `restaurant_pro__{logical}`.
 
-## Staff UI (1.5.0)
+## Staff UI
 
 | Page | What you can do |
 | --- | --- |
-| Menu | Add / update dishes (forms → `staff-menu-*`) |
-| Tables | Floor plan canvas + add/update tables (`x`/`y` 0–100) |
-| Customers | List all / VIP filter, upsert customer, queue offer |
+| Menu | Add / update dishes (forms → staff workflows → app tools) |
+| Tables | Floor plan + add/update tables |
+| Customers | List / VIP filter, upsert, queue offer |
 | Orders | Readable dates, order number, totals |
 
 Portal: `/app/solutions/ui/restaurant-pro/{page}`  
@@ -84,66 +86,71 @@ Configure under **Installed solutions → Configure**.
 ```yaml title="workflows/reservation.yaml (excerpt)"
 - id: create_reservation
   type: tool
-  tool: storage/insert
+  tool: restaurant-pro/restaurant.createReservation
   params:
-    collection: reservations
-    document:
-      customer_name: "{{ variables.reservation_input.guest_name }}"
-      phone_number: "{{ variables.reservation_input.phone }}"
-      guest_count: "{{ variables.reservation_input.covers }}"
-      reservation_time: "{{ variables.reservation_input.date }} {{ variables.reservation_input.time }}"
-      status: confirmed
-- id: upsert_customer
-  type: tool
-  tool: storage/insert
-  params:
-    collection: customers
-    document:
-      name: "{{ variables.reservation_input.guest_name }}"
-      phone: "{{ variables.reservation_input.phone }}"
-      vip: false
-      visit_count: 1
+    guest_name: "{{ variables.reservation_input.guest_name }}"
+    phone: "{{ variables.reservation_input.phone }}"
+    email: "{{ variables.reservation_input.email }}"
+    covers: "{{ variables.reservation_input.covers }}"
+    date: "{{ variables.reservation_input.date }}"
+    time: "{{ variables.reservation_input.time }}"
+    channel: "{{ variables.channel }}"
 ```
 
-Staff flows (`staff-reservation-create`, `staff-menu-create`, …) use the
-same storage tools so chat and the portal share one document plane.
+Staff flows (`staff-reservation-create`, `staff-menu-create`, …) call the
+same app tools so chat and the portal share one document plane.
+
+:::danger Do not use
+`tool: storage/insert` (or any `storage/*`) from workflows — deprecated.
+:::
 
 ## ui/sources.yaml (excerpt)
 
 ```yaml title="ui/sources.yaml"
 - id: reservations
   type: connector
-  target: storage/find
+  target: restaurant-pro/restaurant.listReservations
   params:
-    collection: reservations
     limit: 50
+    sort:
+      created_at: -1
 - id: customers_vip
   type: connector
-  target: storage/find
+  target: restaurant-pro/restaurant.listCustomers
   params:
-    collection: customers
     filter:
       vip: true
     limit: 100
 ```
 
-UI fetches are gated on **`storage.read`**.
+Own-app sources are gated on **`runtime.query`**. Do not target
+`storage/find`.
+
+## Local SDK app
+
+```bash
+cd restaurant-pro
+npm install
+export QEFRO_SIGNING_SECRET=dev-secret
+export QEFRO_STORAGE_URL=http://localhost:8108   # optional if runtime injects platform.storage
+npm run dev
+```
 
 ## Build, publish, install
 
 ```bash
-cd restaurant-pro
-qefro solution build .
+qefro solution build .    # requires src/
 qefro solution publish
 qefro solution install restaurant-pro
 # upgrade: POST /installations/restaurant-pro/upgrade
-#   { "target_version": "1.5.0" }
+#   { "target_version": "1.7.0" }  (+ workspace_id)
 ```
 
 ## Related topics
 
 - [Managed apps](/docs/solutions/managed-apps) — developer guide
 - [Managed storage](/docs/solutions/managed-storage)
-- [Themes](/docs/solutions/themes) — package + install brand overlay
+- [Sources](/docs/solutions/sources)
+- [Themes](/docs/solutions/themes)
 - [Workflows](/docs/solutions/workflows)
 - [Quickstart](/docs/solutions/quickstart)

@@ -1,68 +1,89 @@
 ---
 title: "Managed apps"
-description: "Developer guide for building managed solutions — storage-backed apps with declarative UI, brand settings, staff forms, and subdomain hosting."
+description: "Developer guide for installable SDK applications — required /qefro process, optional declarative UI/workflows, managed storage via ctx.storage, and brand settings (ADR-003)."
 sidebar_label: "Managed apps"
 ---
 
 # Managed apps
 
-A **managed app** (managed solution) is a complete business application
-shipped as a declarative package: YAML workflows, prompts, UI definitions,
-and optional settings — **no application code**. Qefro validates, signs,
-installs, executes workflows, persists documents, and renders the staff UI
-inside the portal (and on a solution subdomain).
+A **managed app** is an installable business application whose **SDK
+process is the application** ([ADR-003](/docs/solutions/architecture#sdk-application-adr-003)).
+Business logic lives in `src/` (Node.js, Rust, or Python), exposed on a
+signed `/qefro` endpoint. Optional YAML workflows, prompts, and UI only
+**orchestrate and present** — they never own domain rules and never call
+platform `storage/*` directly.
 
 Use this page as the developer entry point. Detailed references live under
 [Solution Development](/docs/solutions/overview).
 
-## Managed app vs connector-backed solution
+:::danger Deprecated (pre–ADR-003)
+Packages that ship **only** YAML + UI and call `storage/insert` /
+`storage/find` from workflows or UI sources are **incorrect**. Persist only
+from inside the SDK via `ctx.storage` / `sdk.storage.*`. See
+[Managed storage](/docs/solutions/managed-storage).
+:::
 
-| | Managed app | Connector-backed |
+## Managed app vs pool connector
+
+| | Managed / external app | Pool connector |
 | --- | --- | --- |
-| App state | [Managed storage](/docs/solutions/managed-storage) (`storage/*`) | External SoR via connectors |
-| `connectors:` | Often `[]` | Declared + pool versions |
-| Isolation | Tenant + workspace + installation | Plus external account scoping |
-| Reference | [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | POS / Shopify / PMS examples |
+| Role | The product (domain tools + optional UI) | Shared external SoR adapter (Shopify, POS, …) |
+| Process | Install’s own `/qefro` (`hosting: managed` or `external`) | Shared pool instance |
+| App state | [Managed storage](/docs/solutions/managed-storage) via `ctx.storage` | External API |
+| `connectors:` | Often `[]` (self is not a pool dep) | Declared by solutions that need them |
+| Reference | [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | Commerce / POS connectors |
 
-You can mix both: store solution-owned drafts in storage and sync to an
-external system through a connector when needed.
+You can mix both: the app owns solution documents in storage and calls a
+pool connector when syncing to an external system of record.
 
 ## Architecture
 
 ```text
 Channels (widget / WhatsApp) ─┐
-Staff UI (portal / subdomain) ─┼─→ runtime / SdkCore
+Staff UI (portal / subdomain) ─┼─→ runtime → tool invoker
 Install settings (brand, …) ───┘         │
                                          ▼
-                              storage/*  → storage-service → MongoDB `managed_apps`
-                              workflow.trigger → runtime-service
+                              installation binding → app /qefro
+                                         │
+                                         ▼
+                              app tools (restaurant.*)
+                                         │
+                                         ▼
+                              ctx.storage.* → storage-service → MongoDB
 ```
 
-- **Package** — data only (manifest, workflows, prompts, `ui/`, assets).
+- **`src/`** — required SDK application (business logic + storage access).
+- **Workflows / UI** — optional; call **app tools** (`{solution}/{tool}`).
 - **Install** — per workspace; settings and UI brand overlay are per install.
-- **Runtime** — executes flows; never embeds package JS.
-- **Portal** — renders the UI bundle with a closed widget catalogue.
+- **Portal** — renders the declarative UI bundle (no package JS in the UI).
 
 ## Package checklist
 
 ```text
 my-app/
-├── manifest.yaml          # id, version, connectors:[], flows, settings, ui
-├── workflows/*.yaml       # conversation + staff (webhook) flows
-├── prompts/*.yaml         # assistants (optional)
-├── assets/                # logo.svg, icon.svg
-└── ui/
-    ├── theme.yaml         # package default brand tokens
+├── manifest.yaml          # id, version, hosting, endpoint, permissions, ui
+├── src/                   # required — SDK app (@qefro-ai/backend, …)
+├── package.json           # and/or Cargo.toml / pyproject.toml
+├── Dockerfile             # required for hosting: managed
+├── workflows/*.yaml       # optional — tool steps → my-app/…
+├── prompts/*.yaml         # optional
+├── assets/                # optional
+└── ui/                    # optional staff UI
+    ├── theme.yaml
     ├── navigation.yaml
     ├── pages.yaml
     ├── layouts.yaml
-    ├── widgets.yaml       # table | form | map | …
-    └── sources.yaml       # storage/find | runtime
+    ├── widgets.yaml
+    └── sources.yaml       # targets: my-app/myApp.listThings | runtime
 ```
 
-Minimum capabilities for a storage-backed staff app:
+Minimum surface for a storage-backed app:
 
 ```yaml title="manifest.yaml (excerpt)"
+id: my-app
+version: 1.0.0
+hosting: managed
+endpoint: http://my-app:8080
 connectors: []
 permissions:
   - workflow.execute
@@ -86,47 +107,68 @@ ui:
   icon: assets/icon.svg
 ```
 
+`storage.*` permissions authorize the **SDK process** to use managed
+storage. UI list sources that call your own app tools are gated on
+**`runtime.query`** (not `connector.invoke`, and not by calling
+`storage/find` from the UI).
+
 See [Manifest](/docs/solutions/manifest), [Packaging](/docs/solutions/packaging),
 and [Publishing](/docs/solutions/publishing).
 
-## Managed storage
+## SDK application (`src/`)
 
-Logical collection names in YAML become physical Mongo collections
-`{solution_slug}__{logical}` (for example `restaurant_pro__reservations`).
+```js title="src/index.js (excerpt)"
+import { Qefro } from '@qefro-ai/backend';
 
-**Workflow insert**
+const app = new Qefro({
+  signingSecret: process.env.QEFRO_SIGNING_SECRET,
+  endpointPath: '/qefro',
+});
+
+app.tool(
+  { name: 'myApp.createThing', description: '…', auth: 'none', input_schema: { … } },
+  async (ctx) => {
+    // Validate, allocate codes, enforce domain rules — then persist.
+    return ctx.storage.insert('things', { name: ctx.parameters.name, status: 'open' });
+  },
+);
+
+app.tool(
+  { name: 'myApp.listThings', description: '…', auth: 'none', input_schema: { … } },
+  async (ctx) => ctx.storage.find('things', { limit: ctx.parameters.limit ?? 50 }),
+);
+
+await app.listen({ port: Number(process.env.PORT || 8080) });
+```
+
+Handlers call `ctx.storage.insert|find|get|update|delete` — never Mongo, never
+ad-hoc storage-service URLs. The runtime injects `platform.storage` on
+`tool.invoke` (or you set `QEFRO_STORAGE_URL` for local dev).
+
+## Workflows and UI (orchestration only)
+
+**Workflow tool step** — call the app, not `storage/*`:
 
 ```yaml
 - id: create
   type: tool
-  tool: storage/insert
+  tool: my-app/myApp.createThing
   params:
-    collection: reservations
-    document:
-      customer_name: "{{ variables.guest_name }}"
-      status: confirmed
+    name: "{{ variables.name }}"
 ```
 
-**UI source**
+**UI source** — list via an app tool (`{solution}/{tool}`):
 
 ```yaml title="ui/sources.yaml"
-- id: reservations
+- id: things
   type: connector
-  target: storage/find
+  target: my-app/myApp.listThings
   params:
-    collection: reservations
     limit: 50
 ```
 
-(`type: connector` + `storage/*` target is the declared source shape; the
-host routes these through managed storage, gated on `storage.read`.)
-
-Documents returned to the UI have:
-
-- `_id` / `id` as plain strings (not `{$oid:…}`)
-- dates as ISO-8601 strings (not `{$date:…}`)
-
-Full reference: [Managed storage](/docs/solutions/managed-storage).
+(`type: connector` is the YAML shape; own-app targets are routed to the
+install’s `/qefro` and gated on `runtime.query`.)
 
 ## Declarative UI patterns
 
@@ -136,12 +178,12 @@ Declare pages in `ui/pages.yaml`, wire them in `ui/navigation.yaml`, and
 place widgets with spans. See [Pages](/docs/solutions/pages),
 [Navigation](/docs/solutions/navigation), [Layouts](/docs/solutions/layouts).
 
-### Staff CRUD (form → workflow)
+### Staff CRUD (form → workflow → app tool)
 
 1. Add a `form` widget with `action.trigger: staff-*-create`.
-2. Add a webhook workflow that calls `storage/insert` or `storage/update`.
-3. List data with a `table` widget bound to a `storage/find` source.
-4. Clicking a table row stores selection for `prefill_from_selection` forms.
+2. Add a webhook workflow whose `tool` step calls `my-app/myApp.createThing`.
+3. List data with a `table` bound to a `my-app/myApp.listThings` source.
+4. Row click stores selection for `prefill_from_selection` forms.
 
 ```yaml title="ui/widgets.yaml (excerpt)"
 - id: menu_create_form
@@ -156,45 +198,13 @@ place widgets with spans. See [Pages](/docs/solutions/pages),
       trigger: staff-menu-create
 ```
 
-Form field types: `text`, `number`, `date`, `time`, `select`. Selects with
-options `true` / `false` are submitted as booleans.
-
-Table columns may use a fallback key:
-
-```yaml
-- { key: order_number, header: Order, fallback: id }
-```
-
 Widget catalogue: [Forms](/docs/solutions/widgets/form),
 [Tables](/docs/solutions/widgets/table), and siblings under Widgets.
 
 ### Floor plan (map widget)
 
-Use `type: map` with `kind: floor` and `x` / `y` (0–100) on table documents:
-
-```yaml
-- id: tables_map
-  type: map
-  title: Floor plan
-  source: tables
-  options:
-    kind: floor
-    label_field: name
-    x_field: x
-    y_field: y
-```
-
-### CRM lite
-
-Pattern used by `restaurant-pro`:
-
-| Piece | Approach |
-| --- | --- |
-| Collection | `customers` (`name`, `phone`, `email`, `vip`, `visit_count`, …) |
-| List / VIP | Two sources — all customers vs `filter: { vip: true }` |
-| Upsert | Staff form → `staff-customer-upsert` (find by phone → update or insert) |
-| Offers | Form → `staff-offer-notify` → insert `offers` + emit `offer.queued` |
-| Auto-capture | Reservation / takeaway flows also `storage/insert` into `customers` |
+Use `type: map` with `kind: floor` and `x` / `y` (0–100) on table documents
+loaded from your app’s list tool.
 
 ## Brand customization (per install)
 
@@ -211,59 +221,57 @@ Package `ui/theme.yaml` sets **defaults**. Tenants override brand via
 | `accent_color` | color | `--sui-accent` |
 | `background_color` | color | `--sui-bg` |
 
-Declare them under `settings:` in the manifest (`type: string | number |
-boolean | color | url`). At UI bundle load, the platform overlays non-empty
-values onto the theme / name / logo.
-
-Also request `theme.get` and ship `ui/theme.yaml` — see
-[Themes](/docs/solutions/themes).
+Declare them under `settings:` in the manifest. At UI bundle load, the
+platform overlays non-empty values onto the theme / name / logo.
+See [Themes](/docs/solutions/themes).
 
 ### Workspace scoping
 
-Installs and settings are **workspace-scoped**. The portal subdomain and
-UI host pass `workspace_id` when loading the UI bundle so brand and data
-match the workspace install (not a legacy tenant-level row).
+Installs and settings are **workspace-scoped**. Portal UI data queries must
+send `workspace_id` so storage isolation matches the install (not the org id).
 
 ## Hosting surfaces
 
 | Surface | URL shape |
 | --- | --- |
 | In-portal UI | `https://app.qefro.com/app/solutions/ui/{name}/…` |
-| Solution subdomain | `https://{slug}.portal.qefro.com/…` (e.g. `restaurant-pro`) |
+| Solution subdomain | `https://{slug}.portal.qefro.com/…` |
 
-Same JWT session as the portal. Same engines (theme, nav, widgets, data).
+| Mode | Manifest | Endpoint |
+| --- | --- | --- |
+| Managed | `hosting: managed` | Platform runs your image; e.g. `http://restaurant-pro:8080` |
+| External | `hosting: external` | Your HTTPS `/qefro` URL |
 
 ## Build, publish, install
 
 ```bash
-qefro solution build .
+qefro solution build .    # requires src/
 qefro solution publish
 qefro solution install my-app
-# upgrade existing workspace install:
-# POST /api/v1/installations/my-app/upgrade
-#   { "target_version": "1.5.0" }  (+ workspace_id as needed)
+# upgrade: POST /api/v1/installations/my-app/upgrade
+#   { "target_version": "1.7.0" }  (+ workspace_id as needed)
 ```
 
-Platform prerequisites for storage-backed apps: `storage-service` + Mongo
-database `managed_apps`. See [Managed storage](/docs/solutions/managed-storage)
-and [Deployment](/docs/solutions/installation).
+Platform prerequisites: `storage-service` + Mongo `managed_apps`, plus a
+live installation binding to your `/qefro` process. See
+[Managed storage](/docs/solutions/managed-storage) and
+[Installation](/docs/solutions/installation).
 
 ## Reference: restaurant-pro
 
-[`restaurant-pro`](/docs/solutions/examples/restaurant-pro) (**1.5.0+**)
-demonstrates the full managed-app stack:
+[`restaurant-pro`](/docs/solutions/examples/restaurant-pro) (**1.7.0+**)
+is the canonical ADR-003 package:
 
-- Managed storage collections (reservations, menu, tables, orders,
-  customers, offers, …)
-- Staff forms for menu, floor tables, customers, offers
-- Brand settings (name, logo URL, colors, background image)
-- Widget + WhatsApp conversation flows with storage persistence
+- Required `src/` SDK app (`restaurant.*` tools → `ctx.storage`)
+- Optional workflows/UI that call `restaurant-pro/restaurant.*` only
+- Brand settings, staff forms, conversation chips
 
 ## Related docs
 
 - [Overview](/docs/solutions/overview) — principles and platform rules
 - [Quickstart](/docs/solutions/quickstart) — scaffold to first install
 - [Managed storage](/docs/solutions/managed-storage) — ADR-002 document plane
-- [Workflows](/docs/solutions/workflows) — ask / tool / notify / branch
+- [Sources](/docs/solutions/sources) — UI → app tool targets
+- [Workflows](/docs/solutions/workflows) — ask / tool / notify
 - [Capabilities](/docs/solutions/capabilities) — negotiation and grants
-- [Troubleshooting](/docs/solutions/troubleshooting) — common publish/runtime failures
+- [Troubleshooting](/docs/solutions/troubleshooting)

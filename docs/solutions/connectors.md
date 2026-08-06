@@ -12,8 +12,15 @@ never talks to them directly: it declares dependencies, and the platform
 resolves, provisions and mediates every call.
 
 For **solution-owned application documents** (reservations, menus, drafts),
-prefer [managed storage](/docs/solutions/managed-storage) (`storage/*`) —
-no connector required. `restaurant-pro@1.3.0` ships with `connectors: []`.
+implement tools in your install’s SDK and persist with
+[`ctx.storage`](/docs/solutions/managed-storage) — no pool connector
+required. `restaurant-pro@1.7.0` ships with `connectors: []` and
+`hosting: managed`.
+
+:::danger Deprecated
+Do not call platform `storage/*` from workflows or UI sources. That model
+is superseded by ADR-003.
+:::
 
 ## Reserved names
 
@@ -58,8 +65,8 @@ list at publish time: referencing an operation the connector does not
 expose is rejected. This keeps `sources.yaml` and `workflows/` honest
 before a tenant ever installs the solution.
 
-Omit `connectors/` entirely when the solution uses only managed storage
-and runtime sources.
+Omit `connectors/` entirely when the solution uses only its own SDK tools
+(and runtime sources) — no external pool dependencies.
 
 ## Resolution and provisioning
 
@@ -120,15 +127,16 @@ See [Secrets](/docs/security/secrets).
 
 ## Restaurant Pro
 
-From **1.3.0**, `restaurant-pro` declares `connectors: []`. Application
-state uses [managed storage](/docs/solutions/managed-storage). Older
-1.2.x packages that depended on `restaurant-pos` are superseded — do not
-mix POS connector ops with the 1.3.0 UI sources.
+From **1.7.0**, `restaurant-pro` declares `connectors: []` and ships a
+required `/qefro` SDK app. Application state uses
+[managed storage](/docs/solutions/managed-storage) via `ctx.storage`.
+UI/workflows call `restaurant-pro/restaurant.*` tools. Older packages that
+depended on `restaurant-pos` or called `storage/*` from YAML are superseded.
 
 ## Guidelines
 
-- Prefer managed storage for solution-owned documents; add connectors only
-  for external systems of record.
+- Prefer an SDK app + managed storage for solution-owned documents; add
+  pool connectors only for external systems of record.
 - Prefer one well-chosen connector over several overlapping ones; every
   connector adds an install-time credential for the tenant.
 - Constrain versions (`>=1.0.0`) when your sources depend on specific

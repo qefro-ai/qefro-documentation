@@ -25,10 +25,10 @@ list:
 | `workflow.trigger` | Trigger this solution's workflows | Requires manifest permission `workflow.execute` |
 | `customer.query` | Query customer-hub data | Requires manifest permission `customer.read` |
 | `connector.invoke` | Invoke declared connectors through the bridge | Requires ≥ 1 declared connector |
-| `storage.read` | Read managed documents (`storage/find`, `storage/get`) | Requires `storage.read` permission |
-| `storage.write` | Insert documents (`storage/insert`) | Requires `storage.write` permission |
-| `storage.update` | Patch documents (`storage/update`) | Requires `storage.update` permission |
-| `storage.delete` | Soft-delete documents (`storage/delete`) | Requires `storage.delete` permission |
+| `storage.read` | SDK may read documents via `ctx.storage` | Requires `storage.read` permission |
+| `storage.write` | SDK may insert via `ctx.storage` | Requires `storage.write` permission |
+| `storage.update` | SDK may patch via `ctx.storage` | Requires `storage.update` permission |
+| `storage.delete` | SDK may soft-delete via `ctx.storage` | Requires `storage.delete` permission |
 
 Unknown capability names are rejected at publish time. Reserved SDK
 namespaces (`storage`, `vector`, …) cannot be registered as connectors —
@@ -72,11 +72,12 @@ flowchart LR
 - **Re-checked on every invocation** — a granted set is not cached trust.
 - Recomputed on upgrade; the wizard surfaces any change.
 
-Example: `restaurant-pro@1.3.0` requests `workflow.trigger` and
+Example: `restaurant-pro@1.7.0` requests `workflow.trigger` and
 `storage.*`, declares matching `permissions`, and sets `connectors: []` —
-storage capabilities are granted; `connector.invoke` is not. An older
-package that declared a POS connector would negotiate `connector.invoke`
-instead (or in addition) for bridge-backed sources.
+storage capabilities authorize the SDK’s `ctx.storage`; `connector.invoke`
+is not granted. UI sources target `restaurant-pro/restaurant.*` and gate on
+`runtime.query`. An older package that declared a POS connector would also
+negotiate `connector.invoke` for bridge-backed sources.
 
 ## The `ui.*` host API
 
@@ -104,11 +105,11 @@ sequenceDiagram
     participant W as Widget
     participant DS as Data source layer
     participant CAP as Capability check
-    participant RT as Runtime / Storage / Connector bridge
+    participant RT as Runtime / own-app /qefro / pool bridge
     W->>DS: render needs source payload
     DS->>CAP: is the source capability granted?
     alt granted
-        CAP->>RT: fetch (runtime, storage/*, or bridge)
+        CAP->>RT: fetch (runtime, {solution}/{tool}, or pool)
         RT-->>W: payload
     else not granted
         CAP-->>W: no request fired — empty state
@@ -119,13 +120,13 @@ A widget whose capability is not granted **never fires a request**. This
 is why a missing permission renders as a calm empty state rather than a
 permission error.
 
-## Restaurant Pro granted set (1.3.0)
+## Restaurant Pro granted set (1.7.0)
 
 | Requested | Granted? | Why |
 | --- | --- | --- |
 | `theme.get`, `user.get`, `tenant.get`, `runtime.query` | Yes | Always granted |
 | `workflow.trigger` | Yes | `workflow.execute` permission declared |
-| `storage.read` / `write` / `update` / `delete` | Yes | Matching `storage.*` permissions declared |
+| `storage.read` / `write` / `update` / `delete` | Yes | SDK `ctx.storage` — matching permissions |
 | `connector.invoke` | No | `connectors: []` — not requested |
 
 ## Related topics

@@ -72,10 +72,11 @@ flowchart LR
     X --> C[Granted set<br/>stored with the bundle]
 ```
 
-For `restaurant-pro@1.3.0`, requesting `workflow.trigger` and `storage.*`
-with matching `permissions` grants those capabilities. `connector.invoke`
-is not granted when `connectors: []`. The granted set is **re-checked on
-every host call** — it is not a one-time handshake. Reference:
+For `restaurant-pro@1.7.0`, requesting `workflow.trigger` and `storage.*`
+with matching `permissions` grants those capabilities (SDK `ctx.storage`).
+`connector.invoke` is not granted when `connectors: []`. Own-app UI sources
+use `runtime.query`. The granted set is **re-checked on every host call** —
+it is not a one-time handshake. Reference:
 [Capabilities](/docs/solutions/capabilities).
 
 ## Settings
