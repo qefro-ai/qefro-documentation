@@ -20,7 +20,8 @@ into a tenant, and open the rendered UI in the portal.
   `QEFRO_KEYS_FILE`.
 - Platform **managed storage** deployed (`storage-service` + Mongo
   `managed_apps`) if your solution uses `storage/*` — see
-  [Managed storage](/docs/solutions/managed-storage).
+  [Managed storage](/docs/solutions/managed-storage) and the
+  [Managed apps](/docs/solutions/managed-apps) developer guide.
 
 :::note
 Publishing is an admin action. Tenants can always *install* published

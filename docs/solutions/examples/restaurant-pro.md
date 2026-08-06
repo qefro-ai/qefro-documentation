@@ -1,21 +1,24 @@
 ---
 title: "Example: restaurant-pro"
-description: "The restaurant-pro reference solution on managed storage (1.3.0) — package layout, storage collections, UI sources, and publish/install."
+description: "The restaurant-pro reference managed app (1.5.0) — storage collections, brand settings, menu/floor/CRM staff UI, and publish/install."
 sidebar_label: "restaurant-pro"
 ---
 
 # Example: restaurant-pro
 
-`restaurant-pro` is the canonical reference **managed solution**:
-reservations, takeaway, menu, kitchen ops, orders and payments. From
-**1.3.0** application state lives on platform [managed
-storage](/docs/solutions/managed-storage) (`storage/*` → MongoDB
-`managed_apps`). There is no `restaurant-pos` connector dependency.
+`restaurant-pro` is the canonical **managed app**: reservations, takeaway,
+menu, kitchen, floor plan, orders, payments, and a light CRM (customers +
+offers). From **1.3.0** application state lives on platform
+[managed storage](/docs/solutions/managed-storage). From **1.5.0** the
+package also ships menu/table CRUD, customers/VIP offers, and per-install
+[brand settings](/docs/solutions/managed-apps#brand-customization-per-install).
 
 ```text
 widget / WhatsApp / staff UI
   → runtime → SdkCore → storage/* → storage-service → MongoDB
 ```
+
+`connectors: []` — no POS connector dependency.
 
 ## Package layout
 
@@ -26,94 +29,55 @@ restaurant-pro/
 │   ├── logo.svg
 │   └── icon.svg
 ├── workflows/          # conversation + staff flows (storage tools)
-├── prompts/            # assistant prompts
-├── ui/
-│   ├── theme.yaml
-│   ├── navigation.yaml
-│   ├── pages.yaml
-│   ├── layouts.yaml
-│   ├── widgets.yaml
-│   └── sources.yaml    # storage/find sources
-└── README.md
+├── prompts/
+└── ui/
+    ├── theme.yaml
+    ├── navigation.yaml
+    ├── pages.yaml
+    ├── layouts.yaml
+    ├── widgets.yaml
+    └── sources.yaml
 ```
-
-No `connectors/` directory is required when `connectors: []`.
 
 ## Collections
 
 | Logical | Purpose |
 | --- | --- |
-| `reservations` | guest name, phone, covers, time, status |
-| `tables` | table number, capacity, status |
-| `orders` | order number, items, status (`channel: takeaway` for takeaway) |
+| `reservations` | guest, phone, covers, time, status |
+| `tables` | name, capacity, floor `x`/`y`, status |
+| `orders` | order number, items, total, status (`channel: takeaway`) |
 | `menu_items` | name, price, category, available |
 | `payments` | amount, method, order_id, status |
+| `customers` | name, phone, email, vip, visits, notes |
+| `offers` | title, message, audience, status |
 
-Physical Mongo collections: `restaurant_pro__{logical}` (for example
-`restaurant_pro__reservations`).
+Physical Mongo collections: `restaurant_pro__{logical}`.
 
-## manifest.yaml
+## Staff UI (1.5.0)
 
-```yaml title="manifest.yaml"
-id: restaurant-pro
-name: Restaurant Pro
-version: 1.3.0
-description: Reservations, takeaway, menu, kitchen ops, orders and payments for restaurants
-category: hospitality
-tags:
-  - restaurant
-  - reservations
-  - takeaway
-  - menu
-  - storage
-connectors: []
-channels:
-  - widget
-  - whatsapp
-flows:
-  - reservation
-  - reservation-lookup
-  - reservation-update
-  - reservation-cancel
-  - reservation-reminder
-  - menu
-  - takeaway
-  - pay-bill
-  - staff-reservation-create
-  - staff-reservation-update
-  - staff-reservation-cancel
-  - staff-takeaway-create
-  - staff-payment-create
-permissions:
-  - workflow.execute
-  - storage.read
-  - storage.write
-  - storage.update
-  - storage.delete
-capabilities:
-  - theme.get
-  - user.get
-  - tenant.get
-  - runtime.query
-  - workflow.trigger
-  - storage.read
-  - storage.write
-  - storage.update
-  - storage.delete
-settings:
-  - key: business_name
-    type: string
-    required: false
-    default: "our restaurant"
-  - key: reservation_lead_time
-    type: number
-    required: false
-    default: 120
-ui:
-  name: Restaurant Pro
-  logo: assets/logo.svg
-  icon: assets/icon.svg
-```
+| Page | What you can do |
+| --- | --- |
+| Menu | Add / update dishes (forms → `staff-menu-*`) |
+| Tables | Floor plan canvas + add/update tables (`x`/`y` 0–100) |
+| Customers | List all / VIP filter, upsert customer, queue offer |
+| Orders | Readable dates, order number, totals |
+
+Portal: `/app/solutions/ui/restaurant-pro/{page}`  
+Subdomain: `https://restaurant-pro.portal.qefro.com/…`
+
+## Brand settings
+
+Installation settings overlay `ui/theme.yaml`:
+
+| Key | Type |
+| --- | --- |
+| `business_name` | string |
+| `logo_url` | url |
+| `background_image_url` | url |
+| `primary_color` / `secondary_color` / `accent_color` / `background_color` | color |
+| `reservation_lead_time` | number |
+
+Configure under **Installed solutions → Configure**.
 
 ## Workflow example — book a table
 
@@ -129,113 +93,41 @@ ui:
       guest_count: "{{ variables.reservation_input.covers }}"
       reservation_time: "{{ variables.reservation_input.date }} {{ variables.reservation_input.time }}"
       status: confirmed
+- id: upsert_customer
+  type: tool
+  tool: storage/insert
+  params:
+    collection: customers
+    document:
+      name: "{{ variables.reservation_input.guest_name }}"
+      phone: "{{ variables.reservation_input.phone }}"
+      vip: false
+      visit_count: 1
 ```
 
-Staff flows (`staff-reservation-create`, …) use the same tools so
-WhatsApp and the portal write to one document plane.
+Staff flows (`staff-reservation-create`, `staff-menu-create`, …) use the
+same storage tools so chat and the portal share one document plane.
 
-## ui/sources.yaml
+## ui/sources.yaml (excerpt)
 
 ```yaml title="ui/sources.yaml"
-- id: runtime_metrics
-  type: runtime
-  target: metrics
-- id: orders
-  type: connector
-  target: storage/find
-  params:
-    collection: orders
-    limit: 25
 - id: reservations
   type: connector
   target: storage/find
   params:
     collection: reservations
     limit: 50
-- id: takeaway
+- id: customers_vip
   type: connector
   target: storage/find
   params:
-    collection: orders
+    collection: customers
     filter:
-      channel: takeaway
-    limit: 50
-- id: menu
-  type: connector
-  target: storage/find
-  params:
-    collection: menu_items
-    limit: 100
-- id: tables
-  type: connector
-  target: storage/find
-  params:
-    collection: tables
-    limit: 50
-- id: kitchen
-  type: connector
-  target: storage/find
-  params:
-    collection: orders
-    filter:
-      status: preparing
-    limit: 50
-- id: payments
-  type: connector
-  target: storage/find
-  params:
-    collection: payments
+      vip: true
     limit: 100
 ```
 
-UI fetches are gated on **`storage.read`**. See [Sources](/docs/solutions/sources).
-
-## ui/navigation.yaml
-
-```yaml title="ui/navigation.yaml"
-- id: dashboard
-  page: dashboard
-  title: Dashboard
-  icon: home
-- id: reservations
-  page: reservations
-  title: Reservations
-  icon: calendar
-- id: tables
-  page: tables
-  title: Tables
-  icon: users
-- id: kitchen
-  page: kitchen
-  title: Kitchen
-  icon: chef-hat
-- id: orders
-  page: orders
-  title: Orders
-  icon: receipt
-- id: payments
-  page: payments
-  title: Payments
-  icon: credit-card
-- id: reports
-  page: reports
-  title: Reports
-  icon: report
-```
-
-Portal route pattern: `/app/solutions/ui/restaurant-pro/{page}`.
-
-In the tenant portal, installed packages appear under **Managed
-solution**. External SDK / connector tools live under **External tools**.
-
-## Migration (1.2.x → 1.3.0)
-
-1. Deploy `storage-service` + Mongo (`managed_apps`) if not already running.
-2. Publish `restaurant-pro@1.3.0` and upgrade the tenant install.
-3. Ensure the install grants `storage.read|write|update|delete`.
-4. Smoke: create a reservation via WhatsApp → it appears on the staff
-   Reservations table.
-5. Old mock POS in-memory rows are **not** migrated — treat as a demo wipe.
+UI fetches are gated on **`storage.read`**.
 
 ## Build, publish, install
 
@@ -244,19 +136,14 @@ cd restaurant-pro
 qefro solution build .
 qefro solution publish
 qefro solution install restaurant-pro
-# upgrade existing installs to 1.3.0 via the installer upgrade API
+# upgrade: POST /installations/restaurant-pro/upgrade
+#   { "target_version": "1.5.0" }
 ```
-
-## Isolation smoke checks
-
-- Tenant A inserts a reservation → Tenant B `storage/find` → empty
-- Installation A insert → Installation B find → not found
-- Client-supplied `tenant_id` on insert is stripped / ignored
 
 ## Related topics
 
+- [Managed apps](/docs/solutions/managed-apps) — developer guide
 - [Managed storage](/docs/solutions/managed-storage)
-- [Sources](/docs/solutions/sources)
-- [Capabilities](/docs/solutions/capabilities)
+- [Themes](/docs/solutions/themes) — package + install brand overlay
 - [Workflows](/docs/solutions/workflows)
 - [Quickstart](/docs/solutions/quickstart)

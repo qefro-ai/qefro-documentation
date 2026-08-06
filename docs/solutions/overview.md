@@ -125,6 +125,7 @@ signed at build time — see [Packaging](/docs/solutions/packaging).
 
 | Topic | Page |
 | --- | --- |
+| **Managed apps (start here)** | [Managed apps](/docs/solutions/managed-apps) |
 | Platform architecture | [Architecture](/docs/solutions/architecture) |
 | Build your first solution | [Quickstart](/docs/solutions/quickstart) |
 | Tenant-side activation | [Installation](/docs/solutions/installation) |

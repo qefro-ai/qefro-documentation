@@ -346,6 +346,7 @@ const sidebars: SidebarsConfig = {
       },
       items: [
         'solutions/architecture',
+        'solutions/managed-apps',
         'solutions/quickstart',
         'solutions/installation',
         'solutions/manifest',

@@ -75,6 +75,28 @@ flowchart LR
 - **Dark mode.** The portal derives dark variants from your tokens; pick
   mid-tone accents that survive inversion.
 
+## Tenant brand overrides
+
+Package `theme.yaml` is the default. Tenants can override brand at
+**install** time with conventional settings keys (declare them in
+`manifest.yaml` `settings:`):
+
+| Key | Setting type | Maps to |
+| --- | --- | --- |
+| `business_name` | string | UI display name |
+| `logo_url` | url | Header logo (HTTPS) |
+| `background_image_url` | url | Shell background image |
+| `primary_color` | color | `primary` |
+| `secondary_color` | color | `secondary` |
+| `accent_color` | color | `accent` |
+| `background_color` | color | `background` |
+
+Colors must be hex (`#RGB` / `#RRGGBB`). Empty values keep the package
+theme. The overlay is applied when the UI bundle is assembled for that
+workspace install.
+
+See [Managed apps — Brand customization](/docs/solutions/managed-apps#brand-customization-per-install).
+
 ## Tips
 
 - Keep `primary` and `accent` distinct — charts use `accent` for series
@@ -85,6 +107,7 @@ flowchart LR
 
 ## Related topics
 
+- [Managed apps](/docs/solutions/managed-apps) — brand settings + managed app guide
 - [Assets](/docs/solutions/assets) — logo and icon files referenced by the manifest
 - [Navigation](/docs/solutions/navigation) — the sidebar that inherits the theme
 - [Capabilities](/docs/solutions/capabilities) — `theme.get`
