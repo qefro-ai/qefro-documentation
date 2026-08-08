@@ -13,23 +13,47 @@ import styles from './index.module.css';
 
 const whyItems = [
   {
-    title: 'Configure once',
+    title: 'Assistants',
     description:
-      'Centralize knowledge, permissions, and business actions in the Admin Console — then deploy across channels.',
+      'Customer AI on website and WhatsApp. Employee AI on a branded Internal Portal — shared knowledge and RBAC.',
   },
   {
-    title: 'Deploy everywhere',
+    title: 'Installable apps',
     description:
-      'Customer AI on website and WhatsApp. Employee AI on a branded Internal Portal. One platform.',
+      'Ship domain software with qefro create-app → publish → Marketplace install. The SDK process is the application.',
   },
   {
-    title: 'Actions, not only answers',
+    title: 'Secure actions',
     description:
-      'Securely call your REST APIs and OpenAPI tools with identity forwarding and execution logs.',
+      'Business Tools (REST/OpenAPI) and app /qefro tools with identity forwarding, approvals, and audit logs.',
   },
 ];
 
 const features = [
+  {
+    title: 'Installable SDK apps',
+    description:
+      'Managed /qefro packages with staff UI, storage, and onboarding — install once per workspace from Marketplace.',
+    href: '/docs/solutions/build-your-first-app',
+  },
+  {
+    title: 'Marketplace',
+    description:
+      'Publish signed packages to the catalog; tenants install and upgrade without forking.',
+    href: '/docs/solutions/marketplace',
+  },
+  {
+    title: 'Customer Hub (People)',
+    description:
+      'Shared people identity across channels. Portal nav: People. Apps use ctx.customer.',
+    href: '/docs/user/people/overview',
+  },
+  {
+    title: 'Marketing & Organization',
+    description:
+      'Apps register audiences and opaque workflow capabilities; the platform owns campaigns and orchestration.',
+    href: '/docs/solutions/marketing',
+  },
   {
     title: 'AI Workspaces',
     description:
@@ -37,47 +61,21 @@ const features = [
     href: '/docs/platform/ai-workspaces',
   },
   {
-    title: 'Customer AI',
+    title: 'Knowledge & RBAC',
     description:
-      'Website widget and WhatsApp assistants grounded in your knowledge with citations.',
-    href: '/docs/platform/customer-ai',
-  },
-  {
-    title: 'Employee AI',
-    description:
-      'Branded Internal Portal for internal Q&A and permitted business actions.',
-    href: '/docs/platform/employee-ai',
-  },
-  {
-    title: 'Business Actions',
-    description:
-      'Connect systems of record via Business Tools — REST, OpenAPI, encrypted credentials.',
-    href: '/docs/platform/business-actions',
-  },
-  {
-    title: 'Knowledge Platform',
-    description:
-      'Hybrid retrieval, OCR, multilingual RAG, workspace isolation, and source citations.',
+      'Hybrid RAG with citations, plus teams, roles, tenant isolation, and audit-ready execution logs.',
     href: '/docs/platform/knowledge-platform',
-  },
-  {
-    title: 'RBAC & Security',
-    description:
-      'Teams, roles, tenant isolation, identity forwarding, and audit-ready execution logs.',
-    href: '/docs/platform/rbac',
   },
 ];
 
 const categories = [
-  {label: 'Getting Started', to: '/docs/user/getting-started'},
-  {label: 'User Guide', to: '/docs/user/how-to/create-ai-agent'},
-  {label: 'Developer Guide', to: '/docs/developer/quick-start'},
-  {label: 'Architecture', to: '/docs/architecture/overview'},
-  {label: 'vs n8n', to: '/docs/compare/n8n-vs-qefro'},
-  {label: 'vs LangGraph', to: '/docs/compare/langgraph-vs-qefro'},
-  {label: 'Integrations', to: '/docs/integrations/overview'},
-  {label: 'Solutions', to: '/docs/solutions/overview'},
+  {label: 'Start', to: '/docs/introduction/overview'},
+  {label: 'Build apps', to: '/docs/solutions/build-your-first-app'},
+  {label: 'Operate', to: '/docs/user/getting-started'},
   {label: 'Reference', to: '/docs/reference/overview'},
+  {label: 'Architecture', to: '/docs/architecture/overview'},
+  {label: 'Marketplace', to: '/docs/solutions/marketplace'},
+  {label: 'vs n8n', to: '/docs/compare/n8n-vs-qefro'},
   {label: 'Blog', to: '/blog'},
 ];
 
@@ -89,10 +87,10 @@ const concepts = [
     href: '/docs/concepts/what-is-an-ai-workspace',
   },
   {
-    title: 'AI Workspace vs AI Chatbot',
+    title: 'SDK app vs Business Tool SDK',
     description:
-      'When a chatbot is enough — and when you need workspaces, RBAC, and actions.',
-    href: '/docs/concepts/ai-workspace-vs-ai-chatbot',
+      'Installable /qefro applications versus webhook Business Tool connections — two different SDK stories.',
+    href: '/docs/introduction/concepts',
   },
   {
     title: 'Customer AI vs Employee AI',
@@ -101,10 +99,10 @@ const concepts = [
     href: '/docs/concepts/customer-ai-vs-employee-ai',
   },
   {
-    title: 'Business Actions',
+    title: 'Build your first app',
     description:
-      'Authorized, logged tool calls from assistants into your APIs.',
-    href: '/docs/concepts/business-actions',
+      'qefro create-app warehouse-pro → publish → install — the third-party maturity path.',
+    href: '/docs/solutions/build-your-first-app',
   },
   {
     title: 'Hybrid RAG',
@@ -122,13 +120,16 @@ const concepts = [
 
 const guides = [
   {
+    label: 'Build your first app',
+    to: '/docs/solutions/build-your-first-app',
+  },
+  {
     label: 'Build AI Customer Support',
     to: '/docs/guides/build-ai-customer-support',
   },
   {label: 'Create Employee AI', to: '/docs/guides/create-employee-ai'},
+  {label: 'Marketplace', to: '/docs/solutions/marketplace'},
   {label: 'Connect REST APIs', to: '/docs/guides/connect-rest-apis'},
-  {label: 'Import OpenAPI', to: '/docs/guides/import-openapi'},
-  {label: 'Deploy Website Widget', to: '/docs/guides/deploy-website-widget'},
   {
     label: 'Production Deployment',
     to: '/docs/guides/production-deployment',
@@ -143,24 +144,24 @@ function HomepageHeader(): ReactNode {
         <div className="qefro-hero__eyebrow">Qefro Documentation</div>
         <Heading as="h1">{siteConfig.tagline}</Heading>
         <p className="qefro-hero__subtitle">
-          Deploy Customer AI, Employee AI, and Business Actions from one
+          Assistants, installable SDK apps, and secure actions — from one
           platform.
         </p>
         <div className="qefro-hero__actions">
           <Link
             className="button button--primary button--lg"
+            to="/docs/introduction/overview">
+            Start
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs/solutions/build-your-first-app">
+            Build apps
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
             to="/docs/user/getting-started">
-            User Guide
-          </Link>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/developer/quick-start">
-            Developer Guide
-          </Link>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/integrations/overview">
-            Integrations
+            Operate
           </Link>
           <Link
             className="button button--secondary button--lg"
@@ -174,20 +175,18 @@ function HomepageHeader(): ReactNode {
 }
 
 export default function Home(): ReactNode {
-  const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
       title="Documentation"
-      description="Official Qefro documentation for AI Workspaces, Customer AI, Employee AI, and Business Actions.">
+      description="Official Qefro documentation for AI Workspaces, installable SDK apps, Marketplace, Customer Hub, and Business Tools.">
       <HomepageHeader />
       <main className="qefro-home">
         <section className="qefro-section">
           <div className="qefro-section__inner">
             <h2>Why Qefro</h2>
             <p className="qefro-section__lead">
-              Most AI platforms answer questions. Qefro also securely performs
-              business actions using your organization&apos;s knowledge, APIs,
-              and permissions.
+              Answer questions, ship installable business apps, and call your
+              systems securely — without forking per tenant.
             </p>
             <FeatureCardGrid>
               {whyItems.map((item) => (
@@ -205,9 +204,8 @@ export default function Home(): ReactNode {
           <div className="qefro-section__inner">
             <h2>Concepts for AI search</h2>
             <p className="qefro-section__lead">
-              Definition-led pages for GEO: what an AI Workspace is, how it
-              differs from a chatbot, Hybrid RAG, Business Actions, and
-              multi-tenant architecture.
+              Definition-led pages for GEO: workspaces, SDK apps, assistants,
+              Hybrid RAG, and multi-tenant architecture.
             </p>
             <FeatureCardGrid>
               {concepts.map((c) => (
@@ -221,21 +219,22 @@ export default function Home(): ReactNode {
           <div className="qefro-section__inner">
             <h2>Platform Overview</h2>
             <p className="qefro-section__lead">
-              One Admin Console. Shared knowledge and permissions. Multiple
-              experiences for customers and employees.
+              One Admin Console. Shared knowledge and permissions. Installable
+              apps from Marketplace. Multiple experiences for customers and
+              employees.
             </p>
             <div className="qefro-arch-flow">
               <div className="qefro-arch-step">
                 <strong>Admin</strong>
-                Configure workspaces, tools, RBAC
+                Workspaces, Marketplace, RBAC
               </div>
               <div className="qefro-arch-step">
-                <strong>Knowledge</strong>
-                Documents, crawl, hybrid RAG
+                <strong>Apps</strong>
+                SDK /qefro + staff UI
               </div>
               <div className="qefro-arch-step">
                 <strong>Actions</strong>
-                REST / OpenAPI Business Tools
+                Tools · Marketing · Org workflows
               </div>
               <div className="qefro-arch-step">
                 <strong>Experiences</strong>
@@ -249,8 +248,8 @@ export default function Home(): ReactNode {
           <div className="qefro-section__inner">
             <h2>Core Features</h2>
             <p className="qefro-section__lead">
-              Everything you need to ship organizational AI with clear
-              boundaries and auditability.
+              Everything you need to ship organizational AI and domain apps with
+              clear boundaries and auditability.
             </p>
             <FeatureCardGrid>
               {features.map((f) => (
@@ -264,22 +263,22 @@ export default function Home(): ReactNode {
           <div className="qefro-section__inner">
             <h2>Architecture</h2>
             <p className="qefro-section__lead">
-              Multi-tenant isolation, workspace-scoped knowledge, and
-              zero-trust-style authorization for business actions.
+              Multi-tenant isolation, workspace-scoped knowledge, installable
+              SDK apps, and zero-trust-style authorization for business actions.
             </p>
             <pre className={clsx(styles.mermaidPreview)} aria-hidden="true">
-{`Admin Console → Workspaces → Knowledge + Tools
+{`Admin Console → Workspaces → Knowledge + Marketplace apps
         ↓
-  Auth / RBAC / Identity
+  Auth / RBAC / Customer Hub
         ↓
- Widget | Internal Portal | WhatsApp`}
+ Widget | Internal Portal | WhatsApp | App /qefro`}
             </pre>
             <p>
               See{' '}
-              <Link to="/docs/concepts/multi-tenant-ai-architecture">
-                Multi-tenant AI Architecture
-              </Link>
-              , <Link to="/docs/platform/ai-workspaces">AI Workspaces</Link>, and{' '}
+              <Link to="/docs/architecture/overview">Architecture overview</Link>
+              ,{' '}
+              <Link to="/docs/solutions/architecture">Solutions architecture</Link>
+              , and{' '}
               <Link to="/docs/security/tenant-isolation">Tenant Isolation</Link>.
             </p>
           </div>
@@ -289,7 +288,7 @@ export default function Home(): ReactNode {
           <div className="qefro-section__inner">
             <h2>Popular Guides</h2>
             <p className="qefro-section__lead">
-              Step-by-step paths from first workspace to production.
+              Step-by-step paths from first workspace to published apps.
             </p>
             <div className="qefro-guide-list">
               {guides.map((g) => (
@@ -304,9 +303,9 @@ export default function Home(): ReactNode {
 
         <section className="qefro-section">
           <div className="qefro-section__inner">
-            <h2>Documentation Categories</h2>
+            <h2>Documentation hubs</h2>
             <p className="qefro-section__lead">
-              Browse by topic. Search with <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+
+              Browse by audience. Search with <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+
               <kbd>K</kbd>.
             </p>
             <nav className="qefro-related" aria-label="Documentation categories">

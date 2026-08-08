@@ -14,11 +14,11 @@ Canonical product hosts:
 
 ## P0 — Start here
 
-- [What is Qefro?](https://docs.qefro.com/docs/introduction/overview/): Qefro is an AI Workspace platform — configure knowledge, tools, and flows once, then deploy Customer AI and Employee AI across channels.
-- [Qefro architecture](https://docs.qefro.com/docs/architecture/overview/): Product architecture: Admin Console, Runtime, FlowRunner, channels, Backend SDK, and connectors — one execution engine.
+- [What is Qefro?](https://docs.qefro.com/docs/introduction/overview/): Qefro is an AI Workspace platform with Customer/Employee assistants, installable SDK apps via Marketplace, and secure Business Tools.
+- [Qefro architecture](https://docs.qefro.com/docs/architecture/overview/): Product architecture: Admin Console, Runtime, solutions plane (Marketplace apps), FlowRunner, channels, Backend SDK, and connectors.
 - [Qefro vs n8n](https://docs.qefro.com/docs/compare/n8n-vs-qefro/): How Qefro differs from n8n-style workflow automation — AI Workspaces, channels, and a product Runtime vs general-purpose automation.
 - [Qefro vs LangGraph](https://docs.qefro.com/docs/compare/langgraph-vs-qefro/): How Qefro differs from LangGraph-style agent frameworks — productized Runtime and Admin Console vs library-level graph control.
-- [Core Concepts](https://docs.qefro.com/docs/introduction/concepts/): Map of Qefro concepts for operators and developers — workspaces, knowledge, tools, flows, events, channels.
+- [Core Concepts](https://docs.qefro.com/docs/introduction/concepts/): Map of Qefro concepts — workspaces, SDK apps vs SDK Connections, Customer Hub, Marketing, Organization, tools, and channels.
 - [User Guide — Getting Started](https://docs.qefro.com/docs/user/getting-started/): Create your organization, first AI Workspace, upload knowledge, and test chat in the Admin Console.
 
 ## User Guide (what to do)
@@ -75,7 +75,7 @@ Canonical product hosts:
 
 ## Solutions (outcomes)
 
-- [Solution Development](https://docs.qefro.com/docs/solutions/overview/): Build complete business solutions — restaurant, hospital, CRM, hotel, school, inventory — as declarative packages on the Qefro platform.
+- [Solution Development](https://docs.qefro.com/docs/solutions/overview/): Build installable SDK applications — required /qefro process, optional declarative UI/workflows, managed storage via ctx.storage (ADR-003).
 - [Customer support](https://docs.qefro.com/docs/solutions/customer-support/): Grounded support assistant on website and WhatsApp with optional Business Tools and human handoff.
 - [WhatsApp commerce](https://docs.qefro.com/docs/solutions/whatsapp-commerce/): Sell and support on WhatsApp with grounded product answers, order tools, and optional event-driven journeys.
 - [Order tracking](https://docs.qefro.com/docs/solutions/order-tracking/): Customers ask where their order is; the assistant calls your order API via a Business Tool or flow.

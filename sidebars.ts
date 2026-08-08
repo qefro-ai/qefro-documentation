@@ -1,23 +1,14 @@
 import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
 /**
- * Documentation as a product — priority order:
- *   P0 Getting Started · User · Developer
- *   P1 Integrations · Solutions
- *   P2 API / SDK Reference
- *   P3 Architecture deep dive
+ * Documentation hubs (2026-08):
+ *   Start · Build apps · Operate · Reference
  *
- * Voice rules:
- *   User docs     → what to do (how-to)
- *   Developer docs → how Qefro works (runtime concepts)
- *   Reference     → exact specs
- *   Solutions     → business outcomes
- *
- * Deep pages under concepts/, platform/, business-tools/, guides/, api/, security/
- * keep stable URLs and are linked from audience hubs.
+ * Stable doc IDs keep existing URLs. Playbooks live under Operate.
+ * Integrations appear under Build apps → Connect systems and Reference.
  */
 const sidebars: SidebarsConfig = {
-  userSidebar: [
+  startSidebar: [
     {
       type: 'category',
       label: 'Start here',
@@ -26,336 +17,78 @@ const sidebars: SidebarsConfig = {
         'introduction/overview',
         'architecture/overview',
         'introduction/concepts',
-        'compare/n8n-vs-qefro',
-        'compare/langgraph-vs-qefro',
         'glossary',
       ],
     },
     {
       type: 'category',
-      label: 'Getting Started',
+      label: 'Choose your path',
       collapsed: false,
       items: [
         'user/getting-started',
+        'solutions/build-your-first-app',
         'getting-started/installation',
         'getting-started/quick-start',
-        'guides/build-ai-customer-support',
       ],
     },
     {
       type: 'category',
-      label: 'How to',
-      collapsed: false,
-      items: [
-        'user/how-to/create-ai-agent',
-        'user/how-to/configure-whatsapp',
-        'user/how-to/connect-shopify',
-        'user/how-to/track-orders',
-        'user/how-to/add-approval-workflow',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Workspaces',
-      collapsed: true,
-      items: ['user/workspaces/overview', 'platform/ai-workspaces'],
-    },
-    {
-      type: 'category',
-      label: 'Agents',
+      label: 'Compare',
       collapsed: true,
       items: [
-        'user/agents/overview',
-        'platform/customer-ai',
-        'platform/employee-ai',
-        'guides/create-employee-ai',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Knowledge Base',
-      collapsed: true,
-      items: [
-        'user/knowledge-base/overview',
-        'platform/knowledge-platform',
-        'concepts/hybrid-rag',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Channels',
-      collapsed: true,
-      items: [
-        'user/channels/overview',
-        'user/channels/website-widget',
-        'user/channels/whatsapp',
-        'user/channels/api',
-        'guides/deploy-website-widget',
-        'guides/deploy-whatsapp-ai',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Conversations',
-      collapsed: true,
-      items: ['user/conversations/overview'],
-    },
-    {
-      type: 'category',
-      label: 'Approvals',
-      collapsed: true,
-      items: ['user/approvals/overview', 'guides/run-business-flows'],
-    },
-    {
-      type: 'category',
-      label: 'Analytics',
-      collapsed: true,
-      items: ['user/analytics/overview', 'platform/analytics'],
-    },
-    {
-      type: 'category',
-      label: 'Billing',
-      collapsed: true,
-      items: ['user/billing/overview'],
-    },
-    {
-      type: 'category',
-      label: 'Administration',
-      collapsed: true,
-      items: [
-        'user/administration/overview',
-        'platform/organizations',
-        'platform/teams',
-        'platform/rbac',
-        'guides/configure-rbac',
-        'platform/custom-domains',
-        'platform/branding',
-        'guides/enable-custom-domains',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Security',
-      collapsed: true,
-      items: [
-        'security/overview',
-        'security/tenant-isolation',
-        'security/secrets',
-        'security/audit-logs',
-        'security/compliance',
-      ],
-    },
-  ],
-
-  developerSidebar: [
-    {
-      type: 'category',
-      label: 'Quick Start',
-      collapsed: false,
-      items: [
-        'developer/quick-start',
-        'architecture/overview',
-        'guides/register-sdk-business-tools',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'How Qefro works',
-      collapsed: false,
-      items: [
-        'developer/concepts/runtime',
-        'developer/concepts/events',
-        'developer/concepts/flows',
-        'developer/concepts/tools',
-        'developer/concepts/connectors',
-        'developer/concepts/middleware',
-        'developer/concepts/approvals',
-        'developer/concepts/challenges',
-        'developer/concepts/memory',
-        'developer/concepts/sessions',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Architecture deep dive',
-      collapsed: true,
-      items: [
-        'architecture/overview',
-        'introduction/architecture',
-        'business-tools/runtime',
-        'concepts/multi-tenant-ai-architecture',
-        'concepts/ai-agent-security',
-        'concepts/business-actions',
         'compare/n8n-vs-qefro',
         'compare/langgraph-vs-qefro',
+        'compare/chatbase-vs-qefro',
+        'compare/intercom-vs-qefro',
       ],
     },
+  ],
+
+  buildAppsSidebar: [
     {
       type: 'category',
-      label: 'SDK guides',
+      label: 'Get started',
       collapsed: false,
+      link: {type: 'doc', id: 'solutions/overview'},
       items: [
-        'developer/sdk/javascript',
-        'developer/sdk/python',
-        'developer/sdk/rust',
-        'business-tools/backend-sdk',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Business Tools',
-      collapsed: true,
-      link: {type: 'doc', id: 'business-tools/index'},
-      items: [
-        'business-tools/index',
-        'business-tools/rest-vs-sdk',
-        'business-tools/rest-openapi',
-        'business-tools/authentication',
-        'business-tools/identity-forwarding',
-        'business-tools/identity-resolution',
-        'business-tools/challenge-resume',
-        'business-tools/mixed-integrations',
-        'business-tools/parameters-reference',
-        'business-tools/examples',
-        'guides/connect-rest-apis',
-        'guides/import-openapi',
-        'guides/secure-business-actions',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Flows',
-      collapsed: true,
-      items: [
-        'guides/define-business-flows',
-        'guides/run-business-flows',
-        'guides/event-driven-triggers',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Events',
-      collapsed: true,
-      items: [
-        'developer/events/overview',
-        'guides/event-driven-triggers',
-        'reference/event-reference',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Webhooks',
-      collapsed: true,
-      items: ['developer/webhooks/overview', 'api/webhooks'],
-    },
-    {
-      type: 'category',
-      label: 'Schedules',
-      collapsed: true,
-      items: ['developer/schedules/overview'],
-    },
-    {
-      type: 'category',
-      label: 'Channels',
-      collapsed: true,
-      items: ['developer/channels/overview'],
-    },
-    {
-      type: 'category',
-      label: 'Observability',
-      collapsed: true,
-      items: ['developer/observability/overview'],
-    },
-    {
-      type: 'category',
-      label: 'Deployment',
-      collapsed: true,
-      items: [
-        'developer/deployment/overview',
-        'developer/self-hosting/overview',
-        'platform/deployment',
-        'guides/production-deployment',
-        'v1-docker',
-        'v1-kubernetes',
-      ],
-    },
-  ],
-
-  integrationsSidebar: [
-    'integrations/overview',
-    {
-      type: 'category',
-      label: 'Shopify',
-      collapsed: true,
-      items: ['integrations/shopify/overview', 'user/how-to/connect-shopify'],
-    },
-    {
-      type: 'category',
-      label: 'WooCommerce',
-      collapsed: true,
-      items: ['integrations/woocommerce/overview'],
-    },
-    {
-      type: 'category',
-      label: 'Odoo',
-      collapsed: true,
-      items: ['integrations/odoo/overview'],
-    },
-    {
-      type: 'category',
-      label: 'ERPNext',
-      collapsed: true,
-      items: ['integrations/erpnext/overview'],
-    },
-    {
-      type: 'category',
-      label: 'HubSpot',
-      collapsed: true,
-      items: ['integrations/hubspot/overview'],
-    },
-    {
-      type: 'category',
-      label: 'Stripe',
-      collapsed: true,
-      items: ['integrations/stripe/overview'],
-    },
-    {
-      type: 'category',
-      label: 'Razorpay',
-      collapsed: true,
-      items: ['integrations/razorpay/overview', 'api/webhooks'],
-    },
-    {
-      type: 'category',
-      label: 'Zendesk',
-      collapsed: true,
-      items: ['integrations/zendesk/overview'],
-    },
-    'developer/concepts/connectors',
-    'reference/connector-reference',
-    'guides/event-driven-triggers',
-  ],
-
-  solutionsSidebar: [
-    {
-      type: 'category',
-      label: 'Solutions',
-      link: {
-        type: 'doc',
-        id: 'solutions/overview',
-      },
-      items: [
-        'solutions/architecture',
-        'solutions/managed-apps',
+        'solutions/overview',
         'solutions/build-your-first-app',
         'solutions/scaffold',
         'solutions/quickstart',
+        'solutions/managed-apps',
+        'solutions/architecture',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Ship to catalog',
+      collapsed: false,
+      items: [
+        'solutions/publishing',
         'solutions/installation',
         'solutions/marketplace',
-        'solutions/publishing',
-        'solutions/organization-workflows',
+        'solutions/packaging',
+        'solutions/validation',
+        'solutions/security',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Platform capabilities',
+      collapsed: false,
+      items: [
         'solutions/customer-hub',
         'solutions/marketing',
+        'solutions/organization-workflows',
+        'solutions/managed-storage',
+        'solutions/capabilities',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Package UI',
+      collapsed: true,
+      items: [
         'solutions/manifest',
         'solutions/themes',
         'solutions/navigation',
@@ -374,23 +107,137 @@ const sidebars: SidebarsConfig = {
             'solutions/widgets/timeline',
           ],
         },
-        'solutions/capabilities',
-        'solutions/events',
         'solutions/sources',
-        'solutions/managed-storage',
+        'solutions/events',
+        'solutions/workflows',
         'solutions/assets',
         'solutions/connectors',
-        'solutions/workflows',
-        'solutions/validation',
-        'solutions/packaging',
-        'solutions/security',
-        'solutions/troubleshooting',
-        'solutions/examples/restaurant-pro',
       ],
     },
     {
       type: 'category',
-      label: 'Playbooks',
+      label: 'Examples',
+      collapsed: false,
+      items: [
+        'solutions/examples/restaurant-pro',
+        'solutions/examples/clinic-pro',
+        'solutions/examples/salon-pro',
+        'solutions/examples/marketing-lab',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Connect systems',
+      collapsed: true,
+      link: {type: 'doc', id: 'business-tools/index'},
+      items: [
+        'business-tools/index',
+        'business-tools/rest-vs-sdk',
+        'business-tools/rest-openapi',
+        'business-tools/backend-sdk',
+        'guides/register-sdk-business-tools',
+        'guides/connect-rest-apis',
+        'guides/import-openapi',
+        'integrations/overview',
+        'developer/concepts/connectors',
+      ],
+    },
+    'solutions/troubleshooting',
+  ],
+
+  operateSidebar: [
+    {
+      type: 'category',
+      label: 'Getting started',
+      collapsed: false,
+      items: [
+        'user/getting-started',
+        'guides/build-ai-customer-support',
+        'user/how-to/create-ai-agent',
+        'user/how-to/configure-whatsapp',
+        'user/how-to/connect-shopify',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Workspaces & agents',
+      collapsed: false,
+      items: [
+        'user/workspaces/overview',
+        'platform/ai-workspaces',
+        'user/agents/overview',
+        'platform/customer-ai',
+        'platform/employee-ai',
+        'guides/create-employee-ai',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'People & knowledge',
+      collapsed: false,
+      items: [
+        'user/people/overview',
+        'solutions/customer-hub',
+        'user/knowledge-base/overview',
+        'platform/knowledge-platform',
+        'concepts/hybrid-rag',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Channels & conversations',
+      collapsed: true,
+      items: [
+        'user/channels/overview',
+        'user/channels/website-widget',
+        'user/channels/whatsapp',
+        'user/channels/api',
+        'guides/deploy-website-widget',
+        'guides/deploy-whatsapp-ai',
+        'user/conversations/overview',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Apps & marketplace',
+      collapsed: false,
+      items: [
+        'solutions/marketplace',
+        'solutions/installation',
+        'user/how-to/track-orders',
+        'user/how-to/add-approval-workflow',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Approvals & analytics',
+      collapsed: true,
+      items: [
+        'user/approvals/overview',
+        'guides/run-business-flows',
+        'user/analytics/overview',
+        'platform/analytics',
+        'user/billing/overview',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Administration',
+      collapsed: true,
+      items: [
+        'user/administration/overview',
+        'platform/organizations',
+        'platform/teams',
+        'platform/rbac',
+        'guides/configure-rbac',
+        'platform/custom-domains',
+        'platform/branding',
+        'guides/enable-custom-domains',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Recipes',
       collapsed: true,
       link: {type: 'doc', id: 'solutions/playbooks'},
       items: [
@@ -406,14 +253,14 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Related guides',
+      label: 'Security',
       collapsed: true,
       items: [
-        'guides/build-ai-customer-support',
-        'guides/event-driven-triggers',
-        'guides/secure-business-actions',
-        'user/how-to/track-orders',
-        'user/how-to/add-approval-workflow',
+        'security/overview',
+        'security/tenant-isolation',
+        'security/secrets',
+        'security/audit-logs',
+        'security/compliance',
       ],
     },
   ],
@@ -449,11 +296,27 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Integrations',
+      collapsed: false,
+      items: [
+        'integrations/overview',
+        'integrations/shopify/overview',
+        'integrations/woocommerce/overview',
+        'integrations/odoo/overview',
+        'integrations/erpnext/overview',
+        'integrations/hubspot/overview',
+        'integrations/stripe/overview',
+        'integrations/razorpay/overview',
+        'integrations/zendesk/overview',
+        'reference/connector-reference',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Schemas & config',
       collapsed: false,
       items: [
         'reference/event-reference',
-        'reference/connector-reference',
         'reference/environment-variables',
         'reference/configuration',
         'reference/cli',
@@ -461,19 +324,32 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Architecture (P3)',
+      label: 'Runtime concepts',
+      collapsed: true,
+      items: [
+        'developer/concepts/runtime',
+        'developer/concepts/events',
+        'developer/concepts/flows',
+        'developer/concepts/tools',
+        'developer/concepts/connectors',
+        'business-tools/runtime',
+        'developer/quick-start',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Architecture',
       collapsed: true,
       items: [
         'architecture/overview',
         'introduction/architecture',
         'concepts/multi-tenant-ai-architecture',
-        'business-tools/runtime',
       ],
     },
     {
       type: 'category',
       label: 'Compare',
-      collapsed: false,
+      collapsed: true,
       items: [
         'compare/n8n-vs-qefro',
         'compare/langgraph-vs-qefro',
@@ -495,6 +371,19 @@ const sidebars: SidebarsConfig = {
         'security/secrets',
         'security/audit-logs',
         'security/compliance',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Deployment',
+      collapsed: true,
+      items: [
+        'developer/deployment/overview',
+        'developer/self-hosting/overview',
+        'platform/deployment',
+        'guides/production-deployment',
+        'v1-docker',
+        'v1-kubernetes',
       ],
     },
     'glossary',

@@ -6,6 +6,14 @@ sidebar_label: "App scaffold"
 
 # App scaffold
 
+:::tip Prefer the full walkthrough
+Primary path for third parties:
+**[Build your first app](/docs/solutions/build-your-first-app)**
+(`qefro create-app warehouse-pro`). This page covers ownership + generated
+layout. The shorter [Quickstart](/docs/solutions/quickstart) assumes you already
+have publish credentials.
+:::
+
 ## Ownership model
 
 ```text
@@ -75,11 +83,14 @@ my-salon/
 
 Same scaffold surface, different domain nouns:
 
-| App | Path (platform repo) |
-| --- | --- |
-| Restaurant Pro | `docs/examples/restaurant-pro/` |
-| Clinic Pro | `docs/examples/clinic-pro/` |
-| Salon Pro | `docs/examples/salon-pro/` |
+| App | Docs | Path (platform repo) |
+| --- | --- | --- |
+| Restaurant Pro | [example](/docs/solutions/examples/restaurant-pro) | `docs/examples/restaurant-pro/` |
+| Clinic Pro | [example](/docs/solutions/examples/clinic-pro) | `docs/examples/clinic-pro/` |
+| Salon Pro | [example](/docs/solutions/examples/salon-pro) | `docs/examples/salon-pro/` |
+| Marketing Lab | [example](/docs/solutions/examples/marketing-lab) | `docs/examples/marketing-lab/` |
+
+`warehouse-pro` is the **scaffold id**, not a separate vertical package.
 
 ## From scaffold to live
 
@@ -97,7 +108,8 @@ publish versions into the global catalog.
 
 ## Related topics
 
+- [Build your first app](/docs/solutions/build-your-first-app) — primary path
 - [Managed apps](/docs/solutions/managed-apps) — ADR-003 developer guide
-- [Quickstart](/docs/solutions/quickstart) — end-to-end loop
 - [Manifest](/docs/solutions/manifest) — package identity
 - [Publishing](/docs/solutions/publishing) — platform-admin-only catalog write
+- [Quickstart](/docs/solutions/quickstart) — shorter loop (demoted)

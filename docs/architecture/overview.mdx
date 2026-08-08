@@ -1,6 +1,6 @@
 ---
 title: "Qefro architecture"
-description: "Product architecture: Admin Console, Runtime, FlowRunner, channels, Backend SDK, and connectors — one execution engine."
+description: "Product architecture: Admin Console, Runtime, solutions plane (Marketplace apps), FlowRunner, channels, Backend SDK, and connectors."
 sidebar_label: "Qefro architecture"
 ---
 
@@ -14,7 +14,7 @@ Use it when evaluating Qefro, onboarding engineers, or explaining the product to
 
 ## One-sentence model
 
-> **Configure** knowledge, tools, and flows in the Admin Console; **execute** them in a single Runtime (RAG + FlowRunner + event bus); **reach customers and employees** through channels; **talk to your systems** via REST/OpenAPI or a signed Backend SDK webhook. Connectors only **emit events** — they never run a second orchestrator.
+> **Configure** knowledge, tools, and Marketplace apps in the Admin Console; **execute** chat and flows in a single Runtime (RAG + FlowRunner + event bus); **reach customers and employees** through channels; **run domain logic** in installable `/qefro` SDK apps or via REST/OpenAPI / Backend SDK webhooks. Connectors only **emit events** — they never run a second orchestrator.
 
 ## System map
 
@@ -70,12 +70,41 @@ flowchart LR
 
 | Layer | Responsibility | Not responsible for |
 | --- | --- | --- |
-| **Admin Console** (`app.qefro.com`) | Workspaces, knowledge upload, tool registration, flow versions, RBAC, billing UX | Running tool business logic |
-| **Runtime** | Chat orchestration, RAG retrieval, FlowRunner, event ingest/dispatch, approvals, challenges | Hosting your ERP |
+| **Admin Console** (`app.qefro.com`) | Workspaces, knowledge, Marketplace install, People, Marketing, RBAC, billing UX | Running app / ERP business logic |
+| **Runtime** | Chat orchestration, RAG retrieval, FlowRunner, event ingest/dispatch, tool invoke, approvals | Hosting your ERP |
+| **Solutions plane** | Catalog, install/upgrade, managed app lifecycle, capability sync, portal UI render | Per-tenant forks of packages |
 | **Channels** | Widget, WhatsApp, Internal Portal, chat API | Defining flow graphs |
-| **Backend SDK** | Your tools and optional Customer Provider over signed webhooks | Emitting platform-wide events without the bus |
+| **SDK apps** (`/qefro`) | Domain tools, `ctx.storage`, Hub/marketing/org registrations | Platform campaign delivery / RBAC |
+| **Backend SDK Connection** | Your tools over signed webhooks (Business Tools path) | Emitting platform-wide events without the bus |
 | **Connectors** | Normalize external webhooks → Qefro event envelopes (+ optional tool packs) | Owning FlowRunner or long-running workflows |
 | **REST / OpenAPI tools** | Call APIs with credentials stored encrypted in Qefro | Arbitrary code execution in Qefro |
+
+## Solutions plane
+
+Installable apps are a first-class plane next to assistants and Business Tools:
+
+```mermaid
+flowchart LR
+  Dev[App builder] -->|qefro create-app / publish| Cat[Catalog]
+  Cat --> SS[solution-service]
+  Ops[Admin] -->|Marketplace install| SS
+  SS -->|managed image or endpoint| App[/qefro process]
+  Portal[Portal renderer] -->|manifest UI| SS
+  Runtime[Runtime tool invoker] -->|appId/tool| App
+  App -->|capabilities.list| Reg[Marketing / org / Hub registries]
+```
+
+| Piece | Role |
+| --- | --- |
+| **solution-service** | Package catalog, installations, settings, capability sync, onboarding |
+| **Managed app** | Docker (or external) process exposing signed `/qefro`; ADR-003: the process **is** the app |
+| **Marketplace** | Tenant-facing install / upgrade UX over the shared catalog |
+| **Portal renderer** | Declarative `ui/*` from the package → staff pages under `/app/solutions/…` |
+| **Capability registries** | Apps declare marketing audiences, org workflow caps, etc.; platform owns execution |
+
+Deep dive: [Solutions architecture](/docs/solutions/architecture), [Managed apps](/docs/solutions/managed-apps), [Build your first app](/docs/solutions/build-your-first-app).
+
+**SDK Connection vs SDK app:** a Backend SDK **webhook** is a Business Tool connection to your backend. An **SDK app** is an installable Marketplace package with its own `/qefro`. See [Core concepts](/docs/introduction/concepts).
 
 ## Execution paths (same engine)
 
@@ -96,14 +125,17 @@ Organization (tenant)
   └── Teams + RBAC (Owner / Admin / Member)
         └── AI Workspaces
               ├── Knowledge (indexed documents)
-              ├── Business Tools
+              ├── Marketplace app installations (/qefro)
+              ├── Business Tools (REST / OpenAPI / SDK Connection)
               ├── Business Flows (versioned)
+              ├── Customer Hub bindings (People)
               ├── Conversations + messages
               └── Channel bindings (widget, WhatsApp, …)
 ```
 
 - Knowledge and conversations are **workspace-scoped**.
-- Secrets for REST tools are **encrypted at rest**; SDK secrets sign webhooks to **your** origin.
+- Installable apps are **catalog packages** installed per workspace (settings overlay).
+- Secrets for REST tools are **encrypted at rest**; SDK secrets sign webhooks to **your** origin or the managed app.
 - Audit and tool invocation logs support support and compliance workflows.
 
 ## Control vs data plane
@@ -131,7 +163,7 @@ Deep links: [Identity & authentication](/docs/platform/identity-and-authenticati
 | A general visual automation canvas (n8n-class) | Flows are **AI + business process** graphs with RAG, channels, and approvals — not arbitrary ETL |
 | A low-level agent graph library (LangGraph-class) | You get a **productized Runtime** and Admin Console, not a framework you host and invent UX for |
 | A full human contact-center inbox | Human handoff exists; deep agent desktop is not the core product |
-| A replacement CRM / ERP | Qefro **calls** systems of record via tools |
+| A replacement CRM / ERP | Qefro **calls** systems of record via tools and hosts **domain apps** that use Customer Hub + managed storage — not a full CRM replacement |
 
 Comparisons: [Qefro vs n8n](/docs/compare/n8n-vs-qefro), [Qefro vs LangGraph](/docs/compare/langgraph-vs-qefro).
 
@@ -145,11 +177,11 @@ Comparisons: [Qefro vs n8n](/docs/compare/n8n-vs-qefro), [Qefro vs LangGraph](/d
 <WorkflowCard
   title="First week architecture checklist"
   steps={[
-    {title: 'Draw the tenant tree', description: 'Org → workspace → knowledge/tools/flows/channels.'},
-    {title: 'Trace one chat tool call', description: 'Widget → API → model → tool.invoke → your SDK → response.'},
+    {title: 'Draw the tenant tree', description: 'Org → workspace → knowledge/tools/apps/channels.'},
+    {title: 'Trace one chat tool call', description: 'Widget → API → model → tool.invoke → SDK app or Connection → response.'},
+    {title: 'Trace one Marketplace install', description: 'Publish → catalog → install → /qefro healthy → staff UI.'},
     {title: 'Trace one event flow', description: 'Connector emit → bus → FlowRunner → steps → complete.'},
-    {title: 'Find approval + challenge', description: 'waiting_for_approval and challenge/resume paths.'},
-    {title: 'Read security boundaries', description: 'What never leaves your VPC (SDK handlers).'},
+    {title: 'Read security boundaries', description: 'What never leaves your VPC (SDK Connection handlers) vs managed apps.'},
   ]}
 />
 
@@ -158,9 +190,10 @@ Comparisons: [Qefro vs n8n](/docs/compare/n8n-vs-qefro), [Qefro vs LangGraph](/d
 <RelatedTopics
   topics={[
     {label: 'Introduction architecture', to: '/docs/introduction/architecture'},
+    {label: 'Solutions architecture', to: '/docs/solutions/architecture'},
+    {label: 'Build your first app', to: '/docs/solutions/build-your-first-app'},
     {label: 'Runtime', to: '/docs/developer/concepts/runtime'},
     {label: 'Events', to: '/docs/developer/concepts/events'},
-    {label: 'Sessions', to: '/docs/developer/concepts/sessions'},
     {label: 'vs n8n', to: '/docs/compare/n8n-vs-qefro'},
     {label: 'vs LangGraph', to: '/docs/compare/langgraph-vs-qefro'},
     {label: 'Multi-tenant architecture', to: '/docs/concepts/multi-tenant-ai-architecture'},

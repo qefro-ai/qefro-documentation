@@ -18,9 +18,10 @@ publish and install it. Three reference verticals prove the same SDK surface:
 
 | Example | Domain |
 |---------|--------|
-| [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | Reservations / hospitality |
-| Clinic Pro (`docs/examples/clinic-pro`) | Doctors / healthcare |
-| Salon Pro (`docs/examples/salon-pro`) | Stylists / beauty |
+| [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | Reservations / hospitality (**1.10.3**) |
+| [`clinic-pro`](/docs/solutions/examples/clinic-pro) | Doctors / healthcare |
+| [`salon-pro`](/docs/solutions/examples/salon-pro) | Stylists / beauty |
+| [`marketing-lab`](/docs/solutions/examples/marketing-lab) | Marketing registration smoke app |
 
 This guide walks the full loop: scaffold → build/sign → publish → install →
 open the portal UI.

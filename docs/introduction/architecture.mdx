@@ -1,6 +1,6 @@
 ---
 title: "Architecture"
-description: "How Qefro layers Admin Console, Runtime, channels, Backend SDK, and connectors — one orchestration engine."
+description: "Short pointer to the full Qefro architecture overview — Admin Console, Runtime, solutions plane, channels, and tools."
 sidebar_label: "Architecture"
 ---
 
@@ -8,68 +8,61 @@ import { InfoBox, RelatedTopics } from '@site/src/components';
 
 # Architecture
 
-Qefro separates **configuration** (Admin Console), **execution** (Runtime / FlowRunner), **channels** (widget, WhatsApp, API), and **your systems** (Backend SDK + connectors).
+This page is a short entry point. The canonical deep dive is
+**[Qefro architecture](/docs/architecture/overview)** (including the
+**solutions plane**: solution-service, managed apps, Marketplace, portal
+renderer, and capability registries).
 
 ```mermaid
 flowchart TB
   subgraph Config[Admin Console]
     WS[AI Workspaces]
+    Mkt[Marketplace installs]
     KB[Knowledge]
     Tools[Business Tools]
-    Flows[Business Flows]
   end
 
   subgraph Runtime[Qefro Runtime]
     RAG[Hybrid RAG]
     FR[FlowRunner]
-    Bus[Event bus]
+    Inv[Tool invoker]
+  end
+
+  subgraph Apps[Solutions plane]
+    SS[solution-service]
+    App[/qefro SDK apps]
   end
 
   subgraph Channels[Channels]
     Widget[Website widget]
     WA[WhatsApp]
-    API[Chat / REST API]
-  end
-
-  subgraph External[Your stack]
-    SDK[Backend SDK webhook]
-    Conn[Connectors emit events]
-    REST[REST / OpenAPI APIs]
+    Portal[Internal Portal]
   end
 
   WS --> Runtime
+  Mkt --> SS
+  SS --> App
   KB --> RAG
-  Tools --> FR
-  Flows --> FR
-  Bus --> FR
+  Tools --> Inv
   Channels --> Runtime
-  FR -->|tool.invoke| SDK
-  FR --> REST
-  Conn -->|emit| Bus
+  FR --> Inv
+  Inv --> App
+  Inv -->|REST / OpenAPI / SDK Connection| Ext[Your APIs]
 ```
 
-## Core principles
-
-1. **Single runtime** — Conversation intent, events, webhooks, and schedules all start Business Flows in **FlowRunner**. There is no second orchestrator inside connectors.
-2. **Workspace isolation** — Knowledge, tools, and conversations are scoped to an AI Workspace inside an organization (tenant).
-3. **Tools live with you** — REST/OpenAPI credentials are encrypted in Qefro; Backend SDK handlers run in **your** backend over a signed webhook.
-4. **Events are triggers only** — Connectors `emit()` namespaced envelopes; the bus validates, queues, and dispatches. See [Events](/docs/developer/concepts/events).
-
-## Multi-tenant model
-
-Organization → Teams / RBAC → AI Workspaces → Channels bound to workspaces.
-
-Deep dive: [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture).
+<InfoBox>
+**Two tool paths:** Business Tools (REST/OpenAPI or Backend SDK **webhook**) vs
+installable **SDK apps** (managed `/qefro`). See [Core concepts](/docs/introduction/concepts).
+</InfoBox>
 
 ## Related topics
 
 <RelatedTopics
   topics={[
-    {label: 'Full architecture (deep dive)', to: '/docs/architecture/overview'},
+    {label: 'Full architecture overview', to: '/docs/architecture/overview'},
+    {label: 'Solutions architecture', to: '/docs/solutions/architecture'},
     {label: 'vs n8n', to: '/docs/compare/n8n-vs-qefro'},
     {label: 'vs LangGraph', to: '/docs/compare/langgraph-vs-qefro'},
-    {label: 'Runtime', to: '/docs/developer/concepts/runtime'},
-    {label: 'Events', to: '/docs/developer/concepts/events'},
-    {label: 'Deployment', to: '/docs/platform/deployment'},
+    {label: 'Core concepts', to: '/docs/introduction/concepts'},
   ]}
 />

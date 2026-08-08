@@ -6,7 +6,7 @@ const siteUrl = 'https://docs.qefro.com';
 
 const config: Config = {
   title: 'Qefro Docs',
-  tagline: 'Build AI Workspaces for Your Organization',
+  tagline: 'AI Workspaces and installable SDK apps for your organization',
   favicon: 'img/favicon.ico',
 
   url: siteUrl,
@@ -101,7 +101,7 @@ const config: Config = {
       {
         name: 'description',
         content:
-          'Official Qefro documentation for AI Workspaces, Customer AI, Employee AI, Knowledge Platform, Business Actions, and secure deployment.',
+          'Official Qefro documentation for AI Workspaces, installable SDK apps, Marketplace, Customer Hub (People), Marketing, Organization workflows, and Business Tools.',
       },
       {name: 'twitter:card', content: 'summary_large_image'},
       {name: 'twitter:site', content: '@qefro'},
@@ -136,23 +136,18 @@ const config: Config = {
           items: [
             {
               type: 'docSidebar',
-              sidebarId: 'userSidebar',
-              label: 'User Guide',
+              sidebarId: 'startSidebar',
+              label: 'Start',
             },
             {
               type: 'docSidebar',
-              sidebarId: 'developerSidebar',
-              label: 'Developer Guide',
+              sidebarId: 'buildAppsSidebar',
+              label: 'Build apps',
             },
             {
               type: 'docSidebar',
-              sidebarId: 'integrationsSidebar',
-              label: 'Integrations',
-            },
-            {
-              type: 'docSidebar',
-              sidebarId: 'solutionsSidebar',
-              label: 'Solutions',
+              sidebarId: 'operateSidebar',
+              label: 'Operate',
             },
             {
               type: 'docSidebar',
@@ -182,12 +177,11 @@ const config: Config = {
         {
           title: 'Documentation',
           items: [
-            {label: 'Getting Started', to: '/docs/user/getting-started'},
-            {label: 'User Guide', to: '/docs/user/how-to/create-ai-agent'},
-            {label: 'Developer Guide', to: '/docs/developer/quick-start'},
+            {label: 'Start', to: '/docs/introduction/overview'},
+            {label: 'Build apps', to: '/docs/solutions/build-your-first-app'},
+            {label: 'Operate', to: '/docs/user/getting-started'},
+            {label: 'Marketplace', to: '/docs/solutions/marketplace'},
             {label: 'Architecture', to: '/docs/architecture/overview'},
-            {label: 'Integrations', to: '/docs/integrations/overview'},
-            {label: 'Solutions', to: '/docs/solutions/overview'},
             {label: 'Reference', to: '/docs/reference/overview'},
           ],
         },
@@ -216,8 +210,8 @@ const config: Config = {
           title: 'Developers',
           items: [
             {label: 'GitHub', href: 'https://github.com/qefro-ai'},
+            {label: 'Build your first app', to: '/docs/solutions/build-your-first-app'},
             {label: 'REST APIs', to: '/docs/api/rest-apis'},
-            {label: 'Events', to: '/docs/developer/concepts/events'},
             {label: 'SDKs', to: '/docs/developer/sdk/javascript'},
             {label: 'llms.txt', href: 'https://docs.qefro.com/llms.txt'},
           ],
@@ -308,7 +302,7 @@ const config: Config = {
         operatingSystem: 'Web',
         url: 'https://qefro.com',
         description:
-          'AI Workspace Platform for Customer AI, Employee AI, and Business Actions.',
+          'AI Workspace Platform for Customer AI, Employee AI, installable SDK apps, and secure Business Actions.',
         offers: {
           '@type': 'Offer',
           price: '0',

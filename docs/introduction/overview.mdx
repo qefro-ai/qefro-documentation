@@ -1,6 +1,6 @@
 ---
 title: "What is Qefro?"
-description: "Qefro is an AI Workspace platform — configure knowledge, tools, and flows once, then deploy Customer AI and Employee AI across channels."
+description: "Qefro is an AI Workspace platform with Customer/Employee assistants, installable SDK apps via Marketplace, and secure Business Tools."
 sidebar_label: "Overview"
 ---
 
@@ -8,30 +8,39 @@ import { InfoBox, RelatedTopics, FeatureCard, FeatureCardGrid } from '@site/src/
 
 # What is Qefro?
 
-Qefro is an **AI Workspace platform** for organizations. You configure knowledge, Business Tools, and Business Flows in one place, then deploy:
+Qefro is an **AI Workspace platform** for organizations. You configure knowledge,
+permissions, and tools once, then ship three product surfaces:
 
-- **Customer AI** — website widget and WhatsApp, grounded in your knowledge with citations
-- **Employee AI** — branded Internal Portal for internal teams with RBAC
+- **Assistants** — **Customer AI** (website widget, WhatsApp) and **Employee AI**
+  (branded Internal Portal), grounded in workspace knowledge with citations
+- **Installable SDK apps** — domain software built with `qefro create-app`,
+  published to **Marketplace**, installed per workspace; the managed `/qefro`
+  process **is** the application
+- **Secure actions** — **Business Tools** (REST / OpenAPI / Backend SDK webhook)
+  and app tools, with identity forwarding, approvals, and audit logs
 
-Assistants do more than answer questions: they can run **Business Actions** (secure tool calls into your systems) and **Business Flows** (orchestrated multi-step processes with approvals, delays, and challenges).
+Assistants answer questions and run **Business Actions**. Apps own vertical logic
+(reservations, appointments, marketing registrations) while the platform owns
+Customer Hub (People), campaigns, and organization workflows.
 
 <InfoBox>
-**Configure once. Deploy everywhere.** Workspaces isolate knowledge and tools per team (Support, HR, IT). Events, chat, and schedules all enter the same Runtime.
+**Configure once. Deploy everywhere.** Workspaces isolate knowledge and tools.
+Install apps from Marketplace without forking per tenant. Events, chat, and
+schedules enter the same Runtime.
 </InfoBox>
 
 ## Who this documentation is for
 
 | Audience | Focus | Start here |
 | --- | --- | --- |
-| Operators & admins | **What** to do | [Getting Started](/docs/user/getting-started) · [How to](/docs/user/how-to/create-ai-agent) |
-| Backend engineers | **How** Qefro works | [Developer Guide](/docs/developer/quick-start) |
-| Integrators | Connect systems | [Integrations](/docs/integrations/overview) |
-| Solution architects | Business outcomes | [Solutions](/docs/solutions/overview) |
-| Spec lookup | Exact APIs & schemas | [Reference](/docs/reference/overview) |
+| Operators & admins | Run workspaces, install apps, People | [Operate → Getting started](/docs/user/getting-started) |
+| App builders | Ship installable SDK packages | [Build apps → First app](/docs/solutions/build-your-first-app) |
+| Integrators | Connect REST / OpenAPI / connectors | [Build apps → Connect systems](/docs/business-tools) |
+| Spec lookup | APIs, schemas, security | [Reference](/docs/reference/overview) |
 
-**Most-asked orientation pages**
+**Orientation**
 
-- [Qefro architecture](/docs/architecture/overview)
+- [Architecture](/docs/architecture/overview)
 - [How Qefro differs from n8n](/docs/compare/n8n-vs-qefro)
 - [How Qefro differs from LangGraph](/docs/compare/langgraph-vs-qefro)
 
@@ -39,10 +48,10 @@ Assistants do more than answer questions: they can run **Business Actions** (sec
 
 <FeatureCardGrid>
   <FeatureCard title="AI Workspaces" description="Isolated knowledge, tools, and conversations per team." href="/docs/concepts/what-is-an-ai-workspace" />
+  <FeatureCard title="Installable SDK apps" description="create-app → publish → Marketplace install." href="/docs/solutions/build-your-first-app" />
+  <FeatureCard title="Customer Hub (People)" description="Shared people identity across channels and apps." href="/docs/user/people/overview" />
   <FeatureCard title="Knowledge Platform" description="Hybrid RAG, OCR, citations, workspace isolation." href="/docs/platform/knowledge-platform" />
-  <FeatureCard title="Business Tools & Flows" description="REST, OpenAPI, Backend SDK — plus FlowRunner orchestration." href="/docs/business-tools" />
-  <FeatureCard title="Event-driven Runtime" description="Connectors emit events; the same FlowRunner executes." href="/docs/developer/concepts/events" />
-  <FeatureCard title="Channels" description="Website widget, WhatsApp, API." href="/docs/user/channels/overview" />
+  <FeatureCard title="Business Tools & Flows" description="REST, OpenAPI, Backend SDK — plus FlowRunner." href="/docs/business-tools" />
   <FeatureCard title="Security & RBAC" description="Tenant isolation, teams, identity, audit logs." href="/docs/security/overview" />
 </FeatureCardGrid>
 
@@ -50,11 +59,11 @@ Assistants do more than answer questions: they can run **Business Actions** (sec
 
 <RelatedTopics
   topics={[
-    {label: 'Qefro architecture', to: '/docs/architecture/overview'},
+    {label: 'Architecture', to: '/docs/architecture/overview'},
+    {label: 'Core concepts', to: '/docs/introduction/concepts'},
+    {label: 'Build your first app', to: '/docs/solutions/build-your-first-app'},
+    {label: 'Operate getting started', to: '/docs/user/getting-started'},
     {label: 'vs n8n', to: '/docs/compare/n8n-vs-qefro'},
     {label: 'vs LangGraph', to: '/docs/compare/langgraph-vs-qefro'},
-    {label: 'Core concepts', to: '/docs/introduction/concepts'},
-    {label: 'User getting started', to: '/docs/user/getting-started'},
-    {label: 'Developer quick start', to: '/docs/developer/quick-start'},
   ]}
 />

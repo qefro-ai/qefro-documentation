@@ -1,6 +1,6 @@
 ---
 title: "Core Concepts"
-description: "Map of Qefro concepts for operators and developers — workspaces, knowledge, tools, flows, events, channels."
+description: "Map of Qefro concepts — workspaces, SDK apps vs SDK Connections, Customer Hub, Marketing, Organization, tools, and channels."
 sidebar_label: "Concepts"
 ---
 
@@ -8,21 +8,50 @@ import { RelatedTopics } from '@site/src/components';
 
 # Core Concepts
 
-Start with the conceptual pillars, then jump into User or Developer guides for how-to steps.
+Start with the conceptual pillars, then jump into **Operate** or **Build apps**
+for how-to steps.
+
+## Assistants & tenancy
 
 | Concept | Summary | Read more |
 | --- | --- | --- |
 | AI Workspace | Isolation unit for knowledge, tools, conversations | [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
 | Customer AI vs Employee AI | External channels vs Internal Portal | [Customer vs Employee](/docs/concepts/customer-ai-vs-employee-ai) |
 | Knowledge / Hybrid RAG | Grounded answers with citations | [Hybrid RAG](/docs/concepts/hybrid-rag) |
+| RBAC | Owner / Admin / Member + teams | [RBAC](/docs/platform/rbac) |
+
+## Two different “SDK” stories
+
+Do not confuse these:
+
+| Concept | What it is | Read more |
+| --- | --- | --- |
+| **SDK Connection** (Business Tools) | Signed webhook to **your** backend; tools registered as Business Tools | [Backend SDK](/docs/business-tools/backend-sdk) |
+| **SDK app** (installable) | Managed `/qefro` package from Marketplace; the process **is** the app | [Managed apps](/docs/solutions/managed-apps) · [Build your first app](/docs/solutions/build-your-first-app) |
+
+Canonical entry for shipping apps: [Build your first app](/docs/solutions/build-your-first-app)
+(`warehouse-pro` is the **scaffold id**; vertical examples like `restaurant-pro`
+are reference packages).
+
+## Platform capabilities used by apps
+
+| Concept | Summary | Read more |
+| --- | --- | --- |
+| Customer Hub / People | Shared people identity; portal nav **People**; `ctx.customer` | [People](/docs/user/people/overview) · [Customer Hub](/docs/solutions/customer-hub) |
+| Marketing | Apps register audiences/variables; platform owns send | [Marketing](/docs/solutions/marketing) |
+| Organization workflows | Opaque capabilities + Internal Inbox tasks | [Organization workflows](/docs/solutions/organization-workflows) |
+| Managed storage | `ctx.storage` → storage-service / Mongo | [Managed storage](/docs/solutions/managed-storage) |
+| Marketplace | Publish signed packages; tenants install/upgrade | [Marketplace](/docs/solutions/marketplace) |
+
+## Actions & runtime
+
+| Concept | Summary | Read more |
+| --- | --- | --- |
 | Business Tool / Action | Secure call into your systems | [Business Actions](/docs/concepts/business-actions) |
 | Business Flow | Declarative multi-step orchestration | [Define flows](/docs/guides/define-business-flows) |
-| Flow trigger | Conversation, event, schedule, or webhook entry | [Event-driven triggers](/docs/guides/event-driven-triggers) |
 | Runtime / FlowRunner | Single execution engine | [Runtime](/docs/developer/concepts/runtime) |
 | Orchestration event | Namespaced bus envelope | [Events](/docs/developer/concepts/events) |
 | Session | Channel + conversation context | [Sessions](/docs/developer/concepts/sessions) |
-| SDK Connection | Signed webhook to your backend | [Backend SDK](/docs/business-tools/backend-sdk) |
-| RBAC | Owner / Admin / Member + teams | [RBAC](/docs/platform/rbac) |
 | vs n8n / LangGraph | Product boundaries | [n8n](/docs/compare/n8n-vs-qefro) · [LangGraph](/docs/compare/langgraph-vs-qefro) |
 
 Full term list: [Glossary](/docs/glossary).
@@ -32,6 +61,7 @@ Full term list: [Glossary](/docs/glossary).
 <RelatedTopics
   topics={[
     {label: 'Overview', to: '/docs/introduction/overview'},
+    {label: 'Architecture', to: '/docs/architecture/overview'},
     {label: 'Glossary', to: '/docs/glossary'},
     {label: 'AI Agent Security', to: '/docs/concepts/ai-agent-security'},
   ]}
