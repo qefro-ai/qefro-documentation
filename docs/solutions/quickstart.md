@@ -6,6 +6,13 @@ sidebar_label: "Quickstart"
 
 # Quickstart
 
+:::tip Prefer the full walkthrough
+For the unassisted path (`create-app` → publish → install → works), use
+**[Build your first app](/docs/solutions/build-your-first-app)** (`warehouse-pro`
+example). This page is a shorter loop for people who already have publish
+credentials.
+:::
+
 Scaffold a working booking app in minutes with `qefro create-app`, then
 publish and install it. Three reference verticals prove the same SDK surface:
 
@@ -30,9 +37,10 @@ open the portal UI.
   or external URL). See [Managed apps](/docs/solutions/managed-apps) and
   [Managed storage](/docs/solutions/managed-storage).
 
-:::note
-Publishing is an admin action. Tenants can always *install* published
-solutions; only publishers with registry credentials can *publish*.
+:::danger Platform admin only
+Publishing is restricted to **platform admins** (`QEFRO_PLATFORM_ADMIN_IDS`).
+Tenant and workspace admins can *install* published solutions; they cannot
+*publish* or *yank* catalog versions. See [Publishing](/docs/solutions/publishing).
 :::
 
 ## Step 1 — Scaffold the package

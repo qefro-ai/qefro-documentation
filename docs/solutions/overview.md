@@ -18,6 +18,9 @@ present. Solution-owned documents persist via
 [managed storage](/docs/solutions/managed-storage) **from inside the SDK**
 (`ctx.storage`). External systems of record stay behind pool connectors.
 
+**Start here:** [Build your first app](/docs/solutions/build-your-first-app)
+(`qefro create-app warehouse-pro` → publish → install).
+
 :::danger Deprecated
 YAML-only packages that call `storage/*` from workflows or UI sources are
 incorrect. See [Managed apps](/docs/solutions/managed-apps).
@@ -96,7 +99,7 @@ flowchart TB
 | Stage | Responsibility | Details |
 | --- | --- | --- |
 | Solution package | Required `src/` SDK + optional UI/workflows/connectors | [Package structure](#package-structure) |
-| Registry | Signed global catalog, version lifecycle | [Publishing](/docs/solutions/publishing) |
+| Registry | Signed global catalog (platform-admin publish only) | [Publishing](/docs/solutions/publishing) |
 | Installer | Activation, capabilities, installation binding | [Installation](/docs/solutions/installation) |
 | Runtime | Executes workflows, serves runtime data sources | [Workflows](/docs/solutions/workflows) |
 | SDK app | Domain tools on `/qefro` | [Managed apps](/docs/solutions/managed-apps) |
@@ -108,6 +111,7 @@ The full architecture is covered in [Architecture](/docs/solutions/architecture)
 
 ## Package structure
 
+Prefer `qefro create-app <id>` — see [App scaffold](/docs/solutions/scaffold).
 Every solution is a directory with this layout:
 
 ```text

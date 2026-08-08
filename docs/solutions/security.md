@@ -57,7 +57,8 @@ flowchart TB
    surprised by content drift. See [Publishing](/docs/solutions/publishing).
 3. **Publisher attribution.** Packages carry `publisher_id` and
    `signature_kid`, so every installed version traces to a publisher and
-   a verification key.
+   a verification key. Catalog writes (publish / yank) are restricted to
+   **platform admins** (`QEFRO_PLATFORM_ADMIN_IDS`).
 
 ## Tenant isolation
 

@@ -84,7 +84,9 @@ The CLI loads a signing key from one of:
 | Keys file | `QEFRO_KEYS_FILE` pointing to a file containing `REGISTRY_PRIVATE_KEY=<hex>` |
 
 The publisher identity is taken from `QEFRO_PUBLISHER_ID` (defaults to
-the built-in publisher).
+the built-in publisher UUID). That id **must** be listed in solution-service
+`QEFRO_PLATFORM_ADMIN_IDS` — only platform admins can publish. See
+[Publishing](/docs/solutions/publishing).
 
 :::warning
 The signing key is the root of trust for everything you publish. Keep it

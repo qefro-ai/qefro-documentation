@@ -10,6 +10,24 @@ An installable solution is an **SDK application** plus optional declarative
 UI/workflows. The platform validates, stores, installs, routes tools,
 persists documents, and renders the staff UI — it never owns domain rules.
 
+## Tenant → workspace → app
+
+```text
+Tenant
+  └── Workspace
+        ├── Channels (WhatsApp, …)     # owned by workspace
+        └── One primary application    # install of a published package
+```
+
+- **Catalog** (global): signed packages published by **platform admins only**.
+- **Install** (per workspace): tenant admins activate a published version,
+  configure settings, and bind the install’s `/qefro` endpoint.
+- **Channels**: WhatsApp (and similar) bind to the **workspace**, not to
+  package settings. Booking links get `?n=` from that binding.
+
+Scaffolding a new app: [App scaffold](/docs/solutions/scaffold).
+Publishing into the catalog: [Publishing](/docs/solutions/publishing).
+
 ## SDK application (ADR-003)
 
 ```text
@@ -72,6 +90,10 @@ flowchart TB
 The registry is the **global catalog** of published solutions and
 connectors. It is not tenant-scoped: every tenant resolves against the same
 signed catalog.
+
+**Who can write:** only **platform admins** (UUIDs in
+`QEFRO_PLATFORM_ADMIN_IDS` on solution-service). Tenant / workspace admins
+install from the catalog; they cannot publish or yank versions.
 
 Responsibilities:
 
@@ -235,6 +257,7 @@ flowchart LR
 
 ## Related topics
 
+- [App scaffold](/docs/solutions/scaffold)
 - [Solution Development overview](/docs/solutions/overview)
 - [Installation](/docs/solutions/installation)
 - [Security model](/docs/solutions/security)
