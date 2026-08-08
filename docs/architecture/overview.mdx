@@ -88,7 +88,7 @@ flowchart LR
   Dev[App builder] -->|qefro create-app / publish| Cat[Catalog]
   Cat --> SS[solution-service]
   Ops[Admin] -->|Marketplace install| SS
-  SS -->|managed image or endpoint| App[/qefro process]
+  SS -->|managed image or endpoint| App["/qefro process"]
   Portal[Portal renderer] -->|manifest UI| SS
   Runtime[Runtime tool invoker] -->|appId/tool| App
   App -->|capabilities.list| Reg[Marketing / org / Hub registries]
