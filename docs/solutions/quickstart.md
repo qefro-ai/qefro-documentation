@@ -6,10 +6,17 @@ sidebar_label: "Quickstart"
 
 # Quickstart
 
-This guide walks the full loop with the canonical
-[`restaurant-pro`](/docs/solutions/examples/restaurant-pro) solution:
-scaffold the **SDK app** + optional UI/workflows, build and sign, publish,
-install into a tenant, and open the rendered UI in the portal.
+Scaffold a working booking app in minutes with `qefro create-app`, then
+publish and install it. Three reference verticals prove the same SDK surface:
+
+| Example | Domain |
+|---------|--------|
+| [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | Reservations / hospitality |
+| Clinic Pro (`docs/examples/clinic-pro`) | Doctors / healthcare |
+| Salon Pro (`docs/examples/salon-pro`) | Stylists / beauty |
+
+This guide walks the full loop: scaffold → build/sign → publish → install →
+open the portal UI.
 
 ## Prerequisites
 
@@ -30,24 +37,30 @@ solutions; only publishers with registry credentials can *publish*.
 
 ## Step 1 — Scaffold the package
 
-Prefer the CLI (ensures `src/` + Dockerfile):
+Prefer the CLI (full booking starter with storage, Hub, marketing, booking
+bridge, onboarding, and dashboard UI):
 
 ```bash
-qefro create-app restaurant-pro
-cd restaurant-pro
+qefro create-app salon-pro
+cd salon-pro
+npm install && npm run dev
 ```
 
-Or mirror the reference layout:
+Hello-only stub (tiny experiments): `qefro create-app my-app --minimal`.
+
+Generated layout:
 
 ```text
-restaurant-pro/
+salon-pro/
 ├── manifest.yaml
-├── src/                 # required SDK app
+├── src/                 # required SDK app (/qefro)
 ├── package.json
 ├── Dockerfile
 ├── assets/
 ├── workflows/
 ├── prompts/
+├── booking/             # static WhatsApp bridge (?n= from workspace channel)
+├── onboarding/
 └── ui/
     ├── theme.yaml
     ├── navigation.yaml
@@ -56,6 +69,9 @@ restaurant-pro/
     ├── widgets.yaml
     └── sources.yaml
 ```
+
+Or study a polished vertical: Restaurant Pro, Clinic Pro, or Salon Pro under
+`qefro-plugin-platform/docs/examples/`.
 
 ## Step 2 — Write the manifest
 
