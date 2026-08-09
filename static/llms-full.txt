@@ -2,7 +2,7 @@
 
 > Complete Markdown export of https://docs.qefro.com for AI systems. Generated from the official Docusaurus sources. Prefer individual pages linked from /llms.txt when context is limited.
 
-Generated: 2026-08-08
+Generated: 2026-08-09
 
 # P0 — Start here
 
@@ -145,7 +145,7 @@ flowchart LR
   Dev[App builder] -->|qefro create-app / publish| Cat[Catalog]
   Cat --> SS[solution-service]
   Ops[Admin] -->|Marketplace install| SS
-  SS -->|managed image or endpoint| App[/qefro process]
+  SS -->|managed image or endpoint| App["/qefro process"]
   Portal[Portal renderer] -->|manifest UI| SS
   Runtime[Runtime tool invoker] -->|appId/tool| App
   App -->|capabilities.list| Reg[Marketing / org / Hub registries]
@@ -1391,6 +1391,7 @@ Source: https://docs.qefro.com/docs/developer/deployment/overview/
 
 - Expose Backend SDK on public HTTPS with stable signing secret
 - Health checks on your webhook
+- **External vs managed app deploy:** [External & managed deploy](/docs/developer/deployment/external-and-managed)
 - Production platform checklist: [Production deployment](/docs/guides/production-deployment)
 - Platform deployment notes: [Deployment](/docs/platform/deployment)
 
