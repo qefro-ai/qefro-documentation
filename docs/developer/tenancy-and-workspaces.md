@@ -65,6 +65,35 @@ Customer / marketing / organization contexts use similar tenant/workspace/instal
 - Scope all writes using `platform.storage.context` (managed) or your own per-tenant credentials (external ERP).
 - Do not call other applications’ tools directly — use Organization workflows across apps.
 
+## Workspace entitlements (`max_workspaces`)
+
+Workspace capacity is a **platform / billing entitlement**, not an application concern.
+
+```text
+Tenant
+  → Plan / subscription
+  → entitlements.max_workspaces
+  → Workspace Service (create check)
+```
+
+| Plan | `max_workspaces` |
+| --- | ---: |
+| Trial | 1 |
+| Starter | 3 |
+| Pro | 10 |
+| Growth | 25 |
+| Enterprise | custom (`workspaces_total` quota) or unlimited |
+
+**Active workspaces** = rows in `workspaces` for the tenant. Hard-deleted workspaces no longer count.
+
+**Create path:** lock tenant row → count workspaces → compare to entitlement → insert (or `workspace_limit_reached`).
+
+**Downgrade:** existing workspaces are kept; `over_limit` is true and new creates are blocked until count ≤ limit or the plan is upgraded.
+
+**Applications must not** implement `restaurant-pro.maxWorkspaces` (or similar). One primary application per workspace remains a separate workspace-level rule.
+
+Portal reads usage from `GET /api/v1/tenant/billing` (`entitlements` / `usage` / `workspace_entitlement`).
+
 ## User / execution context
 
 - `identity` — channel-resolved attributes (phone, email, …)
