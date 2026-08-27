@@ -107,7 +107,7 @@ From `restaurant-pro` / starter templates. Only document fields that exist in th
 | --- | --- | --- |
 | `id` | `restaurant-pro` | Solution id |
 | `name` | `Restaurant Pro` | Display name |
-| `version` | `1.10.5` | Package version |
+| `version` | `1.10.6` | Package version |
 | `hosting` | `managed` | Runtime ownership |
 | `endpoint` | `http://restaurant-pro:8080` | In-cluster base (platform appends `/qefro`) |
 | `description` | … | Catalog copy |
@@ -160,7 +160,7 @@ qefro publish .
 # or: qefro solution publish .
 
 # Tenant install
-qefro solution install restaurant-pro --version 1.10.5
+qefro solution install restaurant-pro --version 1.10.6
 # optional: --settings '{"business_name":"Demo Bistro"}'
 ```
 
