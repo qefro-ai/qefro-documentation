@@ -167,6 +167,40 @@ and is assembled into the tenant bundle at install time. Image references
 must point at files under `assets/` with an allowed extension
 ([Assets](/docs/solutions/assets)).
 
+## Conversation slots (ADR-006)
+
+Apps declare the fields Runtime should harvest from WhatsApp/widget chat.
+Runtime never hardcodes those names.
+
+```yaml
+conversation_slots:
+  - id: guest_name
+    labels: [guest name, guest, name]
+    kind: person_name          # string | integer | date | time | phone | email | document_id | person_name | choice
+    identity: person_name      # optional: person_name | email | phone
+    aliases: [customer_name]
+  - id: check_in
+    labels: [check in, check-in]
+    kind: date
+  - id: room_type
+    labels: [room type, room]
+    kind: choice
+    chip_prefix: room          # chip id `room:deluxe`
+    chip_value: remainder      # remainder | last_segment
+    choices:
+      deluxe: [deluxe, deluxe room]
+```
+
+Chip taps use `{chip_prefix}:{value}` (already the protocol for time/table
+buttons). Typed labels map through `choices`. Confirmation (`yes`) is a
+generic Runtime primitive; *when* to confirm is the app’s
+`match.confirmation.reply_signals` / `required_slots`.
+
+Packages that omit `conversation_slots` still work: Runtime infers slots
+from trigger `required_slots` and chat-tool parameter names (labels = id
+with underscores turned into spaces). Extra labels (`Name:` → `guest_name`)
+need an explicit declaration.
+
 ## Versioning guidance
 
 - **Patch** (`1.0.x`) — copy fixes, theme tweaks, widget option changes.

@@ -162,6 +162,22 @@ A solution never executes workflows itself. Installation *registers*
 definitions; the runtime *owns* execution.
 :::
 
+### Domain boundary (ADR-006)
+
+Runtime is **domain-agnostic**. It executes, routes, persists conversation
+drafts, authorizes, and orchestrates. It does not know what a reservation,
+appointment, guest, table, or visit type is.
+
+| Layer | Owns |
+| --- | --- |
+| App (`src/` + manifest) | Business rules, field names, choice values, when to confirm |
+| SDK / manifest | Generic `conversation_slots`, trigger `reply_signals` / `required_slots` / `identity`, chat `tools[].reply_signals` |
+| Runtime | Extract declared slots, map `{chip_prefix}:{value}` chips, identity OTP, workflow fire on generic “yes” |
+
+A new app (Hotel, Salon, …) plugs in by declaring slots and triggers — no
+Runtime change. The contract is ADR-006
+(`qefro-plugin-platform/docs/adr-006-domain-agnostic-runtime.md`).
+
 ## Managed storage
 
 Solution-owned documents go through the install’s SDK (`ctx.storage`) —
