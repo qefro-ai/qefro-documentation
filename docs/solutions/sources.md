@@ -24,10 +24,12 @@ In YAML there are two `type` values:
   type: runtime
   target: metrics
 
-- id: reservations
+- id: takeaway
   type: connector
-  target: restaurant-pro/restaurant.listReservations
+  target: restaurant-pro/restaurant.listOrders
   params:
+    filter:
+      channel: takeaway
     limit: 50
     sort:
       created_at: -1
@@ -61,7 +63,7 @@ Runtime sources require the `runtime.query` capability (always granted).
 ## Own-app sources (ADR-003)
 
 When `target` is `{solution}/{tool}` and `solution` is **this install**
-(e.g. `restaurant-pro/restaurant.listReservations`), the host:
+(e.g. `restaurant-pro/restaurant.listOrders`), the host:
 
 1. Gates on **`runtime.query`** (not `connector.invoke`).
 2. Resolves the installation binding and calls the app’s signed `/qefro`.
@@ -69,11 +71,12 @@ When `target` is `{solution}/{tool}` and `solution` is **this install**
    `ctx.storage` hits the correct partition.
 
 ```yaml title="own-app source"
-- id: reservations
+- id: takeaway
   type: connector
-  target: restaurant-pro/restaurant.listReservations
+  target: restaurant-pro/restaurant.listOrders
   params:
-    collection: reservations   # only if your tool accepts it
+    filter:
+      channel: takeaway
     limit: 50
 ```
 
@@ -104,26 +107,25 @@ flowchart LR
 
 ```yaml
 # FORBIDDEN — do not ship
-- id: reservations
+- id: orders
   type: connector
   target: storage/find
   params:
-    collection: reservations
+    collection: orders
 ```
 
 Replace with an app list tool. Direct `storage/find` from the UI put
 business shape on the platform path and skipped the SDK process.
 
-## Restaurant Pro source map (1.7.0)
+## Restaurant Pro source map (1.10.7)
 
 | Source | Target | Gate | Feeds |
 | --- | --- | --- | --- |
 | `runtime_metrics` | `metrics` | `runtime.query` | Dashboard metrics |
-| `reservations` | `restaurant-pro/restaurant.listReservations` | `runtime.query` | Reservations table |
 | `orders` | `restaurant-pro/restaurant.listOrders` | `runtime.query` | Orders / kitchen |
 | `takeaway` | `restaurant-pro/restaurant.listOrders` + filter | `runtime.query` | Takeaway list |
+| `takeaway_demand` | `restaurant-pro/restaurant.listTakeawayDemand` | `runtime.query` | Tomorrow’s cook list |
 | `menu` | `restaurant-pro/restaurant.listMenu` | `runtime.query` | Menu |
-| `tables` | `restaurant-pro/restaurant.listTables` | `runtime.query` | Tables |
 | `payments` | `restaurant-pro/restaurant.listPayments` | `runtime.query` | Payments |
 | `customers` | `restaurant-pro/restaurant.listCustomers` | `runtime.query` | CRM |
 

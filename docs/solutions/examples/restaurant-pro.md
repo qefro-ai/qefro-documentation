@@ -1,15 +1,15 @@
 ---
 title: "Example: restaurant-pro"
-description: "The restaurant-pro reference SDK app (1.10.6) — booking bridge, marketing, org caps, /qefro tools, and staff UI."
+description: "The restaurant-pro reference SDK app (1.10.7) — takeaway preorder bridge, marketing, org caps, /qefro tools, and staff UI."
 sidebar_label: "restaurant-pro"
 ---
 
 # Example: restaurant-pro
 
 `restaurant-pro` is the canonical **installable SDK application** for hospitality
-([ADR-003](/docs/solutions/managed-apps)): reservations, takeaway, menu, kitchen,
-floor plan, orders, payments, and a light CRM. Current package version:
-**1.10.6**.
+([ADR-003](/docs/solutions/managed-apps)): takeaway preorder (including day-ahead),
+menu, kitchen demand, orders, payments, and a light CRM. It does **not** take
+dine-in table reservations. Current package version: **1.10.7**.
 
 :::tip Scaffold vs reference
 `warehouse-pro` is the **CLI scaffold id** (`qefro create-app warehouse-pro`).
@@ -32,14 +32,13 @@ for its own domain (`hosting: managed`, `endpoint: http://restaurant-pro:8080`).
 
 | Area | Behavior |
 | --- | --- |
-| Booking bridge | Static form + `booking_form_url`; WhatsApp digits from **workspace channel** (`?n=`) |
-| Time slots | Configurable `service_start` / `service_end` / `slot_interval_minutes` |
-| Marketing | Audiences, Book Table CTA attribution (`campaign_id` / `offer_id`) |
+| Preorder bridge | Static takeaway form + `booking_form_url`; WhatsApp digits from **workspace channel** (`?n=`) |
+| Time slots | Configurable `service_start` / `service_end` / `slot_interval_minutes` for pickup times |
+| Marketing | Audiences, Prebook takeaway CTA attribution (`campaign_id` / `offer_id`) |
 | Organization | Opaque workflow capabilities for Internal Inbox |
-| Pilot hardening (1.10.3) | No hardcoded booking fallback; optional `seed_demo`; `?brand=` |
-| Guest + staff UX (1.10.4) | Dinner sitting chips, party stepper, Tonight dashboard, floor/kitchen polish |
 | Next-day takeaway (1.10.5) | Prebook pickup for tomorrow; kitchen cook list by dish quantity |
 | WhatsApp placeOrder (1.10.6) | Confirming a takeaway prebook creates a real ORD-#### |
+| Takeaway-only (1.10.7) | Table reservations removed; guests and staff only preorder takeaway |
 
 ## Package layout
 
@@ -50,7 +49,7 @@ restaurant-pro/
 ├── package.json
 ├── Dockerfile
 ├── assets/
-├── booking/             # static WhatsApp bridge
+├── booking/             # static WhatsApp takeaway-form bridge
 ├── onboarding/
 ├── workflows/           # optional — tool: restaurant-pro/restaurant.*
 ├── prompts/
@@ -67,9 +66,7 @@ restaurant-pro/
 
 | Logical | Purpose |
 | --- | --- |
-| `reservations` | guest, phone, covers, time, status, marketing attribution |
-| `tables` | name, capacity, floor `x`/`y`, status |
-| `orders` | order number, items, total, status (`channel: takeaway`) |
+| `orders` | order number, items, total, status (`channel: takeaway`, `pickup_date`) |
 | `menu_items` | name, price, category, available |
 | `payments` | amount, method, order_id, status |
 | `customers` | name, phone, email, vip, visits, notes |
@@ -82,7 +79,8 @@ Physical Mongo collections: `restaurant_pro__{logical}`.
 | Page | What you can do |
 | --- | --- |
 | Menu | Add / update dishes (forms → staff workflows → app tools) |
-| Tables | Floor plan + add/update tables |
+| Takeaway | Next-day cook list + staff prebook form |
+| Kitchen | Demand table + ticket stages |
 | Customers | List / VIP filter, upsert, queue offer |
 | Orders | Readable dates, order number, totals |
 | Offers | Platform campaign send + sent/failed counts |
@@ -90,42 +88,40 @@ Physical Mongo collections: `restaurant_pro__{logical}`.
 Portal: `/app/solutions/ui/restaurant-pro/{page}`  
 Subdomain: `https://restaurant-pro.portal.qefro.com/…`
 
-## Brand & booking settings
+## Brand & preorder settings
 
-Installation settings overlay `ui/theme.yaml` and booking behavior:
+Installation settings overlay `ui/theme.yaml` and preorder behavior:
 
 | Key | Type |
 | --- | --- |
 | `business_name` | string |
-| `booking_form_url` | url |
+| `booking_form_url` | url (takeaway form; `/booking` redirects to `preorder.html`) |
 | `service_start` / `service_end` | string (HH:MM) |
 | `slot_interval_minutes` | number |
 | `logo_url` | url |
 | `background_image_url` | url |
 | `primary_color` / `secondary_color` / `accent_color` / `background_color` | color |
-| `reservation_lead_time` | number |
 | `seed_demo` | boolean (optional onboarding seed) |
 
 Configure under **Installed solutions → Configure**. WhatsApp business digits
 come from the **workspace channel**, not install settings.
 
-## Workflow example — book a table
+## Workflow example — takeaway prebook
 
-```yaml title="workflows/reservation.yaml (excerpt)"
-- id: create_reservation
+```yaml title="workflows/takeaway.yaml (excerpt)"
+- id: create_takeaway
   type: tool
-  tool: restaurant-pro/restaurant.createReservation
+  tool: restaurant-pro/restaurant.placeOrder
   params:
-    guest_name: "{{ variables.reservation_input.guest_name }}"
-    phone: "{{ variables.reservation_input.phone }}"
-    email: "{{ variables.reservation_input.email }}"
-    covers: "{{ variables.reservation_input.covers }}"
-    date: "{{ variables.reservation_input.date }}"
-    time: "{{ variables.reservation_input.time }}"
-    channel: "{{ variables.channel }}"
+    channel: takeaway
+    guest_name: "{{ variables.takeaway_input.guest_name }}"
+    phone: "{{ variables.takeaway_input.phone }}"
+    items: "{{ variables.takeaway_input.items }}"
+    pickup_date: "{{ variables.takeaway_input.pickup_date }}"
+    pickup_time: "{{ variables.takeaway_input.pickup_time }}"
 ```
 
-Staff flows (`staff-reservation-create`, `staff-menu-create`, …) call the
+Staff flows (`staff-takeaway-create`, `staff-menu-create`, …) call the
 same app tools so chat and the portal share one document plane.
 
 :::danger Do not use
@@ -135,10 +131,12 @@ same app tools so chat and the portal share one document plane.
 ## ui/sources.yaml (excerpt)
 
 ```yaml title="ui/sources.yaml"
-- id: reservations
+- id: takeaway
   type: connector
-  target: restaurant-pro/restaurant.listReservations
+  target: restaurant-pro/restaurant.listOrders
   params:
+    filter:
+      channel: takeaway
     limit: 50
     sort:
       created_at: -1
@@ -171,7 +169,7 @@ qefro solution build .    # requires src/
 qefro solution publish
 qefro solution install restaurant-pro
 # upgrade: POST /installations/restaurant-pro/upgrade
-#   { "target_version": "1.10.6" }  (+ workspace_id)
+#   { "target_version": "1.10.7" }  (+ workspace_id)
 ```
 
 Source of truth in the platform repo: `docs/examples/restaurant-pro/`.

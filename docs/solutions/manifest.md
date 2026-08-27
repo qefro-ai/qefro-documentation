@@ -21,7 +21,7 @@ name: Restaurant Pro
 version: 1.7.0
 hosting: managed
 endpoint: http://restaurant-pro:8080
-description: Reservations, takeaway, menu, kitchen ops, orders and payments for restaurants
+description: Takeaway preorder, menu, kitchen ops, orders and payments for restaurants
 category: hospitality
 tags:
   - restaurant
@@ -194,7 +194,20 @@ conversation_slots:
 Chip taps use `{chip_prefix}:{value}` (already the protocol for time/table
 buttons). Typed labels map through `choices`. Confirmation (`yes`) is a
 generic Runtime primitive; *when* to confirm is the app’s
-`match.confirmation.reply_signals` / `required_slots`.
+`match.confirmation.reply_signals` / `required_slots`. Runtime may understand
+protocol keys (`conversation_slots`, `required_slots`, `forbidden_slots`,
+`reply_signals`, `confirmation`, `identity_challenge`, `chip_prefix`,
+`chip_value`). Slot `id` values (`guest_name`, `order_id`, `visit_type`, …)
+are opaque app vocabulary — never special-cased, even if common.
+
+Capability / tool output should return a generic result:
+
+```json
+{ "status": "confirmed", "reference": { "type": "opaque", "value": "R-12345" } }
+```
+
+Runtime displays or stores `reference.value` without interpreting prefixes
+like `R-`.
 
 Packages that omit `conversation_slots` still work: Runtime infers slots
 from trigger `required_slots` and chat-tool parameter names (labels = id

@@ -172,7 +172,21 @@ appointment, guest, table, or visit type is.
 | --- | --- |
 | App (`src/` + manifest) | Business rules, field names, choice values, when to confirm |
 | SDK / manifest | Generic `conversation_slots`, trigger `reply_signals` / `required_slots` / `identity`, chat `tools[].reply_signals` |
-| Runtime | Extract declared slots, map `{chip_prefix}:{value}` chips, identity OTP, workflow fire on generic “yes” |
+| Runtime | Extract declared slots, map `{chip_prefix}:{value}` chips, identity OTP, fire the **pending** declared capability on generic “yes” |
+
+**Runtime-owned protocol vocabulary** (Runtime may understand these):
+`conversation_slots`, `required_slots`, `forbidden_slots`, `reply_signals`,
+`confirmation`, `identity_challenge`, `chip_prefix`, `chip_value`.
+
+**App-owned opaque vocabulary** (Runtime must never special-case, even if
+common): `guest_name`, `pickup_date`, `room_type`, `visit_type`, `table_id`,
+`order_id`, …. If it is app-defined, it is opaque. Do not special-case
+`order_id` because it is frequent. Confirmation copy and when to ask Yes stay
+in the app; `yes` detection stays in Runtime.
+
+App/tool output should be a generic `{status, reference:{type:opaque,value}}`.
+Runtime displays/stores `reference.value` without interpreting prefixes such
+as `R-`.
 
 A new app (Hotel, Salon, …) plugs in by declaring slots and triggers — no
 Runtime change. The contract is ADR-006

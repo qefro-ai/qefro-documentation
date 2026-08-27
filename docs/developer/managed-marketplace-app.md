@@ -14,7 +14,7 @@ Reference packages (plugin platform examples):
 
 | Package | Notes |
 | --- | --- |
-| `restaurant-pro` | Reservations, menu, takeaway, marketing + organization metadata, `ctx.storage` |
+| `restaurant-pro` | Takeaway preorder, menu, kitchen, marketing + organization metadata, `ctx.storage` |
 | `clinic-pro` | Appointments / clinical booking pattern |
 | `finance-pro` | Organization approval actions (ADR-005) |
 

@@ -78,7 +78,7 @@ permissions:
 Booking / landing bridges should accept `campaign_id` / `offer_id` (and
 aliases) and round-trip them into the conversation or create payload.
 Restaurant Pro appends a hidden `---` metadata block to the WhatsApp
-message; `createReservation` persists `source=marketing` when present.
+message; `placeOrder` persists `source=marketing` when present.
 
 Always prefer workspace WhatsApp digits via `?n=` from
 `ctx.platform.channels` — never hardcode a restaurant number in shared

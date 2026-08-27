@@ -13,12 +13,12 @@ example). This page is a shorter loop for people who already have publish
 credentials.
 :::
 
-Scaffold a working booking app in minutes with `qefro create-app`, then
+Scaffold a working takeaway app in minutes with `qefro create-app`, then
 publish and install it. Three reference verticals prove the same SDK surface:
 
 | Example | Domain |
 |---------|--------|
-| [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | Reservations / hospitality (**1.10.6**) |
+| [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | Takeaway preorder / hospitality (**1.10.7**) |
 | [`clinic-pro`](/docs/solutions/examples/clinic-pro) | Doctors / healthcare |
 | [`salon-pro`](/docs/solutions/examples/salon-pro) | Stylists / beauty |
 | [`marketing-lab`](/docs/solutions/examples/marketing-lab) | Marketing registration smoke app |
@@ -90,18 +90,18 @@ name: Restaurant Pro
 version: 1.7.0
 hosting: managed
 endpoint: http://restaurant-pro:8080
-description: Reservations, takeaway, menu, kitchen ops, orders and payments for restaurants
+description: Takeaway preorder, menu, kitchen ops, orders and payments for restaurants
 category: hospitality
 tags:
   - restaurant
-  - reservations
+  - takeaway
   - sdk
 connectors: []
 channels:
   - widget
   - whatsapp
 flows:
-  - reservation
+  - takeaway
 permissions:
   - workflow.execute
   - storage.read
@@ -140,16 +140,16 @@ const app = new Qefro({
 });
 
 app.tool(
-  { name: 'restaurant.createReservation', /* … */ },
+  { name: 'restaurant.placeOrder', /* … */ },
   async (ctx) => {
     /* validate then */
-    return ctx.storage.insert('reservations', { /* … */ });
+    return ctx.storage.insert('orders', { /* … */ });
   },
 );
 
 app.tool(
-  { name: 'restaurant.listReservations', /* … */ },
-  async (ctx) => ctx.storage.find('reservations', { limit: 50 }),
+  { name: 'restaurant.listOrders', /* … */ },
+  async (ctx) => ctx.storage.find('orders', { limit: 50 }),
 );
 
 await app.listen({ port: Number(process.env.PORT || 8080) });
@@ -196,24 +196,24 @@ Wire navigation, pages, layouts, and theme as in
 
 Orchestrate only — call the **app** tool:
 
-```yaml title="workflows/reservation.yaml (excerpt)"
-id: reservation
-name: Table reservation
+```yaml title="workflows/takeaway.yaml (excerpt)"
+id: takeaway
+name: Takeaway order
 trigger:
   type: conversation
 steps:
-  - id: collect_details
+  - id: collect_order
     type: ask
-    prompt: reservation-assistant
-    variable: reservation_input
-  - id: create_reservation
+    prompt: takeaway-assistant
+    variable: takeaway_input
+  - id: create_takeaway
     type: tool
-    tool: restaurant-pro/restaurant.createReservation
+    tool: restaurant-pro/restaurant.placeOrder
     params:
-      guest_name: "{{ variables.reservation_input.guest_name }}"
-      covers: "{{ variables.reservation_input.covers }}"
-      date: "{{ variables.reservation_input.date }}"
-      time: "{{ variables.reservation_input.time }}"
+      guest_name: "{{ variables.takeaway_input.guest_name }}"
+      items: "{{ variables.takeaway_input.items }}"
+      pickup_date: "{{ variables.takeaway_input.pickup_date }}"
+      pickup_time: "{{ variables.takeaway_input.pickup_time }}"
   - id: done
     type: complete
 ```

@@ -117,10 +117,9 @@ request. The page itself renders immediately with loading states.
 
 | Page | Layout | Placements |
 | --- | --- | --- |
-| Dashboard | `dashboard-grid` | metric 3 + chart 9 + table 12 |
-| Reservations | `split-grid` | form 5 + calendar 7 |
-| Tables | `split-grid` | map 6 + status 6 |
-| Kitchen | `dashboard-grid` | kanban 12 |
+| Dashboard | `dashboard-grid` | metrics + preorder link + cook list |
+| Takeaway | `split-grid` | demand + staff prebook form |
+| Kitchen | `dashboard-grid` | demand + kanban |
 | Orders | `split-grid` | table 8 + timeline 4 |
 | Payments | `dashboard-grid` | chart 12 |
 | Reports | `split-grid` | chart 8 + markdown 4 |

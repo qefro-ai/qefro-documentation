@@ -18,20 +18,16 @@ Each entry maps a sidebar item to a declared page:
 ```yaml title="ui/navigation.yaml"
 - id: dashboard
   page: dashboard
-  title: Dashboard
+  title: Today
   icon: home
-- id: reservations
-  page: reservations
-  title: Reservations
-  icon: calendar
-- id: tables
-  page: tables
-  title: Tables
-  icon: users
 - id: kitchen
   page: kitchen
   title: Kitchen
   icon: chef-hat
+- id: takeaway
+  page: takeaway
+  title: Takeaway
+  icon: package
 - id: orders
   page: orders
   title: Orders
