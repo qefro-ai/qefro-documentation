@@ -1,11 +1,10 @@
 ---
 title: "Audit Logs"
-description: "Organization audit logs and Business Tool execution logs — how to investigate configuration changes and AI-initiated API calls."
+description: "Organization audit logs, identity audit, and Business Tool execution logs — how to investigate configuration changes, auth challenges, and AI-initiated API calls."
 sidebar_label: "Audit Logs"
 ---
 
 import {
-  InfoBox,
   RelatedTopics,
   FaqAccordion,
   WorkflowCard,
@@ -14,27 +13,56 @@ import {
 
 # Audit Logs
 
-**Audit logs** record security-relevant activity in a Qefro organization. Separately, **tool execution logs** record each Business Action — which tool ran, when, and with what outcome. Together they answer “who changed configuration?” and “what did the assistant call?”
+**Audit logs** record security-relevant activity in a Qefro organization. **Identity audit** records channel identity resolution and Customer Access Service challenges without storing OTP codes or JWTs. **Tool execution logs** record each Business Action — which tool ran, when, and with what outcome.
+
+Together they answer “who changed configuration?”, “how was this customer authenticated?”, and “what did the assistant call?”
 
 ## Short definition (citation-ready)
 
-> Qefro exposes organization audit logs for administrative and security events, and per-tool execution logs for Business Actions, so teams can investigate configuration changes and AI-initiated API traffic.
+> Qefro exposes organization audit logs for administrative events, identity audit for channel/auth decisions (with secrets stripped), and per-tool execution logs for Business Actions, so teams can investigate configuration changes, identity challenges, and AI-initiated API traffic.
 
-## Two log streams
+## Three log streams
 
 | Stream | Answers | Typical consumers |
 | --- | --- | --- |
-| **Org audit logs** | Who invited users, changed RBAC, updated integrations? | Security, Admins |
+| **Org audit logs** | Who invited users, changed RBAC, updated org settings, revoked sessions? | Security, Admins |
+| **Identity audit** | Was identity resolved? Did a challenge start/succeed/fail? Was a tool blocked for auth level? | Security, Support leads |
 | **Tool execution logs** | Which Business Tool ran during chat? Success or error? | Engineering, Support leads |
+
+## Org audit actions (implemented)
+
+These action names are written to `org_audit_logs` (tenant-scoped):
+
+| Action | Typical resource |
+| --- | --- |
+| `create_team` / `update_team` / `delete_team` | Team |
+| `set_team_members` / `set_team_member_write` | Team membership |
+| `set_team_workspaces` / `set_workspace_teams` | Workspace grants |
+| `invite_member` / `accept_invitation` / `revoke_invitation` | Invitation |
+| `remove_member` / `change_member_role` | Member |
+| `suspend_member` / `reactivate_member` | Member status |
+| `transfer_ownership` | Organization |
+| `update_org_settings` | Organization |
+| `revoke_session` | Session |
+
+Entries include actor user id when known, resource type/id, JSON details, and optional client IP / User-Agent from `X-Forwarded-For` / `User-Agent`.
+
+## Identity audit (no secrets)
+
+Identity audit events include `identity_resolved`, `challenge_started`, `verification_success`, `verification_failure`, `session_created`, and `tool_auth_blocked`.
+
+The logger **removes** these keys from detail payloads before persist: `otp`, `code`, `token`, `jwt`, `password`, `secret`, `authorization`. Emails are stored as hints/masks, not as full OTP delivery.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
   Admin[Admin Console actions] --> AL[Org audit logs]
-  Chat[Widget / Portal / WhatsApp] --> BA[Business Action]
+  Chan[Widget / WhatsApp identity] --> IA[Identity audit]
+  Chat[Chat / flows] --> BA[Business Action]
   BA --> TL[Tool execution logs]
   AL --> Review[Security review]
+  IA --> Review
   TL --> Review
 ```
 
@@ -69,8 +97,8 @@ Exact fields evolve with the product; use the Admin Console views during pilots 
   steps={[
     {title: 'Identify the workspace and channel', description: 'Widget, portal, or WhatsApp?'},
     {title: 'Pull tool execution logs', description: 'Confirm time, tool id, and error/success.'},
-    {title: 'Check who configured the tool', description: 'Org audit logs for credential or OpenAPI changes.'},
-    {title: 'Review RBAC', description: 'Could a Member have changed something they should not?'},
+    {title: 'Check identity audit', description: 'Was the caller verified_channel or challenged?'},
+    {title: 'Check who configured the tool', description: 'Org audit logs for credential, RBAC, or SDK UI changes.'},
     {title: 'Contain', description: 'Disable write tools, rotate secrets, split workspaces if needed.'},
   ]}
 />
@@ -79,7 +107,7 @@ Exact fields evolve with the product; use the Admin Console views during pilots 
 
 Qefro logs the action attempt. Your API should still log:
 
-- Authenticated end-user id (from forwarded identity headers)
+- Authenticated end-user id (from forwarded identity headers or your Access Service)
 - Resource ids touched
 - Authorization allow/deny decisions
 
@@ -99,7 +127,7 @@ That dual trail is what incident response needs.
     {
       question: 'Are prompts fully stored in audit logs?',
       answer:
-        'Audit and tool logs focus on administrative and execution metadata. Conversation content is handled in the conversation subsystem — review retention with your security team.',
+        'Audit and tool logs focus on administrative and execution metadata. Conversation content is handled in the conversation subsystem — review retention with your security team. See Data handling.',
     },
     {
       question: 'Can Members read org audit logs?',
@@ -109,7 +137,12 @@ That dual trail is what incident response needs.
     {
       question: 'Do WhatsApp messages appear in tool logs?',
       answer:
-        'Only if a Business Action runs. Channel messages are conversations; tool logs appear when tools execute.',
+        'Only if a Business Action runs. Channel messages are conversations; tool logs appear when tools execute. Identity audit may record verification events for that conversation.',
+    },
+    {
+      question: 'Does identity audit store OTP codes?',
+      answer:
+        'No. OTP, JWT, and password fields are stripped. Qefro forwards challenge replies to your Customer Access Service; your service verifies them.',
     },
   ]}
 />
@@ -119,7 +152,9 @@ That dual trail is what incident response needs.
 <RelatedTopics
   topics={[
     {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'Authentication & access', to: '/docs/security/authentication-and-access'},
     {label: 'Secrets', to: '/docs/security/secrets'},
+    {label: 'Data handling', to: '/docs/security/data-handling'},
     {label: 'Business Actions', to: '/docs/concepts/business-actions'},
     {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
     {label: 'Webhooks', to: '/docs/api/webhooks'},

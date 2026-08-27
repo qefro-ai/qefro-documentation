@@ -1,0 +1,122 @@
+---
+title: "Data handling"
+description: "What Qefro stores vs what stays in your ERP, conversation transcripts, PII masking limits, deletion, and LLM training posture."
+sidebar_label: "Data handling"
+---
+
+import {
+  Warning,
+  RelatedTopics,
+  FaqAccordion,
+  WorkflowCard,
+} from '@site/src/components';
+
+# Data handling
+
+This page is the inventory security and privacy reviewers ask for: **what enters Qefro**, **what stays in your systems**, and **what Qefro does not claim**.
+
+Legal text: [Privacy](https://qefro.com/privacy), [Terms](https://qefro.com/terms). Confirm DPA and subprocessors with Sales.
+
+## Short definition (citation-ready)
+
+> Qefro stores tenant configuration, workspace knowledge, conversation transcripts, and encrypted integration secrets to operate assistants. Your ERP/CRM remains the system of record for business ledgers. Qefro applies limited pattern-based PII masking on chat messages; it is not a DLP product. Product intent is not to train public foundation models on customer content — confirm that in your agreement.
+
+## What Qefro stores (typical SaaS tenant)
+
+| Category | Examples | Isolation |
+| --- | --- | --- |
+| Account | Users, roles, teams, billing entitlements | Tenant |
+| Knowledge | Uploaded docs, website crawls, chunk/vector indexes | Tenant + workspace |
+| Conversations | Widget / WhatsApp / portal messages, citations | Tenant + workspace |
+| Tools & apps | Tool definitions, encrypted secrets, SDK connections, Marketplace installs | Tenant (+ install) |
+| People (Customer Hub) | Channel identities and hub person records when enabled | Tenant |
+| Logs | Org audit, identity audit, tool executions | Tenant |
+
+## What should stay in your systems
+
+- Orders, invoices, inventory, medical records, payroll ledgers
+- Customer passwords, OTP codes, payment card PANs (do not paste them into chat)
+- Privileged admin APIs — expose only least-privilege Business Tools
+
+Tool **responses** may be copied into the conversation the model sees. Design tools so they return the minimum fields required for the answer.
+
+## PII masking (honest scope)
+
+Inbound chat messages are passed through `scrub_pii` before further handling. Today that masks:
+
+- US Social Security Number-like patterns (`123-45-6789`)
+- 13–16 digit sequences that resemble payment cards
+
+<Warning>
+This is **pattern matching**, not comprehensive DLP. Names, emails, phone numbers, national IDs outside that SSN shape, and unstructured secrets are **not** reliably removed. Do not rely on it for PCI, HIPAA, or GDPR minimization. Keep regulated data out of Customer AI workspaces unless counsel has accepted the residual risk.
+</Warning>
+
+Identity audit additionally **drops** keys named `otp`, `code`, `token`, `jwt`, `password`, `secret`, and `authorization` from stored detail JSON.
+
+LLM provider requests may send a **hashed** anonymous end-user id (visitor / WhatsApp contact) — not raw PII — when the provider supports a `user` field (for example DeepSeek rate-limit isolation). Confirm current providers with Sales.
+
+## Models and training
+
+Product intent: customer content powers **that tenant’s** assistants (retrieval, prompts, tool results). It is **not** used to train public foundation models on your corpus.
+
+Confirm the contractual wording in your DPA / order form. Model vendors you enable (directly or via Qefro) have their own data-use terms.
+
+## Retention and deletion
+
+| Action | Effect |
+| --- | --- |
+| Delete a document | Removes the document row and associated vector chunks for that tenant |
+| Delete a conversation | Tenant-scoped conversation delete |
+| Delete a workspace | Workspace and its scoped content (hard-deleted workspaces no longer count toward entitlements) |
+| Delete organization | Owner-driven tenant delete — treat as irreversible; confirm current cascade with support before relying on it for a legal request |
+| Privacy / account requests | [support@qefro.com](mailto:support@qefro.com) as described on [Privacy](https://qefro.com/privacy) |
+
+Do **not** assume infinite log or transcript retention. Export what your policy requires.
+
+## Workflow
+
+<WorkflowCard
+  title="Classify data before go-live"
+  steps={[
+    {title: 'List sources', description: 'FAQs, policies, ERP fields, tool payloads, WhatsApp bodies.'},
+    {title: 'Mark public vs internal vs regulated', description: 'Only public-safe material in Customer AI workspaces.'},
+    {title: 'Minimize tool output', description: 'Return ids and status, not full customer records, unless required.'},
+    {title: 'Set retention owners', description: 'Who exports conversations and tool logs, and on what cadence.'},
+    {title: 'Document subprocessors', description: 'Request the current list from Sales for your DPA.'},
+  ]}
+/>
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Does Qefro duplicate my entire CRM?',
+      answer:
+        'No. Hub people and conversation context may store identifiers and attributes you sync; ledgers stay in your CRM/ERP unless a tool response writes them into chat.',
+    },
+    {
+      question: 'Are backups encrypted?',
+      answer:
+        'Confirm current backup and volume encryption with Sales. Application-level AES-GCM covers stored secrets; see Encryption.',
+    },
+    {
+      question: 'Can a Member download all org documents?',
+      answer:
+        'Members only see workspaces granted by Teams, and document write is a separate flag. Owners/Admins see all workspaces.',
+    },
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'Tenant Isolation', to: '/docs/security/tenant-isolation'},
+    {label: 'Encryption', to: '/docs/security/encryption'},
+    {label: 'Audit Logs', to: '/docs/security/audit-logs'},
+    {label: 'Compliance', to: '/docs/security/compliance'},
+    {label: 'Customer Hub', to: '/docs/user/people/overview'},
+  ]}
+/>

@@ -109,4 +109,5 @@ Even a malformed definition cannot take down the portal:
 - [Capabilities](/docs/solutions/capabilities)
 - [Validation](/docs/solutions/validation)
 - [Platform security overview](/docs/security/overview)
+- [Application security](/docs/security/application-security)
 - [Audit logs](/docs/security/audit-logs)

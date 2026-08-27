@@ -1,0 +1,108 @@
+---
+title: "Encryption"
+description: "TLS in transit, AES-256-GCM for secrets at rest, bcrypt for organization passwords, and HS256 session JWTs."
+sidebar_label: "Encryption"
+---
+
+import {
+  Warning,
+  RelatedTopics,
+  FaqAccordion,
+} from '@site/src/components';
+
+# Encryption
+
+This page states **what is encrypted, with which algorithm**, so questionnaires can be answered without inferring controls from marketing language.
+
+## Short definition (citation-ready)
+
+> Public Qefro surfaces terminate TLS. Secrets (Business Tool credentials, SDK signing secrets, channel tokens, Access Service auth) are stored with AES-256-GCM. Organization user passwords are bcrypt hashes. Session access tokens are HS256 JWTs; refresh tokens are HttpOnly cookies.
+
+## In transit
+
+| Surface | Transport |
+| --- | --- |
+| `https://api.qefro.com` | TLS (HTTPS only for customers) |
+| `https://app.qefro.com` | TLS |
+| Widget CDN `https://cdn.qefro.com/widget.js` | TLS |
+| Tool / SDK egress from Qefro | **HTTPS required** — HTTP tool URLs are rejected ([Network & egress](/docs/security/network-and-egress)) |
+| WhatsApp Cloud API / Razorpay | Provider HTTPS + signature verification |
+
+Private / VPC-style deployments terminate TLS according to the Enterprise packaging — confirm with Sales.
+
+## At rest — secrets (AES-256-GCM)
+
+Application-level encryption for credentials uses **AES-256-GCM**:
+
+- Key from `ENCRYPTION_KEY` (minimum 32 bytes; first 32 bytes used as the key)
+- Random 12-byte nonce per encryption, prepended to ciphertext
+- Combined nonce + ciphertext stored as Base64
+
+This path encrypts (among others):
+
+- Business Tool secrets
+- External SDK Connection signing secrets
+- WhatsApp / channel tokens
+- Customer Access Service API auth
+- Enterprise identity client secrets and IdP refresh tokens (when that subsystem is enabled)
+
+Plaintext is decrypted only for egress (tool call, `/qefro` sign, or provider API). Identity and tool loggers are designed **not** to echo these values.
+
+<Warning>
+Application-level AES-GCM is for **secrets in configuration**, not a claim that every Postgres column or every conversation transcript is GCM-encrypted independently of disk/volume encryption. Ask Sales for current infrastructure encryption (volume / backup) language.
+</Warning>
+
+## Passwords
+
+Admin Console, Internal Portal, and partner passwords are stored as **bcrypt** hashes (cost factor **10**). Qefro does not store customer passwords; those remain in your Customer Access Service.
+
+## Tokens
+
+| Token | Algorithm / storage |
+| --- | --- |
+| User / widget access JWT | HS256 (`jsonwebtoken` default header), secret from `JWT_SECRET` (must be ≥ 32 bytes; placeholders rejected at boot) |
+| Access JWT lifetime | Default 24 hours (`JWT_EXPIRY_HOURS`) |
+| Refresh token | Opaque session token in HttpOnly cookie `qefro_refresh` (30-day max-age, `SameSite=Lax`, `Secure` in production) |
+| `/qefro` invoke | HMAC-SHA256 hex digest, `v1=` prefix — [Authentication](/docs/developer/authentication) |
+| Marketplace package | Ed25519 over `id\|version\|checksum` — [Application security](/docs/security/application-security) |
+
+## What encryption is not
+
+- Chat PII masking is **regex redaction**, not encryption — [Data handling](/docs/security/data-handling)
+- Widget tokens are **not** secret
+- Document bytes served to authorized viewers use a restrictive **Content-Security-Policy** (`default-src 'none'; sandbox; …`) to prevent script execution; that is containment, not encryption
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Do you use AES-256?',
+      answer:
+        'Yes for stored secrets: AES-256-GCM with a random nonce. Confirm disk/backup encryption with Sales.',
+    },
+    {
+      question: 'Are JWTs RSA/ECDSA?',
+      answer:
+        'Tenant access tokens are HS256 (HMAC). Inbound IdP tokens for enterprise identity, when enabled, may validate RS256/RS384/RS512 from the issuer JWKS. SSO for the Admin Console remains a roadmap item.',
+    },
+    {
+      question: 'Can we bring our own KMS?',
+      answer:
+        'Hosted cloud uses Qefro-managed ENCRYPTION_KEY. Enterprise private deploy can follow your secret manager — discuss with Sales.',
+    },
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'Secrets', to: '/docs/security/secrets'},
+    {label: 'Authentication & access', to: '/docs/security/authentication-and-access'},
+    {label: 'Network & egress', to: '/docs/security/network-and-egress'},
+    {label: 'HMAC authentication', to: '/docs/developer/authentication'},
+    {label: 'Compliance', to: '/docs/security/compliance'},
+  ]}
+/>

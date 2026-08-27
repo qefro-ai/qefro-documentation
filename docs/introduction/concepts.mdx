@@ -54,6 +54,15 @@ are reference packages).
 | Session | Channel + conversation context | [Sessions](/docs/developer/concepts/sessions) |
 | vs n8n / LangGraph | Product boundaries | [n8n](/docs/compare/n8n-vs-qefro) · [LangGraph](/docs/compare/langgraph-vs-qefro) |
 
+## Security
+
+| Concept | Summary | Read more |
+| --- | --- | --- |
+| Tenant / workspace isolation | Customers cannot read each other’s data; workspaces split audiences | [Tenant isolation](/docs/security/tenant-isolation) |
+| HMAC `/qefro` | Signed platform → app invokes | [Application security](/docs/security/application-security) |
+| Secrets & encryption | AES-256-GCM credentials; bcrypt org passwords | [Encryption](/docs/security/encryption) |
+| Agent threat model | Tools + RAG blast radius | [AI Agent Security](/docs/concepts/ai-agent-security) |
+
 Full term list: [Glossary](/docs/glossary).
 
 ## Related topics
@@ -63,6 +72,7 @@ Full term list: [Glossary](/docs/glossary).
     {label: 'Overview', to: '/docs/introduction/overview'},
     {label: 'Architecture', to: '/docs/architecture/overview'},
     {label: 'Glossary', to: '/docs/glossary'},
+    {label: 'Security overview', to: '/docs/security/overview'},
     {label: 'AI Agent Security', to: '/docs/concepts/ai-agent-security'},
   ]}
 />

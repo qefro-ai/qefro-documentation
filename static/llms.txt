@@ -163,11 +163,19 @@ Canonical product hosts:
 
 ## Security
 
-- [Security Overview](https://docs.qefro.com/docs/security/overview/): How Qefro protects tenants: isolation, RBAC, encrypted secrets, SSRF-aware tool egress, identity forwarding, audit logs, and honest compliance status.
-- [Tenant Isolation](https://docs.qefro.com/docs/security/tenant-isolation/): How Qefro isolates organizations (tenants) and AI Workspaces so knowledge, tools, conversations, and billing never cross customer boundaries.
-- [Secrets](https://docs.qefro.com/docs/security/secrets/): How Qefro stores Business Tool credentials and related secrets — encrypted at rest, never in browser JS or prompts.
-- [Audit Logs](https://docs.qefro.com/docs/security/audit-logs/): Organization audit logs and Business Tool execution logs — how to investigate configuration changes and AI-initiated API calls.
+- [Security Overview](https://docs.qefro.com/docs/security/overview/): How Qefro protects tenants: isolation, encryption, signed SDK calls, SSRF-aware egress, identity forwarding, audit logs, and honest compliance status.
+- [Tenant Isolation](https://docs.qefro.com/docs/security/tenant-isolation/): How Qefro isolates organizations (tenants) and AI Workspaces so knowledge, tools, conversations, Marketplace installs, and billing never cross customer boundaries.
+- [Authentication and access](https://docs.qefro.com/docs/security/authentication-and-access/): How Qefro authenticates Admin Console users, widgets, SDK apps, and customers — RBAC, sessions, and organization-owned identity.
+- [Encryption](https://docs.qefro.com/docs/security/encryption/): TLS in transit, AES-256-GCM for secrets at rest, bcrypt for organization passwords, and HS256 session JWTs.
+- [Secrets](https://docs.qefro.com/docs/security/secrets/): How Qefro stores Business Tool, SDK, and channel credentials — AES-256-GCM at rest, never in browser JS or prompts.
+- [Network and egress](https://docs.qefro.com/docs/security/network-and-egress/): HTTPS-only Business Tool calls, SSRF and DNS-rebinding controls, webhook signature verification, and CORS for widget embeds.
+- [Data handling](https://docs.qefro.com/docs/security/data-handling/): What Qefro stores vs what stays in your ERP, conversation transcripts, PII masking limits, deletion, and LLM training posture.
+- [Application security](https://docs.qefro.com/docs/security/application-security/): HMAC-signed /qefro protocol, Marketplace Ed25519 packages, capability mediation, and how Qefro reduces prompt-injection blast radius.
+- [Audit Logs](https://docs.qefro.com/docs/security/audit-logs/): Organization audit logs, identity audit, and Business Tool execution logs — how to investigate configuration changes, auth challenges, and AI-initiated API calls.
+- [Vulnerability disclosure](https://docs.qefro.com/docs/security/vulnerability-disclosure/): How to report a security vulnerability in Qefro products, APIs, or hosted services.
 - [Compliance](https://docs.qefro.com/docs/security/compliance/): Honest compliance posture for Qefro — what is implemented today, what is on the roadmap, and how to run vendor security reviews.
+- [Security](https://docs.qefro.com/docs/developer/security/): Trust boundaries for external SDK connections and managed marketplace apps — HMAC, tenancy, secrets, and what your process must not assume.
+- [Security](https://docs.qefro.com/docs/solutions/security/): The solution security model — the eight platform rules and how each is enforced across the pipeline.
 
 ## Compare
 

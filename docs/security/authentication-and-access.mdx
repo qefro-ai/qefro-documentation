@@ -1,0 +1,139 @@
+---
+title: "Authentication and access"
+description: "How Qefro authenticates Admin Console users, widgets, SDK apps, and customers — RBAC, sessions, and organization-owned identity."
+sidebar_label: "Authentication & access"
+---
+
+import {
+  Warning,
+  RelatedTopics,
+  FaqAccordion,
+  WorkflowCard,
+} from '@site/src/components';
+
+# Authentication and access
+
+Qefro uses **different credentials for different trust boundaries**. Mixing them — for example putting an Owner JWT in public website JavaScript — collapses those boundaries.
+
+API details: [API Authentication](/docs/api/authentication). Product overview: [Platform Authentication](/docs/platform/authentication). Customer identity: [Identity Verification](/docs/platform/identity-verification).
+
+## Short definition (citation-ready)
+
+> Admin Console and Internal Portal users authenticate with email and password (bcrypt) and receive HS256 JWTs; the website widget uses a publishable channel token; platform-to-app calls use HMAC; customers authenticate against the organization’s own Customer Access Service — Qefro is not a customer Identity Provider.
+
+## Credential matrix
+
+| Client | Credential | How it is sent |
+| --- | --- | --- |
+| Admin Console / Internal Portal / most REST | User JWT (access) | `Authorization: Bearer <user_jwt>` |
+| Admin Console refresh | Refresh token | HttpOnly `qefro_refresh` cookie (`SameSite=Lax`, `Secure` in production, 30-day max-age) |
+| GraphQL (`POST /graphql`) | User JWT | Same Bearer header |
+| Website Widget (HTTP + WS) | Widget token | `Authorization: Bearer`, `X-Widget-Token`, or WS `?token=` |
+| Business Tools (end user) | Your JWT / session | `X-End-User-Token` / `X-End-User-Session` via `identify()` |
+| `/qefro` SDK app | HMAC signing secret | `X-Qefro-Signature` + `X-Qefro-Timestamp` |
+| Super Admin | Separate admin JWT | `POST /api/v1/admin/auth/login` — not a tenant Owner |
+| Metrics (optional) | `METRICS_AUTH_TOKEN` | Bearer when metrics are not public |
+
+Access tokens default to **24 hours** (`JWT_EXPIRY_HOURS`). Widget CORS is `Access-Control-Allow-Origin: *` **without** cookies — embeds authenticate with headers, not credentialed CORS.
+
+## Organization users (employees / operators)
+
+- Signup / login: email + password; passwords stored as **bcrypt** (cost 10)
+- Email verification OTP applies to **signup**, not as a replacement for passwords
+- Disposable-email domains are rejected on signup
+- Auth routes are rate-limited (login / OTP / forgot / reset) to slow credential stuffing
+- Sessions can be listed and revoked:
+  - `GET/DELETE /api/v1/me/sessions`
+  - Admins: `GET/DELETE /api/v1/org/members/:id/sessions/:jti`
+
+<Warning>
+Marketing copy that says “email OTP — no password storage” refers to **customer** challenges forwarded to your Access Service. Admin Console users do have password hashes. Do not copy the marketing phrasing into questionnaires.
+</Warning>
+
+## RBAC
+
+Organization roles **Owner**, **Admin**, and **Member**, plus **Teams** that grant Members workspace access (optional document write).
+
+| Role | Can configure org / secrets / billing | Workspace access |
+| --- | --- | --- |
+| Owner | Yes, including ownership transfer and org delete | All |
+| Admin | Yes except ownership / billing owner change | All |
+| Member | No | Only team-granted workspaces |
+
+Public Customer AI uses widget tokens instead of org roles. Full matrix: [RBAC](/docs/platform/rbac).
+
+## Customer identity (not Qefro IdP)
+
+Qefro **resolves** who is on the channel; the **organization** decides whether they may perform a Business Action.
+
+| Auth level | Meaning |
+| --- | --- |
+| `public` | Anyone on that channel |
+| `verified_channel` | WhatsApp Meta-verified phone, or widget `identify()` JWT/session |
+| `organization_challenge` | Your Customer Access Service (`POST /auth/evaluate`) may require OTP / login |
+
+Qefro does **not** send, store, or verify customer OTP codes. It relays challenge messages and forwards replies to your Access API. See [Identity & Authentication](/docs/platform/identity-and-authentication).
+
+Internal Portal Business Tool execution is **disabled in V1** (`BUSINESS_TOOLS_NOT_SUPPORTED`) until employee delegated authentication ships.
+
+## Super Admin vs tenant Admin
+
+Platform operators use a separate Super Admin login. A tenant Owner cannot mint Super Admin claims; tenant JWTs that claim `SuperAdmin` are rejected.
+
+## Workflow
+
+<WorkflowCard
+  title="Secure a production tenant"
+  steps={[
+    {title: 'Owner account', description: 'Strong unique password; verify email; do not share the Owner login.'},
+    {title: 'Invite Admins and Members', description: 'Teams grant only the workspaces each role needs.'},
+    {title: 'Rotate widget token if leaked', description: 'Update every embed; the token is a channel key, not an admin secret.'},
+    {title: 'Revoke sessions on offboarding', description: 'me/sessions or org member sessions.'},
+    {title: 'Configure Customer Access Service', description: 'Only if tools need organization_challenge.'},
+  ]}
+/>
+
+## Best practices
+
+- Prefer Admin over sharing the Owner login
+- Treat widget token rotation as a production change (update HTML / tag manager)
+- Do not put user JWTs in the public widget
+- Use `verified_channel` or `organization_challenge` before any write tool on Customer AI
+- Coordinate load tests with support — auth floods look like attacks ([Rate limits](/docs/api/rate-limits))
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Is SSO / SAML available for the Admin Console?',
+      answer:
+        'SSO/SAML is on the Enterprise roadmap. Confirm timeline with Sales. Do not mark it as implemented on questionnaires.',
+    },
+    {
+      question: 'Does Qefro store customer passwords?',
+      answer:
+        'No. Customer authentication stays in your Customer Access Service. Qefro stores bcrypt hashes only for Admin Console / Portal / partner users.',
+    },
+    {
+      question: 'Can a leaked widget token read other tenants?',
+      answer:
+        'No. The token is tenant- and typically workspace-bound. It can still expose that workspace’s Customer AI knowledge and any tools you attached — treat binding as a security control.',
+    },
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'API Authentication', to: '/docs/api/authentication'},
+    {label: 'Platform Authentication', to: '/docs/platform/authentication'},
+    {label: 'RBAC', to: '/docs/platform/rbac'},
+    {label: 'Identity Forwarding', to: '/docs/platform/identity-forwarding'},
+    {label: 'Identity Verification', to: '/docs/platform/identity-verification'},
+    {label: 'HMAC /qefro auth', to: '/docs/developer/authentication'},
+    {label: 'Rate limits', to: '/docs/api/rate-limits'},
+  ]}
+/>

@@ -1,11 +1,10 @@
 ---
 title: "Tenant Isolation"
-description: "How Qefro isolates organizations (tenants) and AI Workspaces so knowledge, tools, conversations, and billing never cross customer boundaries."
+description: "How Qefro isolates organizations (tenants) and AI Workspaces so knowledge, tools, conversations, Marketplace installs, and billing never cross customer boundaries."
 sidebar_label: "Tenant Isolation"
 ---
 
 import {
-  InfoBox,
   Warning,
   RelatedTopics,
   FaqAccordion,
@@ -14,20 +13,22 @@ import {
 
 # Tenant Isolation
 
-**Tenant isolation** is the guarantee that one Qefro organization cannot read another organization’s knowledge, tools, conversations, members, or billing data. Inside a tenant, **workspaces** provide a second isolation layer for teams and audiences.
+**Tenant isolation** is the guarantee that one Qefro organization cannot read another organization’s knowledge, tools, conversations, members, people, Marketplace installs, or billing data. Inside a tenant, **workspaces** provide a second isolation layer for teams and audiences.
 
 ## Short definition (citation-ready)
 
-> In Qefro, every authenticated API request resolves an organization (tenant). Knowledge indexes, Business Tools, conversations, and Admin Console configuration are scoped to that tenant — and further to AI Workspaces within it.
+> In Qefro, every authenticated API request resolves an organization (tenant). Knowledge indexes, Business Tools, SDK connections, conversations, Customer Hub people, and Admin Console configuration are scoped to that tenant — and further to AI Workspaces (and, for managed apps, to the installation) within it.
 
-## Two boundaries
+## Isolation layers
 
 | Boundary | Unit | Isolates |
 | --- | --- | --- |
 | **Tenant** | Organization created at signup | Customers from each other |
 | **Workspace** | AI Workspace (Support, HR, IT, …) | Teams / audiences inside a customer |
+| **Installation** | Managed Marketplace app install | App storage, settings, and capabilities per workspace |
+| **Connection** | External SDK Connection | Org-owned webhook + signing secret |
 
-Concept deep dive: [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture).
+Concept deep dive: [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture). Developer identifiers: [Tenancy and workspaces](/docs/developer/tenancy-and-workspaces).
 
 ## Architecture
 
@@ -39,9 +40,11 @@ flowchart TB
   OrgA --> WSA1[Workspace Support]
   OrgA --> WSA2[Workspace HR]
   OrgB --> WSB1[Workspace Support]
+  WSA1 --> InstA[Install restaurant-pro]
   WSA1 -.->|no shared index| WSB1
   WidgetA[Widget token A] --> OrgA
   WidgetB[Widget token B] --> OrgB
+  ConnA[SDK connection A] --> OrgA
 ```
 
 ## How requests are scoped
@@ -50,18 +53,33 @@ flowchart TB
 2. Resolve **tenant** from the credential / host.
 3. Resolve **workspace** from channel binding or portal selection.
 4. Retrieve only from that workspace’s knowledge index.
-5. Allow only that workspace’s Business Tools.
-6. Attribute logs to tenant + workspace (+ actor when known).
+5. Allow only that workspace’s Business Tools and Marketplace installs.
+6. For managed storage, scope writes with `platform.storage.context` (`tenant_id`, `workspace_id`, `installation_id`, `solution_id`).
+7. Attribute logs to tenant + workspace (+ actor when known).
 
 Cross-tenant access requires platform Super Admin capabilities — not a tenant Admin role.
 
 ## What stays inside the tenant
 
 - Members, Teams, RBAC grants
-- Workspaces and their documents
+- Workspaces and their documents / vector indexes
 - Business Tool definitions and encrypted secrets
+- External SDK Connections (`sdk_connections` are per organization)
+- Managed Marketplace installations and install settings
+- Customer Hub people (when Hub is enabled)
 - Conversations and feedbacks
 - Branding, custom domains, billing
+
+## SDK and managed-app isolation
+
+| Surface | Scope | Fail-closed behavior |
+| --- | --- | --- |
+| External SDK Connection | Organization / tenant | Pure org tools without install/solution scope do **not** receive `platform.storage` |
+| Managed Marketplace app | Tenant + workspace + `installation_id` | Each install gets its own binding and storage scope |
+| Customer Hub (`ctx.customer`) | Tenant + Hub enablement | Apps must not invent cross-tenant customer ids |
+| Connector pool | Shared compute, per-tenant credentials | Routed calls carry tenant context; secrets fetched per tenant |
+
+Applications must not share mutable global state across tenants inside one process without an explicit multi-tenant design.
 
 ## Workspace isolation still matters
 
@@ -78,7 +96,7 @@ See [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) and 
     {title: 'Ingest different corpora', description: 'Put a unique canary phrase only in HR.'},
     {title: 'Bind the widget to Support', description: 'Ask for the HR canary via the widget.'},
     {title: 'Expect refusal / miss', description: 'If the widget cites HR, isolation or binding is wrong.'},
-    {title: 'Repeat for tools', description: 'Ensure privileged tools are not attached to the public workspace.'},
+    {title: 'Repeat for tools and apps', description: 'Ensure privileged tools and installs are not attached to the public workspace.'},
   ]}
 />
 
@@ -88,6 +106,7 @@ See [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) and 
 - Never share Admin Console logins across customers “for convenience”
 - Use separate staging and production organizations when feasible
 - Custom portal domains still map to a single tenant — treat hostname setup as a security change
+- Do not trust client-supplied tenant ids; always use platform context
 
 <Warning>
 Widget tokens are publishable by design (they ship in browser HTML). They authenticate the *channel*, not an end user. Pair with workspace binding and `identify()` for user-scoped tools.
@@ -100,7 +119,7 @@ Widget tokens are publishable by design (they ship in browser HTML). They authen
     {
       question: 'Is a workspace a tenant?',
       answer:
-        'No. The organization is the tenant. Workspaces are sub-scopes for knowledge and tools inside that tenant.',
+        'No. The organization is the tenant. Workspaces are sub-scopes for knowledge, tools, and installs inside that tenant.',
     },
     {
       question: 'Can two organizations share knowledge?',
@@ -112,6 +131,11 @@ Widget tokens are publishable by design (they ship in browser HTML). They authen
       answer:
         'No. Retrieval runs inside the resolved workspace index for the authenticated tenant.',
     },
+    {
+      question: 'Do managed apps share a database across customers?',
+      answer:
+        'Platform storage is tenant- and install-scoped. External SDK apps that connect to your ERP inherit whatever isolation you built in that ERP.',
+    },
   ]}
 />
 
@@ -120,10 +144,12 @@ Widget tokens are publishable by design (they ship in browser HTML). They authen
 <RelatedTopics
   topics={[
     {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'Tenancy (developers)', to: '/docs/developer/tenancy-and-workspaces'},
     {label: 'Multi-tenant AI Architecture', to: '/docs/concepts/multi-tenant-ai-architecture'},
     {label: 'Organizations', to: '/docs/platform/organizations'},
     {label: 'AI Workspaces', to: '/docs/platform/ai-workspaces'},
     {label: 'RBAC', to: '/docs/platform/rbac'},
+    {label: 'Application security', to: '/docs/security/application-security'},
     {label: 'Compliance', to: '/docs/security/compliance'},
   ]}
 />

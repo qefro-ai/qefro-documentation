@@ -43,6 +43,16 @@ import { FaqAccordion, RelatedTopics } from '@site/src/components';
   {question: 'When is WhatsApp available?', answer: 'During the trial and on all paid plans (Starter and above).'},
 ]} />
 
+## Security
+
+<FaqAccordion items={[
+  {question: 'Is Qefro SOC 2 certified?', answer: <>SOC 2 Type II is on the roadmap. Use the <Link to="/docs/security/overview">Security overview</Link> and <Link to="/docs/security/compliance">Compliance</Link> pages for questionnaires — do not infer certification from marketing.</>},
+  {question: 'How are tenants isolated?', answer: <>Every API request resolves an organization. Knowledge, tools, installs, and billing are tenant-scoped, then workspace-scoped. See <Link to="/docs/security/tenant-isolation">Tenant isolation</Link>.</>},
+  {question: 'How are secrets stored?', answer: <>Tool, SDK, and channel credentials are AES-256-GCM encrypted at rest. Widget tokens are publishable channel keys. See <Link to="/docs/security/encryption">Encryption</Link> and <Link to="/docs/security/secrets">Secrets</Link>.</>},
+  {question: 'Does Qefro train models on my data?', answer: <>Product intent is to power your tenant’s assistants, not to train public foundation models on your corpus. Confirm contractual language in your DPA. See <Link to="/docs/security/data-handling">Data handling</Link>.</>},
+  {question: 'How do I report a vulnerability?', answer: <>Email support@qefro.com with subject “Security vulnerability”. See <Link to="/docs/security/vulnerability-disclosure">Vulnerability disclosure</Link>.</>},
+]} />
+
 ## Related topics
 
 <RelatedTopics topics={[

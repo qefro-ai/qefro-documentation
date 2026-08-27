@@ -18,29 +18,39 @@ import {
 
 ## Short definition (citation-ready)
 
-> Qefro provides multi-tenant SaaS controls (isolation, encryption of tool secrets, logging, webhook verification) suitable as inputs to customer compliance programs. Formal certifications such as SOC 2 Type II are tracked on a roadmap — confirm current status with Sales.
+> Qefro provides multi-tenant SaaS controls (isolation, encryption of secrets, signed SDK invokes, SSRF-aware egress, logging, webhook verification) suitable as inputs to customer compliance programs. Formal certifications such as SOC 2 Type II are tracked on a roadmap — confirm current status with Sales.
 
 ## Use Qefro controls in your program
 
 | Your need | Map to Qefro |
 | --- | --- |
 | Customer data segregation | [Tenant Isolation](/docs/security/tenant-isolation) |
-| Least privilege for staff AI | [RBAC](/docs/platform/rbac), [Employee AI](/docs/platform/employee-ai) |
-| AI tool risk | [AI Agent Security](/docs/concepts/ai-agent-security), [Secrets](/docs/security/secrets) |
+| Access control | [Authentication & access](/docs/security/authentication-and-access), [RBAC](/docs/platform/rbac) |
+| Encryption | [Encryption](/docs/security/encryption), [Secrets](/docs/security/secrets) |
+| Network / SSRF | [Network & egress](/docs/security/network-and-egress) |
+| Data inventory / privacy | [Data handling](/docs/security/data-handling), [Privacy](https://qefro.com/privacy) |
+| AI tool risk | [AI Agent Security](/docs/concepts/ai-agent-security), [Application security](/docs/security/application-security) |
 | Evidence of admin/tool activity | [Audit Logs](/docs/security/audit-logs) |
+| Vulnerability reports | [Vulnerability disclosure](/docs/security/vulnerability-disclosure) |
 | Subprocessor / hosting questions | Contact Sales for current list |
-| Privacy policy / terms | [Privacy](https://qefro.com/privacy), [Terms](https://qefro.com/terms) |
+| Legal | [Privacy](https://qefro.com/privacy), [Terms](https://qefro.com/terms) |
 
 ## Implemented technical controls (summary)
 
-- Organization (tenant) isolation on API and data access paths
-- Workspace-scoped knowledge and Business Tools
-- Encrypted Business Tool credentials
-- SSRF-aware egress for tools and related webhooks
+- Organization (tenant) isolation on API, knowledge, storage, and connection paths
+- Workspace-scoped knowledge, Business Tools, and Marketplace installs
+- AES-256-GCM encryption for tool, SDK, and channel credentials at rest
+- bcrypt password hashes for Admin Console / Portal users
+- TLS for public HTTPS surfaces (`api.qefro.com`, `app.qefro.com`, widget CDN)
+- HMAC-SHA256 signed `/qefro` invokes with timestamp skew protection
+- Ed25519-signed Marketplace packages; no arbitrary JavaScript in packages
+- SSRF-aware egress for tools (HTTPS only, private/metadata IP block, DNS pinning)
 - Optional end-user identity forwarding via widget `identify()`
-- Organization audit logs and tool execution logs
+- Organization-owned Customer Access Service (Qefro does not verify customer OTP)
+- Organization audit logs, identity audit, and tool execution logs
 - Authentication abuse rate limiting
-- Razorpay webhook signature verification for billing events
+- Razorpay and Meta (WhatsApp) webhook signature verification
+- Session listing and revocation
 
 Full narrative: [Security Overview](/docs/security/overview).
 
@@ -49,7 +59,7 @@ Full narrative: [Security Overview](/docs/security/overview).
 | Topic | Notes |
 | --- | --- |
 | SOC 2 Type II | Roadmap — request timeline from Sales |
-| SSO / SAML | Enterprise discussions |
+| SSO / SAML for Admin Console | Enterprise discussions |
 | Private / VPC-style deploy | See [Deployment](/docs/platform/deployment); Enterprise packaging |
 | Custom DPA / SCCs | Available through Sales for qualifying plans |
 
@@ -62,11 +72,11 @@ If a questionnaire asks “Are you SOC 2 certified?” and certification is not 
 <WorkflowCard
   title="Complete a customer security review"
   steps={[
-    {title: 'Share this Security section', description: 'Overview, isolation, secrets, audit, compliance.'},
+    {title: 'Share this Security section', description: 'Start at Overview; attach isolation, encryption, egress, audit, compliance.'},
     {title: 'Pilot with non-production data', description: 'Use a staging organization when possible.'},
     {title: 'Define data classes', description: 'What may enter knowledge vs tools vs transcripts.'},
     {title: 'Request DPA / subprocessors', description: 'Via Sales or support@qefro.com.'},
-    {title: 'Re-check after enabling tools', description: 'Actions change the threat model vs RAG-only.'},
+    {title: 'Re-check after enabling tools and apps', description: 'Actions and Marketplace installs change the threat model vs RAG-only.'},
   ]}
 />
 
@@ -74,10 +84,11 @@ If a questionnaire asks “Are you SOC 2 certified?” and certification is not 
 
 | Qefro | Customer |
 | --- | --- |
-| Platform isolation and control plane security | Which documents you upload |
-| Encrypting stored tool secrets | Scoping keys you issue to Qefro |
-| Logging admin and tool executions | Reviewing logs; rotating keys |
-| Channel/webhook verification mechanisms | Correct Meta / domain configuration |
+| Platform isolation and control plane security | Which documents you upload and which workspaces you bind to public channels |
+| Encrypting stored tool / SDK / channel secrets | Scoping keys you issue to Qefro; rotating them |
+| Signing platform → app invokes; verifying inbound billing/channel webhooks | Protecting your `/qefro` network path and ERP credentials |
+| Logging admin, identity, and tool executions | Reviewing logs; exporting for your retention policy |
+| Pattern-based chat PII masking (SSN / card-like digits) | Not treating Qefro as a DLP product; classifying regulated data |
 | Honest status of certifications | Your internal risk acceptance |
 
 ## FAQ
@@ -97,13 +108,13 @@ If a questionnaire asks “Are you SOC 2 certified?” and certification is not 
     {
       question: 'Does Qefro train foundation models on my data?',
       answer:
-        'Product intent is to use your data to power your tenant’s assistants, not to train public foundation models on customer content. Confirm contractual language in your agreement / DPA.',
+        'Product intent is to use your data to power your tenant’s assistants, not to train public foundation models on customer content. Confirm contractual language in your agreement / DPA. See Data handling.',
     },
   ]}
 />
 
 <InfoBox title="Contact">
-Security questionnaires and DPA requests: [support@qefro.com](mailto:support@qefro.com) or [Contact](https://qefro.com/contact).
+Security questionnaires, DPA requests, and vulnerability reports: [support@qefro.com](mailto:support@qefro.com) or [Contact](https://qefro.com/contact).
 </InfoBox>
 
 ## Related topics
@@ -112,8 +123,9 @@ Security questionnaires and DPA requests: [support@qefro.com](mailto:support@qef
   topics={[
     {label: 'Security Overview', to: '/docs/security/overview'},
     {label: 'Tenant Isolation', to: '/docs/security/tenant-isolation'},
-    {label: 'Secrets', to: '/docs/security/secrets'},
-    {label: 'Audit Logs', to: '/docs/security/audit-logs'},
+    {label: 'Encryption', to: '/docs/security/encryption'},
+    {label: 'Data handling', to: '/docs/security/data-handling'},
+    {label: 'Vulnerability disclosure', to: '/docs/security/vulnerability-disclosure'},
     {label: 'AI Agent Security', to: '/docs/concepts/ai-agent-security'},
     {label: 'Production Deployment', to: '/docs/guides/production-deployment'},
   ]}

@@ -6,22 +6,14 @@ unlisted: true
 sidebar_label: Security
 ---
 
-## SDK signing
-Validate:
-- X-Qefro-Signature
-- X-Qefro-Timestamp
-- protocol headers
+This page is unlisted. Use the current **[Security](/docs/security/overview)** section.
 
-## Secrets
-- store in secret manager
-- rotate regularly
-- avoid plaintext in source control
-
-## Least privilege
-- narrow tool permissions
-- separate staging and production credentials
-
-## Production recommendations
-- short token lifetimes
-- access logs and audit review
-- periodic secret rotation drills
+- [Tenant isolation](/docs/security/tenant-isolation)
+- [Authentication & access](/docs/security/authentication-and-access)
+- [Encryption](/docs/security/encryption)
+- [Secrets](/docs/security/secrets)
+- [Network & egress](/docs/security/network-and-egress)
+- [HMAC `/qefro` signing](/docs/developer/authentication)
+- [Application security](/docs/security/application-security)
+- [Audit logs](/docs/security/audit-logs)
+- [Compliance](/docs/security/compliance)

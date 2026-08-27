@@ -1,0 +1,115 @@
+---
+title: "Network and egress"
+description: "HTTPS-only Business Tool calls, SSRF and DNS-rebinding controls, webhook signature verification, and CORS for widget embeds."
+sidebar_label: "Network & egress"
+---
+
+import {
+  Warning,
+  RelatedTopics,
+  FaqAccordion,
+  WorkflowCard,
+} from '@site/src/components';
+
+# Network and egress
+
+Qefro’s control plane calls **your** HTTPS APIs and `/qefro` webhooks. Those outbound paths are a classic SSRF and confused-deputy surface. Inbound billing and WhatsApp webhooks are signature-verified.
+
+## Short definition (citation-ready)
+
+> Business Tool URLs must be HTTPS. Qefro blocks localhost, cloud metadata, and private/reserved addresses, resolves DNS, and pins connections to the validated addresses to reduce DNS-rebinding. Razorpay and Meta webhooks are verified before the body is processed. Widget CORS allows any origin without cookies.
+
+## Tool / webhook egress (SSRF)
+
+Before a REST Business Tool or similar HTTPS egress runs, the runtime:
+
+1. Rejects null bytes and path-traversal sequences in the URL
+2. Requires scheme **`https`** (plain HTTP is not allowed)
+3. Blocks hostnames such as `localhost`, `*.localhost`, `metadata.google.internal`, Kubernetes default service names
+4. Blocks literal private, loopback, link-local, multicast, CGNAT (`100.64/10`), documentation, and cloud metadata IPs (including `169.254.169.254` and IPv6 unique-local / mapped equivalents)
+5. Resolves the hostname and **fails if any address is blocked**
+6. Pins the HTTP client to those addresses (`resolve_to_addrs`) so a later DNS change cannot redirect the TCP connection to a private IP
+
+Website crawlers used for knowledge ingestion apply a related SSRF policy.
+
+<Warning>
+SSRF controls protect **Qefro’s** network, not yours. External SDK apps that make their own outbound calls must apply equivalent checks. See [Developer security](/docs/developer/security).
+</Warning>
+
+## CORS and cookies
+
+Customer widgets run on arbitrary domains, so API CORS uses `Access-Control-Allow-Origin: *` and **does not** set `Access-Control-Allow-Credentials`. Auth for embeds is Bearer / `X-Widget-Token` / end-user headers — not cookies.
+
+Admin Console refresh tokens use an HttpOnly cookie on the Qefro origin (`SameSite=Lax`). That cookie is not sent on cross-origin widget calls.
+
+Allowed widget request headers include `Authorization`, `X-Widget-Token`, `X-Widget-Session`, `X-End-User-Token`, `X-End-User-Session`, and `X-Workspace-Id`.
+
+## Inbound webhooks
+
+| Source | Endpoint | Verification |
+| --- | --- | --- |
+| Razorpay billing | `POST /api/v1/billing/webhook` | `X-Razorpay-Signature` HMAC |
+| Meta WhatsApp | `GET/POST /api/v1/whatsapp/webhook` | Challenge verify + `X-Hub-Signature-256` HMAC with encrypted app secret |
+
+Signature or challenge failure must **4xx** — the body is not processed as trusted input. Details: [Webhooks](/docs/api/webhooks).
+
+Generic business-event ingest also uses HMAC. Prefer signed SDK / connector paths over unverified public POST bodies.
+
+## Document viewer
+
+Authorized document bytes are served with a restrictive Content-Security-Policy:
+
+```text
+default-src 'none'; sandbox; frame-ancestors 'none'; form-action 'none'; base-uri 'none'
+```
+
+That prevents a mis-typed response from executing script in the browser.
+
+## Workflow
+
+<WorkflowCard
+  title="Expose an API to Qefro safely"
+  steps={[
+    {title: 'Public HTTPS hostname', description: 'No RFC1918 targets; certificate valid.'},
+    {title: 'Least-privilege credential', description: 'Store it encrypted in Admin Console.'},
+    {title: 'Authorize the end user', description: 'identify() headers or your Access Service — do not trust Qefro’s service key alone for user data.'},
+    {title: 'Rate-limit on your side', description: 'Assistants can burst. Qefro rate limits are not a substitute for your API limits.'},
+    {title: 'Watch tool logs', description: 'Unexpected hosts or 4xx storms may be SSRF blocks or bad OpenAPI imports.'},
+  ]}
+/>
+
+## FAQ
+
+<FaqAccordion
+  items={[
+    {
+      question: 'Can Qefro call http://10.0.0.5 inside my VPC from cloud?',
+      answer:
+        'Not via Business Tool egress — private addresses are blocked. Use an External SDK Connection from a process you run on that network, or discuss Enterprise private deploy with Sales.',
+    },
+    {
+      question: 'Does DNS pinning stop all SSRF?',
+      answer:
+        'It closes the common rebinding TOCTOU gap for tool HTTPS. It does not make an over-privileged credential safe. Combine with least privilege and identity forwarding.',
+    },
+    {
+      question: 'Are WebSockets rate-limited?',
+      answer:
+        'Yes — widget/chat paths have abuse controls. See Rate limits. Honor HTTP 429.',
+    },
+  ]}
+/>
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Security Overview', to: '/docs/security/overview'},
+    {label: 'Secrets', to: '/docs/security/secrets'},
+    {label: 'Application security', to: '/docs/security/application-security'},
+    {label: 'Webhooks', to: '/docs/api/webhooks'},
+    {label: 'Rate limits', to: '/docs/api/rate-limits'},
+    {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
+    {label: 'AI Agent Security', to: '/docs/concepts/ai-agent-security'},
+  ]}
+/>

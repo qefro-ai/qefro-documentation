@@ -191,9 +191,17 @@ const SECTIONS = [
     ids: [
       'security/overview',
       'security/tenant-isolation',
+      'security/authentication-and-access',
+      'security/encryption',
       'security/secrets',
+      'security/network-and-egress',
+      'security/data-handling',
+      'security/application-security',
       'security/audit-logs',
+      'security/vulnerability-disclosure',
       'security/compliance',
+      'developer/security',
+      'solutions/security',
     ],
   },
   {

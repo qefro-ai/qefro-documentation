@@ -2,7 +2,7 @@
 
 > Complete Markdown export of https://docs.qefro.com for AI systems. Generated from the official Docusaurus sources. Prefer individual pages linked from /llms.txt when context is limited.
 
-Generated: 2026-08-09
+Generated: 2026-08-27
 
 # P0 — Start here
 
@@ -439,6 +439,15 @@ are reference packages).
 | Orchestration event | Namespaced bus envelope | [Events](/docs/developer/concepts/events) |
 | Session | Channel + conversation context | [Sessions](/docs/developer/concepts/sessions) |
 | vs n8n / LangGraph | Product boundaries | [n8n](/docs/compare/n8n-vs-qefro) · [LangGraph](/docs/compare/langgraph-vs-qefro) |
+
+## Security
+
+| Concept | Summary | Read more |
+| --- | --- | --- |
+| Tenant / workspace isolation | Customers cannot read each other’s data; workspaces split audiences | [Tenant isolation](/docs/security/tenant-isolation) |
+| HMAC `/qefro` | Signed platform → app invokes | [Application security](/docs/security/application-security) |
+| Secrets & encryption | AES-256-GCM credentials; bcrypt org passwords | [Encryption](/docs/security/encryption) |
+| Agent threat model | Tools + RAG blast radius | [AI Agent Security](/docs/concepts/ai-agent-security) |
 
 Full term list: [Glossary](/docs/glossary).
 
@@ -2522,6 +2531,7 @@ Source: https://docs.qefro.com/docs/reference/overview/
 | [Glossary](/docs/glossary) | Terminology |
 | [FAQ](/docs/faq) | Common questions |
 | [Troubleshooting](/docs/troubleshooting) | Symptom → fix |
+| [Security](/docs/security/overview) | Isolation, encryption, egress, audit, compliance |
 
 ## Related topics
 
@@ -2730,6 +2740,15 @@ REST for existing HTTPS APIs and OpenAPI specs. Backend SDK for OTP, login, and 
 
 ## Plans
 
+## Security
+
+SOC 2 Type II is on the roadmap. Use the Security overview and Compliance pages for questionnaires — do not infer certification from marketing.</>},
+  {question: 'How are tenants isolated?', answer: <>Every API request resolves an organization. Knowledge, tools, installs, and billing are tenant-scoped, then workspace-scoped. See Tenant isolation.</>},
+  {question: 'How are secrets stored?', answer: <>Tool, SDK, and channel credentials are AES-256-GCM encrypted at rest. Widget tokens are publishable channel keys. See Encryption and Secrets.</>},
+  {question: 'Does Qefro train models on my data?', answer: <>Product intent is to power your tenant’s assistants, not to train public foundation models on your corpus. Confirm contractual language in your DPA. See Data handling.</>},
+  {question: 'How do I report a vulnerability?', answer: <>Email support@qefro.com with subject “Security vulnerability”. See Vulnerability disclosure.</>},
+]} />
+
 ## Related topics
 
 ---
@@ -2761,6 +2780,9 @@ Source: https://docs.qefro.com/docs/glossary/
 | Team | Grants Members access to workspaces — [Teams](/docs/platform/teams) |
 | Custom domain | Your hostname for the Internal Portal — [Custom Domains](/docs/platform/custom-domains) |
 | AI Agent Security | Controls for retrieval + tool calling — [AI Agent Security](/docs/concepts/ai-agent-security) |
+| HMAC `/qefro` | Platform → app invoke authentication (`X-Qefro-Signature`) — [Authentication](/docs/developer/authentication), [Application security](/docs/security/application-security) |
+| AES-256-GCM secrets | Application-level encryption for tool/SDK/channel credentials — [Encryption](/docs/security/encryption) |
+| Customer Access Service | Organization-owned evaluate/challenge API; Qefro is not a customer IdP — [Identity & Authentication](/docs/platform/identity-and-authentication) |
 
 ## Related topics
 
@@ -5679,9 +5701,10 @@ Platform: [Deployment](/docs/platform/deployment).
 ### Security & compliance
 
 - [ ] Security Overview reviewed with stakeholders
+- [ ] Customer vs employee workspaces split; public channels bound only to customer-safe indexes
 - [ ] DPA / questionnaire completed if required
 - [ ] Staging org used for experiments when possible
-- Docs: [Security Overview](/docs/security/overview), [Compliance](/docs/security/compliance)
+- Docs: [Security Overview](/docs/security/overview), [Tenant isolation](/docs/security/tenant-isolation), [Authentication & access](/docs/security/authentication-and-access), [Compliance](/docs/security/compliance)
 
 ### Billing & ops
 
@@ -7144,28 +7167,28 @@ Do not expose unverified webhook handlers. Signature/challenge failures must 4xx
 
 Source: https://docs.qefro.com/docs/security/overview/
 
-> How Qefro protects tenants: isolation, RBAC, encrypted secrets, SSRF-aware tool egress, identity forwarding, audit logs, and honest compliance status.
+> How Qefro protects tenants: isolation, encryption, signed SDK calls, SSRF-aware egress, identity forwarding, audit logs, and honest compliance status.
 
-Qefro security is built around **tenant isolation**, **workspace boundaries**, **least-privilege access**, and **auditable Business Actions**. This page summarizes controls that exist in the running product on `app.qefro.com` / `api.qefro.com` — not aspirational marketing claims.
+Qefro security is built around **tenant isolation**, **workspace boundaries**, **least-privilege access**, and **auditable Business Actions**. This section documents controls that exist in the running product on `app.qefro.com` / `api.qefro.com` — not aspirational marketing claims.
+
+Use these pages for vendor questionnaires, internal security review, and production hardening. For Marketplace / SDK app builders, also read [Solution security](/docs/solutions/security) and [Application security (SDK)](/docs/developer/security).
 
 ## Short definition (citation-ready)
 
-> Qefro isolates each organization (tenant) and further scopes knowledge, tools, and conversations to AI Workspaces, with encrypted tool secrets, SSRF-aware egress, optional end-user identity forwarding, and organization plus tool execution logs.
+> Qefro isolates each organization (tenant) and further scopes knowledge, tools, conversations, and Marketplace installs to AI Workspaces. Tool and SDK credentials are encrypted at rest; platform-to-app calls are HMAC-signed; HTTPS egress is SSRF-aware; optional end-user identity is forwarded rather than stored as a customer IdP; organization, identity, and tool execution events are logged.
 
 ## Control map
 
-| Control | What it protects | Docs |
-| --- | --- | --- |
-| Tenant isolation | Cross-customer data leakage | [Tenant Isolation](/docs/security/tenant-isolation) |
-| Workspace isolation | Cross-team knowledge/tool leakage | [AI Workspaces](/docs/platform/ai-workspaces) |
-| RBAC + Teams | Who can configure vs chat internally | [RBAC](/docs/platform/rbac) |
-| Encrypted secrets | API keys for Business Tools | [Secrets](/docs/security/secrets) |
-| SSRF-aware egress | Unsafe tool / webhook destinations | [Business Actions](/docs/concepts/business-actions) |
-| Identity forwarding | Confused-deputy tool calls | [Identity Forwarding](/docs/platform/identity-forwarding) |
-| Audit + tool logs | Who changed what; which tools ran | [Audit Logs](/docs/security/audit-logs) |
-| Auth rate limits | Credential stuffing / abuse | [API Authentication](/docs/api/authentication) |
-| Webhook signatures | Forged billing / channel events | [Webhooks](/docs/api/webhooks) |
-| Compliance posture | Questionnaires, DPA, roadmap | [Compliance](/docs/security/compliance) |
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
 ## Architecture
 
@@ -7174,39 +7197,53 @@ flowchart TB
   subgraph Boundaries
     Org[Organization / tenant]
     WS[AI Workspaces]
+    Install[Marketplace installs]
   end
   subgraph Access
     RBAC[Owner / Admin / Member + Teams]
-    ID[identify end-user forwarding]
+    ID[Channel identity + identify]
+    CAS[Your Customer Access Service]
   end
   subgraph Egress
-    Sec[Encrypted tool secrets]
+    Enc[AES-256-GCM secrets]
+    HMAC[HMAC-signed /qefro]
     SSRF[SSRF-safe HTTPS]
   end
   subgraph Evidence
     AL[Org audit logs]
+    IA[Identity audit]
     TL[Tool execution logs]
   end
   Org --> WS
+  WS --> Install
   WS --> RBAC
   WS --> ID
-  WS --> Sec --> SSRF
+  ID --> CAS
+  WS --> Enc
+  Enc --> HMAC
+  Enc --> SSRF
   RBAC --> AL
+  ID --> IA
   SSRF --> TL
+  HMAC --> TL
 ```
 
 ## Threats we design for
 
 | Threat | Mitigation in Qefro |
 | --- | --- |
-| Org A reads Org B knowledge | Tenant-scoped APIs and indexes |
-| Public widget reads HR PDFs | Separate Customer vs Employee workspaces |
-| Chat triggers privileged refunds | Least-privilege tools; avoid write tools on public workspaces |
-| Tool URL hits cloud metadata | SSRF / DNS controls on egress |
-| Keys in browser or prompts | Server-side encrypted secrets |
-| Unaudited model writes | Tool execution logs + org audit logs |
+| Org A reads Org B knowledge | Tenant-scoped APIs, indexes, storage, and connections |
+| Public widget reads HR PDFs | Separate Customer vs Employee workspaces + channel binding |
+| Chat triggers privileged refunds | Least-privilege tools; auth levels; no write tools on public workspaces by default |
+| Tool URL hits cloud metadata | SSRF / DNS pinning; HTTPS only |
+| Keys in browser or prompts | Server-side encrypted secrets; widget token is intentionally public |
+| Forged platform → app calls | HMAC-SHA256 `v1=` over timestamp + raw body; skew window |
+| Malicious Marketplace package | YAML/JSON/images only; Ed25519 signature; no arbitrary JS |
+| Confused deputy | Identity forwarding (`identify()`); your API authorizes the end user |
+| Unaudited model writes | Tool execution logs + org audit logs + identity audit |
+| Stolen admin session | Session list/revoke; HttpOnly refresh cookie; RBAC |
 
-Deeper agent threat model: [AI Agent Security](/docs/concepts/ai-agent-security).
+Deeper agent threat model: [AI Agent Security](/docs/concepts/ai-agent-security). Hardening checklist: [Secure Business Actions](/docs/guides/secure-business-actions).
 
 ## Security review workflow
 
@@ -7215,14 +7252,18 @@ Deeper agent threat model: [AI Agent Security](/docs/concepts/ai-agent-security)
 | Area | Status |
 | --- | --- |
 | Multi-tenant + workspace isolation | Implemented |
-| Encrypted Business Tool credentials | Implemented |
-| SSRF-aware tool / webhook egress | Implemented |
+| Encrypted tool / SDK / channel credentials (AES-256-GCM) | Implemented |
+| HMAC-signed `/qefro` SDK protocol | Implemented |
+| Marketplace package signing (Ed25519) + no arbitrary JS | Implemented |
+| SSRF-aware tool / webhook egress with DNS pinning | Implemented |
 | Widget `identify()` identity forwarding | Implemented |
-| Org audit logs + tool logs | Implemented |
+| Customer Access Service (org-owned OTP / login) | Implemented |
+| Org audit logs + identity audit + tool logs | Implemented |
 | Auth abuse rate limits | Implemented |
-| Razorpay webhook signature verify | Implemented |
+| Razorpay and Meta webhook signature verification | Implemented |
+| Session list / revoke | Implemented |
 | SOC 2 Type II | Roadmap — ask Sales for timeline |
-| SSO / SAML | Roadmap — Enterprise discussions |
+| SSO / SAML for Admin Console | Roadmap — Enterprise discussions |
 
 Do not treat roadmap items as shipped controls in vendor questionnaires. Use this page and [Compliance](/docs/security/compliance) for accurate answers.
 
@@ -7244,6 +7285,8 @@ curl -sS -H "Authorization: Bearer $USER_JWT" \
 - Prefer read-only Business Tools until citation quality is proven
 - Re-review OpenAPI imports for overly broad write operations
 - Treat uploaded documents as untrusted input when tools are enabled (prompt injection)
+- Rotate SDK signing secrets and tool credentials on staffing changes
+- Bind public channels only to customer-safe workspaces
 
 ## FAQ
 
@@ -7255,22 +7298,24 @@ curl -sS -H "Authorization: Bearer $USER_JWT" \
 
 Source: https://docs.qefro.com/docs/security/tenant-isolation/
 
-> How Qefro isolates organizations (tenants) and AI Workspaces so knowledge, tools, conversations, and billing never cross customer boundaries.
+> How Qefro isolates organizations (tenants) and AI Workspaces so knowledge, tools, conversations, Marketplace installs, and billing never cross customer boundaries.
 
-**Tenant isolation** is the guarantee that one Qefro organization cannot read another organization’s knowledge, tools, conversations, members, or billing data. Inside a tenant, **workspaces** provide a second isolation layer for teams and audiences.
+**Tenant isolation** is the guarantee that one Qefro organization cannot read another organization’s knowledge, tools, conversations, members, people, Marketplace installs, or billing data. Inside a tenant, **workspaces** provide a second isolation layer for teams and audiences.
 
 ## Short definition (citation-ready)
 
-> In Qefro, every authenticated API request resolves an organization (tenant). Knowledge indexes, Business Tools, conversations, and Admin Console configuration are scoped to that tenant — and further to AI Workspaces within it.
+> In Qefro, every authenticated API request resolves an organization (tenant). Knowledge indexes, Business Tools, SDK connections, conversations, Customer Hub people, and Admin Console configuration are scoped to that tenant — and further to AI Workspaces (and, for managed apps, to the installation) within it.
 
-## Two boundaries
+## Isolation layers
 
 | Boundary | Unit | Isolates |
 | --- | --- | --- |
 | **Tenant** | Organization created at signup | Customers from each other |
 | **Workspace** | AI Workspace (Support, HR, IT, …) | Teams / audiences inside a customer |
+| **Installation** | Managed Marketplace app install | App storage, settings, and capabilities per workspace |
+| **Connection** | External SDK Connection | Org-owned webhook + signing secret |
 
-Concept deep dive: [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture).
+Concept deep dive: [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture). Developer identifiers: [Tenancy and workspaces](/docs/developer/tenancy-and-workspaces).
 
 ## Architecture
 
@@ -7282,9 +7327,11 @@ flowchart TB
   OrgA --> WSA1[Workspace Support]
   OrgA --> WSA2[Workspace HR]
   OrgB --> WSB1[Workspace Support]
+  WSA1 --> InstA[Install restaurant-pro]
   WSA1 -.->|no shared index| WSB1
   WidgetA[Widget token A] --> OrgA
   WidgetB[Widget token B] --> OrgB
+  ConnA[SDK connection A] --> OrgA
 ```
 
 ## How requests are scoped
@@ -7293,18 +7340,33 @@ flowchart TB
 2. Resolve **tenant** from the credential / host.
 3. Resolve **workspace** from channel binding or portal selection.
 4. Retrieve only from that workspace’s knowledge index.
-5. Allow only that workspace’s Business Tools.
-6. Attribute logs to tenant + workspace (+ actor when known).
+5. Allow only that workspace’s Business Tools and Marketplace installs.
+6. For managed storage, scope writes with `platform.storage.context` (`tenant_id`, `workspace_id`, `installation_id`, `solution_id`).
+7. Attribute logs to tenant + workspace (+ actor when known).
 
 Cross-tenant access requires platform Super Admin capabilities — not a tenant Admin role.
 
 ## What stays inside the tenant
 
 - Members, Teams, RBAC grants
-- Workspaces and their documents
+- Workspaces and their documents / vector indexes
 - Business Tool definitions and encrypted secrets
+- External SDK Connections (`sdk_connections` are per organization)
+- Managed Marketplace installations and install settings
+- Customer Hub people (when Hub is enabled)
 - Conversations and feedbacks
 - Branding, custom domains, billing
+
+## SDK and managed-app isolation
+
+| Surface | Scope | Fail-closed behavior |
+| --- | --- | --- |
+| External SDK Connection | Organization / tenant | Pure org tools without install/solution scope do **not** receive `platform.storage` |
+| Managed Marketplace app | Tenant + workspace + `installation_id` | Each install gets its own binding and storage scope |
+| Customer Hub (`ctx.customer`) | Tenant + Hub enablement | Apps must not invent cross-tenant customer ids |
+| Connector pool | Shared compute, per-tenant credentials | Routed calls carry tenant context; secrets fetched per tenant |
+
+Applications must not share mutable global state across tenants inside one process without an explicit multi-tenant design.
 
 ## Workspace isolation still matters
 
@@ -7320,8 +7382,166 @@ See [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai) and 
 - Never share Admin Console logins across customers “for convenience”
 - Use separate staging and production organizations when feasible
 - Custom portal domains still map to a single tenant — treat hostname setup as a security change
+- Do not trust client-supplied tenant ids; always use platform context
 
 Widget tokens are publishable by design (they ship in browser HTML). They authenticate the *channel*, not an end user. Pair with workspace binding and `identify()` for user-scoped tools.
+
+## FAQ
+
+## Related topics
+
+---
+
+# Authentication and access
+
+Source: https://docs.qefro.com/docs/security/authentication-and-access/
+
+> How Qefro authenticates Admin Console users, widgets, SDK apps, and customers — RBAC, sessions, and organization-owned identity.
+
+Qefro uses **different credentials for different trust boundaries**. Mixing them — for example putting an Owner JWT in public website JavaScript — collapses those boundaries.
+
+API details: [API Authentication](/docs/api/authentication). Product overview: [Platform Authentication](/docs/platform/authentication). Customer identity: [Identity Verification](/docs/platform/identity-verification).
+
+## Short definition (citation-ready)
+
+> Admin Console and Internal Portal users authenticate with email and password (bcrypt) and receive HS256 JWTs; the website widget uses a publishable channel token; platform-to-app calls use HMAC; customers authenticate against the organization’s own Customer Access Service — Qefro is not a customer Identity Provider.
+
+## Credential matrix
+
+| Client | Credential | How it is sent |
+| --- | --- | --- |
+| Admin Console / Internal Portal / most REST | User JWT (access) | `Authorization: Bearer <user_jwt>` |
+| Admin Console refresh | Refresh token | HttpOnly `qefro_refresh` cookie (`SameSite=Lax`, `Secure` in production, 30-day max-age) |
+| GraphQL (`POST /graphql`) | User JWT | Same Bearer header |
+| Website Widget (HTTP + WS) | Widget token | `Authorization: Bearer`, `X-Widget-Token`, or WS `?token=` |
+| Business Tools (end user) | Your JWT / session | `X-End-User-Token` / `X-End-User-Session` via `identify()` |
+| `/qefro` SDK app | HMAC signing secret | `X-Qefro-Signature` + `X-Qefro-Timestamp` |
+| Super Admin | Separate admin JWT | `POST /api/v1/admin/auth/login` — not a tenant Owner |
+| Metrics (optional) | `METRICS_AUTH_TOKEN` | Bearer when metrics are not public |
+
+Access tokens default to **24 hours** (`JWT_EXPIRY_HOURS`). Widget CORS is `Access-Control-Allow-Origin: *` **without** cookies — embeds authenticate with headers, not credentialed CORS.
+
+## Organization users (employees / operators)
+
+- Signup / login: email + password; passwords stored as **bcrypt** (cost 10)
+- Email verification OTP applies to **signup**, not as a replacement for passwords
+- Disposable-email domains are rejected on signup
+- Auth routes are rate-limited (login / OTP / forgot / reset) to slow credential stuffing
+- Sessions can be listed and revoked:
+  - `GET/DELETE /api/v1/me/sessions`
+  - Admins: `GET/DELETE /api/v1/org/members/:id/sessions/:jti`
+
+Marketing copy that says “email OTP — no password storage” refers to **customer** challenges forwarded to your Access Service. Admin Console users do have password hashes. Do not copy the marketing phrasing into questionnaires.
+
+## RBAC
+
+Organization roles **Owner**, **Admin**, and **Member**, plus **Teams** that grant Members workspace access (optional document write).
+
+| Role | Can configure org / secrets / billing | Workspace access |
+| --- | --- | --- |
+| Owner | Yes, including ownership transfer and org delete | All |
+| Admin | Yes except ownership / billing owner change | All |
+| Member | No | Only team-granted workspaces |
+
+Public Customer AI uses widget tokens instead of org roles. Full matrix: [RBAC](/docs/platform/rbac).
+
+## Customer identity (not Qefro IdP)
+
+Qefro **resolves** who is on the channel; the **organization** decides whether they may perform a Business Action.
+
+| Auth level | Meaning |
+| --- | --- |
+| `public` | Anyone on that channel |
+| `verified_channel` | WhatsApp Meta-verified phone, or widget `identify()` JWT/session |
+| `organization_challenge` | Your Customer Access Service (`POST /auth/evaluate`) may require OTP / login |
+
+Qefro does **not** send, store, or verify customer OTP codes. It relays challenge messages and forwards replies to your Access API. See [Identity & Authentication](/docs/platform/identity-and-authentication).
+
+Internal Portal Business Tool execution is **disabled in V1** (`BUSINESS_TOOLS_NOT_SUPPORTED`) until employee delegated authentication ships.
+
+## Super Admin vs tenant Admin
+
+Platform operators use a separate Super Admin login. A tenant Owner cannot mint Super Admin claims; tenant JWTs that claim `SuperAdmin` are rejected.
+
+## Workflow
+
+## Best practices
+
+- Prefer Admin over sharing the Owner login
+- Treat widget token rotation as a production change (update HTML / tag manager)
+- Do not put user JWTs in the public widget
+- Use `verified_channel` or `organization_challenge` before any write tool on Customer AI
+- Coordinate load tests with support — auth floods look like attacks ([Rate limits](/docs/api/rate-limits))
+
+## FAQ
+
+## Related topics
+
+---
+
+# Encryption
+
+Source: https://docs.qefro.com/docs/security/encryption/
+
+> TLS in transit, AES-256-GCM for secrets at rest, bcrypt for organization passwords, and HS256 session JWTs.
+
+This page states **what is encrypted, with which algorithm**, so questionnaires can be answered without inferring controls from marketing language.
+
+## Short definition (citation-ready)
+
+> Public Qefro surfaces terminate TLS. Secrets (Business Tool credentials, SDK signing secrets, channel tokens, Access Service auth) are stored with AES-256-GCM. Organization user passwords are bcrypt hashes. Session access tokens are HS256 JWTs; refresh tokens are HttpOnly cookies.
+
+## In transit
+
+| Surface | Transport |
+| --- | --- |
+| `https://api.qefro.com` | TLS (HTTPS only for customers) |
+| `https://app.qefro.com` | TLS |
+| Widget CDN `https://cdn.qefro.com/widget.js` | TLS |
+| Tool / SDK egress from Qefro | **HTTPS required** — HTTP tool URLs are rejected ([Network & egress](/docs/security/network-and-egress)) |
+| WhatsApp Cloud API / Razorpay | Provider HTTPS + signature verification |
+
+Private / VPC-style deployments terminate TLS according to the Enterprise packaging — confirm with Sales.
+
+## At rest — secrets (AES-256-GCM)
+
+Application-level encryption for credentials uses **AES-256-GCM**:
+
+- Key from `ENCRYPTION_KEY` (minimum 32 bytes; first 32 bytes used as the key)
+- Random 12-byte nonce per encryption, prepended to ciphertext
+- Combined nonce + ciphertext stored as Base64
+
+This path encrypts (among others):
+
+- Business Tool secrets
+- External SDK Connection signing secrets
+- WhatsApp / channel tokens
+- Customer Access Service API auth
+- Enterprise identity client secrets and IdP refresh tokens (when that subsystem is enabled)
+
+Plaintext is decrypted only for egress (tool call, `/qefro` sign, or provider API). Identity and tool loggers are designed **not** to echo these values.
+
+Application-level AES-GCM is for **secrets in configuration**, not a claim that every Postgres column or every conversation transcript is GCM-encrypted independently of disk/volume encryption. Ask Sales for current infrastructure encryption (volume / backup) language.
+
+## Passwords
+
+Admin Console, Internal Portal, and partner passwords are stored as **bcrypt** hashes (cost factor **10**). Qefro does not store customer passwords; those remain in your Customer Access Service.
+
+## Tokens
+
+| Token | Algorithm / storage |
+| --- | --- |
+| User / widget access JWT | HS256 (`jsonwebtoken` default header), secret from `JWT_SECRET` (must be ≥ 32 bytes; placeholders rejected at boot) |
+| Access JWT lifetime | Default 24 hours (`JWT_EXPIRY_HOURS`) |
+| Refresh token | Opaque session token in HttpOnly cookie `qefro_refresh` (30-day max-age, `SameSite=Lax`, `Secure` in production) |
+| `/qefro` invoke | HMAC-SHA256 hex digest, `v1=` prefix — [Authentication](/docs/developer/authentication) |
+| Marketplace package | Ed25519 over `id\|version\|checksum` — [Application security](/docs/security/application-security) |
+
+## What encryption is not
+
+- Chat PII masking is **regex redaction**, not encryption — [Data handling](/docs/security/data-handling)
+- Widget tokens are **not** secret
+- Document bytes served to authorized viewers use a restrictive **Content-Security-Policy** (`default-src 'none'; sandbox; …`) to prevent script execution; that is containment, not encryption
 
 ## FAQ
 
@@ -7333,21 +7553,27 @@ Widget tokens are publishable by design (they ship in browser HTML). They authen
 
 Source: https://docs.qefro.com/docs/security/secrets/
 
-> How Qefro stores Business Tool credentials and related secrets — encrypted at rest, never in browser JS or prompts.
+> How Qefro stores Business Tool, SDK, and channel credentials — AES-256-GCM at rest, never in browser JS or prompts.
 
-**Secrets** in Qefro are credentials used by Business Tools and channel integrations — API keys, bearer tokens, and similar material. They must stay **server-side**, **encrypted at rest**, and **rotated** when people or vendors change.
+**Secrets** in Qefro are credentials used by Business Tools, SDK connections, and channel integrations — API keys, bearer tokens, HMAC signing secrets, and similar material. They must stay **server-side**, **encrypted at rest**, and **rotated** when people or vendors change.
+
+Cryptographic details: [Encryption](/docs/security/encryption).
 
 ## Short definition (citation-ready)
 
-> Qefro stores Business Tool and integration credentials encrypted in the tenant’s configuration. Publishable widget tokens are intentionally public channel keys; they are not substitutes for end-user or admin secrets.
+> Qefro stores Business Tool, SDK signing, and integration credentials encrypted with AES-256-GCM in the tenant’s configuration. Publishable widget tokens are intentionally public channel keys; they are not substitutes for end-user or admin secrets.
 
 ## What counts as a secret
 
 | Material | Where it lives | Public? |
 | --- | --- | --- |
 | Business Tool API keys / tokens | Encrypted tool credentials | No |
-| Channel / Meta credentials | Admin Console integration config | No |
-| User passwords / session JWTs | Auth subsystem | No |
+| External SDK signing secret | Encrypted on ACS (`encrypted_signing_secret`); plaintext in your process env | No |
+| Managed app signing secret | Platform-injected env (`QEFRO_SIGNING_SECRET`) | No |
+| Channel / Meta credentials | Encrypted Admin Console integration config | No |
+| Customer Access Service API auth | Encrypted org auth settings | No |
+| User passwords | bcrypt hashes only | No |
+| Session JWTs / refresh tokens | Auth subsystem (refresh is HttpOnly cookie) | No |
 | Widget token | Admin Console + browser embed | Yes (publishable) |
 | End-user JWT via `identify()` | Passed per session to tools | Short-lived; your app issues it |
 
@@ -7357,22 +7583,33 @@ Source: https://docs.qefro.com/docs/security/secrets/
 sequenceDiagram
   participant Admin as Admin Console
   participant API as api.qefro.com
-  participant Store as Encrypted secret store
-  participant Tool as Customer HTTPS API
-  Admin->>API: Save tool credential
+  participant Store as AES-256-GCM store
+  participant App as Your /qefro or HTTPS API
+  Admin->>API: Save tool or SDK credential
   API->>Store: Encrypt at rest
-  Note over API,Tool: Later, during a Business Action
+  Note over API,App: Later, during a Business Action or invoke
   API->>Store: Decrypt for egress only
-  API->>Tool: Authorized HTTPS request
+  API->>App: HMAC-signed /qefro or authorized HTTPS
 ```
+
+## External vs managed
+
+| Secret | External SDK Connection | Managed Marketplace app |
+| --- | --- | --- |
+| `/qefro` signing secret | Your env + ACS encrypted copy | Platform-injected env |
+| ERP / CRM credentials | Your secret store | Prefer install settings / platform secrets — never git |
+| Storage bearer | Omitted unless install/solution scope exists | `platform.storage.token` when storage is configured |
+
+Never commit real secrets. Docs and demos use placeholders such as `dev-secret`.
 
 ## Rules of thumb
 
 1. **Never** put long-lived admin or CRM keys in website JavaScript.
 2. **Never** paste production secrets into prompts, tickets, or chat transcripts.
 3. Prefer **scoped** vendor keys (read-only order lookup ≠ full admin API).
-4. Rotate secrets on staffing changes and after OpenAPI reimports that change auth.
+4. Rotate secrets on staffing changes, after OpenAPI reimports that change auth, and after suspected leakage.
 5. Use [`identify()`](/docs/platform/identity-forwarding) so *your* API can authorize the end user separately from the tool’s service credential.
+6. Rotate SDK signing secrets via `PATCH /api/v1/org/sdk-connections/{id}` and redeploy the app before/when cutting over.
 
 A widget token in HTML is expected. A Stripe/CRM secret in HTML is an incident. If a Business Action needs privileged access, keep that credential on the server-side tool configuration only.
 
@@ -7381,9 +7618,225 @@ A widget token in HTML is expected. A Stripe/CRM secret in HTML is an incident. 
 ## Related product surfaces
 
 - [Business Tools](/docs/platform/business-tools)
+- [HMAC authentication](/docs/developer/authentication)
 - [What are Business Actions?](/docs/concepts/business-actions)
 - [Secure Business Actions](/docs/guides/secure-business-actions)
 - [Website Widget](/docs/platform/website-widget) (publishable token)
+
+## FAQ
+
+## Related topics
+
+---
+
+# Network and egress
+
+Source: https://docs.qefro.com/docs/security/network-and-egress/
+
+> HTTPS-only Business Tool calls, SSRF and DNS-rebinding controls, webhook signature verification, and CORS for widget embeds.
+
+Qefro’s control plane calls **your** HTTPS APIs and `/qefro` webhooks. Those outbound paths are a classic SSRF and confused-deputy surface. Inbound billing and WhatsApp webhooks are signature-verified.
+
+## Short definition (citation-ready)
+
+> Business Tool URLs must be HTTPS. Qefro blocks localhost, cloud metadata, and private/reserved addresses, resolves DNS, and pins connections to the validated addresses to reduce DNS-rebinding. Razorpay and Meta webhooks are verified before the body is processed. Widget CORS allows any origin without cookies.
+
+## Tool / webhook egress (SSRF)
+
+Before a REST Business Tool or similar HTTPS egress runs, the runtime:
+
+1. Rejects null bytes and path-traversal sequences in the URL
+2. Requires scheme **`https`** (plain HTTP is not allowed)
+3. Blocks hostnames such as `localhost`, `*.localhost`, `metadata.google.internal`, Kubernetes default service names
+4. Blocks literal private, loopback, link-local, multicast, CGNAT (`100.64/10`), documentation, and cloud metadata IPs (including `169.254.169.254` and IPv6 unique-local / mapped equivalents)
+5. Resolves the hostname and **fails if any address is blocked**
+6. Pins the HTTP client to those addresses (`resolve_to_addrs`) so a later DNS change cannot redirect the TCP connection to a private IP
+
+Website crawlers used for knowledge ingestion apply a related SSRF policy.
+
+SSRF controls protect **Qefro’s** network, not yours. External SDK apps that make their own outbound calls must apply equivalent checks. See [Developer security](/docs/developer/security).
+
+## CORS and cookies
+
+Customer widgets run on arbitrary domains, so API CORS uses `Access-Control-Allow-Origin: *` and **does not** set `Access-Control-Allow-Credentials`. Auth for embeds is Bearer / `X-Widget-Token` / end-user headers — not cookies.
+
+Admin Console refresh tokens use an HttpOnly cookie on the Qefro origin (`SameSite=Lax`). That cookie is not sent on cross-origin widget calls.
+
+Allowed widget request headers include `Authorization`, `X-Widget-Token`, `X-Widget-Session`, `X-End-User-Token`, `X-End-User-Session`, and `X-Workspace-Id`.
+
+## Inbound webhooks
+
+| Source | Endpoint | Verification |
+| --- | --- | --- |
+| Razorpay billing | `POST /api/v1/billing/webhook` | `X-Razorpay-Signature` HMAC |
+| Meta WhatsApp | `GET/POST /api/v1/whatsapp/webhook` | Challenge verify + `X-Hub-Signature-256` HMAC with encrypted app secret |
+
+Signature or challenge failure must **4xx** — the body is not processed as trusted input. Details: [Webhooks](/docs/api/webhooks).
+
+Generic business-event ingest also uses HMAC. Prefer signed SDK / connector paths over unverified public POST bodies.
+
+## Document viewer
+
+Authorized document bytes are served with a restrictive Content-Security-Policy:
+
+```text
+default-src 'none'; sandbox; frame-ancestors 'none'; form-action 'none'; base-uri 'none'
+```
+
+That prevents a mis-typed response from executing script in the browser.
+
+## Workflow
+
+## FAQ
+
+## Related topics
+
+---
+
+# Data handling
+
+Source: https://docs.qefro.com/docs/security/data-handling/
+
+> What Qefro stores vs what stays in your ERP, conversation transcripts, PII masking limits, deletion, and LLM training posture.
+
+This page is the inventory security and privacy reviewers ask for: **what enters Qefro**, **what stays in your systems**, and **what Qefro does not claim**.
+
+Legal text: [Privacy](https://qefro.com/privacy), [Terms](https://qefro.com/terms). Confirm DPA and subprocessors with Sales.
+
+## Short definition (citation-ready)
+
+> Qefro stores tenant configuration, workspace knowledge, conversation transcripts, and encrypted integration secrets to operate assistants. Your ERP/CRM remains the system of record for business ledgers. Qefro applies limited pattern-based PII masking on chat messages; it is not a DLP product. Product intent is not to train public foundation models on customer content — confirm that in your agreement.
+
+## What Qefro stores (typical SaaS tenant)
+
+| Category | Examples | Isolation |
+| --- | --- | --- |
+| Account | Users, roles, teams, billing entitlements | Tenant |
+| Knowledge | Uploaded docs, website crawls, chunk/vector indexes | Tenant + workspace |
+| Conversations | Widget / WhatsApp / portal messages, citations | Tenant + workspace |
+| Tools & apps | Tool definitions, encrypted secrets, SDK connections, Marketplace installs | Tenant (+ install) |
+| People (Customer Hub) | Channel identities and hub person records when enabled | Tenant |
+| Logs | Org audit, identity audit, tool executions | Tenant |
+
+## What should stay in your systems
+
+- Orders, invoices, inventory, medical records, payroll ledgers
+- Customer passwords, OTP codes, payment card PANs (do not paste them into chat)
+- Privileged admin APIs — expose only least-privilege Business Tools
+
+Tool **responses** may be copied into the conversation the model sees. Design tools so they return the minimum fields required for the answer.
+
+## PII masking (honest scope)
+
+Inbound chat messages are passed through `scrub_pii` before further handling. Today that masks:
+
+- US Social Security Number-like patterns (`123-45-6789`)
+- 13–16 digit sequences that resemble payment cards
+
+This is **pattern matching**, not comprehensive DLP. Names, emails, phone numbers, national IDs outside that SSN shape, and unstructured secrets are **not** reliably removed. Do not rely on it for PCI, HIPAA, or GDPR minimization. Keep regulated data out of Customer AI workspaces unless counsel has accepted the residual risk.
+
+Identity audit additionally **drops** keys named `otp`, `code`, `token`, `jwt`, `password`, `secret`, and `authorization` from stored detail JSON.
+
+LLM provider requests may send a **hashed** anonymous end-user id (visitor / WhatsApp contact) — not raw PII — when the provider supports a `user` field (for example DeepSeek rate-limit isolation). Confirm current providers with Sales.
+
+## Models and training
+
+Product intent: customer content powers **that tenant’s** assistants (retrieval, prompts, tool results). It is **not** used to train public foundation models on your corpus.
+
+Confirm the contractual wording in your DPA / order form. Model vendors you enable (directly or via Qefro) have their own data-use terms.
+
+## Retention and deletion
+
+| Action | Effect |
+| --- | --- |
+| Delete a document | Removes the document row and associated vector chunks for that tenant |
+| Delete a conversation | Tenant-scoped conversation delete |
+| Delete a workspace | Workspace and its scoped content (hard-deleted workspaces no longer count toward entitlements) |
+| Delete organization | Owner-driven tenant delete — treat as irreversible; confirm current cascade with support before relying on it for a legal request |
+| Privacy / account requests | [support@qefro.com](mailto:support@qefro.com) as described on [Privacy](https://qefro.com/privacy) |
+
+Do **not** assume infinite log or transcript retention. Export what your policy requires.
+
+## Workflow
+
+## FAQ
+
+## Related topics
+
+---
+
+# Application security
+
+Source: https://docs.qefro.com/docs/security/application-security/
+
+> HMAC-signed /qefro protocol, Marketplace Ed25519 packages, capability mediation, and how Qefro reduces prompt-injection blast radius.
+
+This page covers **how untrusted models and third-party packages are constrained**: signed platform → app calls, signed Marketplace packages, capability gates, and agent threat reduction.
+
+App-builder contract: [Developer security](/docs/developer/security). Package rules: [Solution security](/docs/solutions/security). Agent threat model: [AI Agent Security](/docs/concepts/ai-agent-security).
+
+## Short definition (citation-ready)
+
+> Qefro authenticates platform invokes to `/qefro` with HMAC-SHA256 over timestamp and raw body, verifies Marketplace packages with Ed25519, rejects arbitrary JavaScript in solution packages, and mediates host capabilities on every call. Prompt injection is not “solved”; blast radius is limited with isolation, least-privilege tools, SSRF controls, and logs.
+
+## HMAC `/qefro` protocol
+
+Platform → application calls (external SDK Connection and managed apps) use a shared signing secret:
+
+```text
+payload   = "v1:" + unix_timestamp + ":" + raw_request_body
+signature = "v1=" + hex( HMAC_SHA256(signing_secret, payload) )
+```
+
+Headers: `X-Qefro-Signature`, `X-Qefro-Timestamp`, `X-Qefro-Protocol`. Default maximum timestamp skew is **300 seconds**. Failed verification returns HTTP **401** `invalid_signature`.
+
+The end user never holds this secret. Details: [Authentication](/docs/developer/authentication).
+
+Tenancy headers and `platform.*` bindings are injected by Qefro. Applications must not trust client-supplied tenant ids over platform context.
+
+## Marketplace supply chain
+
+| Control | Enforcement |
+| --- | --- |
+| No arbitrary JavaScript | Packages are YAML, JSON, and images; `script` / `js` kinds rejected at publish |
+| No iframe / DOM runtime in the package | Portal components render UI; no package-side browser VM |
+| Signing | Ed25519 over `id\|version\|checksum`; registry verifies on store; installer re-verifies |
+| Immutability | Published versions do not change |
+| Capability mediation | Declared at install; re-checked on every gated call |
+| Catalog writes | Restricted to platform admins (`QEFRO_PLATFORM_ADMIN_IDS`) |
+
+```mermaid
+flowchart LR
+  Pkg[Package files] --> Val[Publish validation]
+  Val --> Sig[Ed25519 verify]
+  Sig --> Neg[Capability negotiation]
+  Neg --> Call[Per-call re-check]
+  Call --> Render[Portal renderer + error boundaries]
+```
+
+## Business Tools vs SDK apps
+
+| Path | Trust | Your job |
+| --- | --- | --- |
+| REST / OpenAPI tool | Qefro holds the service credential; model supplies arguments | Validate arguments on your API; least privilege; `identify()` |
+| External `/qefro` app | Privileged peer — tool outputs are trusted by the assistant | Protect the webhook URL; rotate HMAC secret; no SSRF from *your* outbound calls |
+| Managed Marketplace app | Same protocol; platform injects secrets and storage scope | Least capabilities; no cross-tenant in-memory state |
+
+Treat the model as **untrusted input** to the tool layer in all three cases.
+
+## Prompt injection
+
+No vendor can honestly claim to prevent all prompt injection. Qefro reduces impact by:
+
+- Workspace-scoped retrieval (hostile docs cannot search another workspace’s index)
+- Tool allowlists and auth levels (`public` / `verified_channel` / `organization_challenge`)
+- SSRF-blocked egress
+- Encrypted, non-prompt-resident secrets
+- Execution and identity logs
+
+Assume uploaded documents and user messages are hostile when write tools are enabled.
+
+## Workflow
 
 ## FAQ
 
@@ -7395,29 +7848,58 @@ A widget token in HTML is expected. A Stripe/CRM secret in HTML is an incident. 
 
 Source: https://docs.qefro.com/docs/security/audit-logs/
 
-> Organization audit logs and Business Tool execution logs — how to investigate configuration changes and AI-initiated API calls.
+> Organization audit logs, identity audit, and Business Tool execution logs — how to investigate configuration changes, auth challenges, and AI-initiated API calls.
 
-**Audit logs** record security-relevant activity in a Qefro organization. Separately, **tool execution logs** record each Business Action — which tool ran, when, and with what outcome. Together they answer “who changed configuration?” and “what did the assistant call?”
+**Audit logs** record security-relevant activity in a Qefro organization. **Identity audit** records channel identity resolution and Customer Access Service challenges without storing OTP codes or JWTs. **Tool execution logs** record each Business Action — which tool ran, when, and with what outcome.
+
+Together they answer “who changed configuration?”, “how was this customer authenticated?”, and “what did the assistant call?”
 
 ## Short definition (citation-ready)
 
-> Qefro exposes organization audit logs for administrative and security events, and per-tool execution logs for Business Actions, so teams can investigate configuration changes and AI-initiated API traffic.
+> Qefro exposes organization audit logs for administrative events, identity audit for channel/auth decisions (with secrets stripped), and per-tool execution logs for Business Actions, so teams can investigate configuration changes, identity challenges, and AI-initiated API traffic.
 
-## Two log streams
+## Three log streams
 
 | Stream | Answers | Typical consumers |
 | --- | --- | --- |
-| **Org audit logs** | Who invited users, changed RBAC, updated integrations? | Security, Admins |
+| **Org audit logs** | Who invited users, changed RBAC, updated org settings, revoked sessions? | Security, Admins |
+| **Identity audit** | Was identity resolved? Did a challenge start/succeed/fail? Was a tool blocked for auth level? | Security, Support leads |
 | **Tool execution logs** | Which Business Tool ran during chat? Success or error? | Engineering, Support leads |
+
+## Org audit actions (implemented)
+
+These action names are written to `org_audit_logs` (tenant-scoped):
+
+| Action | Typical resource |
+| --- | --- |
+| `create_team` / `update_team` / `delete_team` | Team |
+| `set_team_members` / `set_team_member_write` | Team membership |
+| `set_team_workspaces` / `set_workspace_teams` | Workspace grants |
+| `invite_member` / `accept_invitation` / `revoke_invitation` | Invitation |
+| `remove_member` / `change_member_role` | Member |
+| `suspend_member` / `reactivate_member` | Member status |
+| `transfer_ownership` | Organization |
+| `update_org_settings` | Organization |
+| `revoke_session` | Session |
+
+Entries include actor user id when known, resource type/id, JSON details, and optional client IP / User-Agent from `X-Forwarded-For` / `User-Agent`.
+
+## Identity audit (no secrets)
+
+Identity audit events include `identity_resolved`, `challenge_started`, `verification_success`, `verification_failure`, `session_created`, and `tool_auth_blocked`.
+
+The logger **removes** these keys from detail payloads before persist: `otp`, `code`, `token`, `jwt`, `password`, `secret`, `authorization`. Emails are stored as hints/masks, not as full OTP delivery.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
   Admin[Admin Console actions] --> AL[Org audit logs]
-  Chat[Widget / Portal / WhatsApp] --> BA[Business Action]
+  Chan[Widget / WhatsApp identity] --> IA[Identity audit]
+  Chat[Chat / flows] --> BA[Business Action]
   BA --> TL[Tool execution logs]
   AL --> Review[Security review]
+  IA --> Review
   TL --> Review
 ```
 
@@ -7439,7 +7921,7 @@ Exact fields evolve with the product; use the Admin Console views during pilots 
 
 Qefro logs the action attempt. Your API should still log:
 
-- Authenticated end-user id (from forwarded identity headers)
+- Authenticated end-user id (from forwarded identity headers or your Access Service)
 - Resource ids touched
 - Authorization allow/deny decisions
 
@@ -7458,6 +7940,62 @@ That dual trail is what incident response needs.
 
 ---
 
+# Vulnerability disclosure
+
+Source: https://docs.qefro.com/docs/security/vulnerability-disclosure/
+
+> How to report a security vulnerability in Qefro products, APIs, or hosted services.
+
+If you believe you have found a security issue in Qefro cloud, the Admin Console, APIs, widget, SDKs, or documentation that would let an attacker read another tenant’s data, forge invokes, or escalate privilege, **report it privately**.
+
+## Short definition (citation-ready)
+
+> Report suspected Qefro security vulnerabilities to support@qefro.com with steps to reproduce and impact. Do not open a public GitHub issue or discuss unfixed issues on social channels. Qefro does not currently publish a paid bug-bounty program on this page — confirm any bounty with Sales.
+
+## How to report
+
+Email **[support@qefro.com](mailto:support@qefro.com)** with subject `Security vulnerability`.
+
+Include:
+
+- Product surface (`api.qefro.com`, widget, Portal, `/qefro` SDK, Marketplace, docs)
+- A clear description of the issue and **impact** (especially cross-tenant)
+- Step-by-step reproduction, including whether a second test organization is required
+- Approximate timeline of your testing
+- Your contact details for follow-up
+
+Encrypt the message if you have an established channel with Sales; otherwise use email and **do not** attach production secrets, customer PII, or live access tokens. Redact.
+
+Do not attempt to access other customers’ data, disrupt service, or run destructive tests on production. Use your own trial/staging organizations. Auth and widget rate limits will block credential stuffing and flood testing — coordinate load tests with support.
+
+## What is in scope (examples)
+
+- Cross-tenant or cross-workspace data disclosure
+- Authentication / authorization bypass (RBAC, widget token, HMAC)
+- SSRF that reaches cloud metadata or private networks from Qefro egress
+- Secret leakage in logs, GraphQL errors, or document viewer
+- Marketplace package validation bypass (arbitrary JS, unsigned content)
+
+## What is usually out of scope
+
+- Clickjacking on marketing pages without a demonstrated tenant impact
+- Missing security headers on `qefro.com` marketing HTML unless they enable account takeover
+- Self-XSS in the widget on a site you already control
+- Reports that require physically stolen unlocked Owner sessions with no additional bug
+- Theoretical issues without a reproduction
+
+## After you report
+
+We will acknowledge receipt when we can, investigate, and notify you when a fix is released or if we need more information. We may ask you to keep the issue confidential until customers are protected.
+
+There is **no SLA published on this page**. Enterprise contracts may include separate security-contact terms.
+
+## Related topics
+
+## FAQ
+
+---
+
 # Compliance
 
 Source: https://docs.qefro.com/docs/security/compliance/
@@ -7468,29 +8006,39 @@ Source: https://docs.qefro.com/docs/security/compliance/
 
 ## Short definition (citation-ready)
 
-> Qefro provides multi-tenant SaaS controls (isolation, encryption of tool secrets, logging, webhook verification) suitable as inputs to customer compliance programs. Formal certifications such as SOC 2 Type II are tracked on a roadmap — confirm current status with Sales.
+> Qefro provides multi-tenant SaaS controls (isolation, encryption of secrets, signed SDK invokes, SSRF-aware egress, logging, webhook verification) suitable as inputs to customer compliance programs. Formal certifications such as SOC 2 Type II are tracked on a roadmap — confirm current status with Sales.
 
 ## Use Qefro controls in your program
 
 | Your need | Map to Qefro |
 | --- | --- |
 | Customer data segregation | [Tenant Isolation](/docs/security/tenant-isolation) |
-| Least privilege for staff AI | [RBAC](/docs/platform/rbac), [Employee AI](/docs/platform/employee-ai) |
-| AI tool risk | [AI Agent Security](/docs/concepts/ai-agent-security), [Secrets](/docs/security/secrets) |
+| Access control | [Authentication & access](/docs/security/authentication-and-access), [RBAC](/docs/platform/rbac) |
+| Encryption | [Encryption](/docs/security/encryption), [Secrets](/docs/security/secrets) |
+| Network / SSRF | [Network & egress](/docs/security/network-and-egress) |
+| Data inventory / privacy | [Data handling](/docs/security/data-handling), [Privacy](https://qefro.com/privacy) |
+| AI tool risk | [AI Agent Security](/docs/concepts/ai-agent-security), [Application security](/docs/security/application-security) |
 | Evidence of admin/tool activity | [Audit Logs](/docs/security/audit-logs) |
+| Vulnerability reports | [Vulnerability disclosure](/docs/security/vulnerability-disclosure) |
 | Subprocessor / hosting questions | Contact Sales for current list |
-| Privacy policy / terms | [Privacy](https://qefro.com/privacy), [Terms](https://qefro.com/terms) |
+| Legal | [Privacy](https://qefro.com/privacy), [Terms](https://qefro.com/terms) |
 
 ## Implemented technical controls (summary)
 
-- Organization (tenant) isolation on API and data access paths
-- Workspace-scoped knowledge and Business Tools
-- Encrypted Business Tool credentials
-- SSRF-aware egress for tools and related webhooks
+- Organization (tenant) isolation on API, knowledge, storage, and connection paths
+- Workspace-scoped knowledge, Business Tools, and Marketplace installs
+- AES-256-GCM encryption for tool, SDK, and channel credentials at rest
+- bcrypt password hashes for Admin Console / Portal users
+- TLS for public HTTPS surfaces (`api.qefro.com`, `app.qefro.com`, widget CDN)
+- HMAC-SHA256 signed `/qefro` invokes with timestamp skew protection
+- Ed25519-signed Marketplace packages; no arbitrary JavaScript in packages
+- SSRF-aware egress for tools (HTTPS only, private/metadata IP block, DNS pinning)
 - Optional end-user identity forwarding via widget `identify()`
-- Organization audit logs and tool execution logs
+- Organization-owned Customer Access Service (Qefro does not verify customer OTP)
+- Organization audit logs, identity audit, and tool execution logs
 - Authentication abuse rate limiting
-- Razorpay webhook signature verification for billing events
+- Razorpay and Meta (WhatsApp) webhook signature verification
+- Session listing and revocation
 
 Full narrative: [Security Overview](/docs/security/overview).
 
@@ -7499,7 +8047,7 @@ Full narrative: [Security Overview](/docs/security/overview).
 | Topic | Notes |
 | --- | --- |
 | SOC 2 Type II | Roadmap — request timeline from Sales |
-| SSO / SAML | Enterprise discussions |
+| SSO / SAML for Admin Console | Enterprise discussions |
 | Private / VPC-style deploy | See [Deployment](/docs/platform/deployment); Enterprise packaging |
 | Custom DPA / SCCs | Available through Sales for qualifying plans |
 
@@ -7511,17 +8059,207 @@ If a questionnaire asks “Are you SOC 2 certified?” and certification is not 
 
 | Qefro | Customer |
 | --- | --- |
-| Platform isolation and control plane security | Which documents you upload |
-| Encrypting stored tool secrets | Scoping keys you issue to Qefro |
-| Logging admin and tool executions | Reviewing logs; rotating keys |
-| Channel/webhook verification mechanisms | Correct Meta / domain configuration |
+| Platform isolation and control plane security | Which documents you upload and which workspaces you bind to public channels |
+| Encrypting stored tool / SDK / channel secrets | Scoping keys you issue to Qefro; rotating them |
+| Signing platform → app invokes; verifying inbound billing/channel webhooks | Protecting your `/qefro` network path and ERP credentials |
+| Logging admin, identity, and tool executions | Reviewing logs; exporting for your retention policy |
+| Pattern-based chat PII masking (SSN / card-like digits) | Not treating Qefro as a DLP product; classifying regulated data |
 | Honest status of certifications | Your internal risk acceptance |
 
 ## FAQ
 
-Security questionnaires and DPA requests: [support@qefro.com](mailto:support@qefro.com) or [Contact](https://qefro.com/contact).
+Security questionnaires, DPA requests, and vulnerability reports: [support@qefro.com](mailto:support@qefro.com) or [Contact](https://qefro.com/contact).
 
 ## Related topics
+
+---
+
+# Security
+
+Source: https://docs.qefro.com/docs/developer/security/
+
+> Trust boundaries for external SDK connections and managed marketplace apps — HMAC, tenancy, secrets, and what your process must not assume.
+
+Platform-wide controls (isolation, encryption, SSRF, audit, compliance) live in the **[Security](/docs/security/overview)** section. This page is the **application-builder** contract: what you can trust from Qefro, and what your `/qefro` process must enforce itself.
+
+Also read [Application security](/docs/security/application-security) and [Solution security](/docs/solutions/security).
+
+## Trust boundary
+
+| Party | Trusted for |
+| --- | --- |
+| Qefro platform | Signing invokes, tenancy headers, injecting `platform` bindings |
+| Your application | Domain logic, whatever data plane you connect (ERP, `ctx.storage`) |
+| End user | Only via channel identity + challenges — never raw signing secret |
+
+An external connector is a **privileged peer**: it can return tool outputs the AI will trust. Protect your webhook network path; rotate secrets; validate inputs; apply SSRF controls on **your** outbound calls.
+
+## Tenant & workspace isolation
+
+- Storage documents scoped by `platform.storage.context` (tenant/workspace/installation/solution)
+- ACS SDK connections are **per organization/tenant**
+- Managed installs bind per tenant/workspace
+- Pure external tools without install scope should not assume managed storage
+- Never trust client-supplied tenant ids over platform context
+- Do not share mutable global state across tenants inside one process without explicit multi-tenant design
+
+See [Tenancy and workspaces](./tenancy-and-workspaces.md) and [Tenant isolation](/docs/security/tenant-isolation).
+
+## Connection authentication
+
+HMAC `v1=` over `v1:{ts}:{body}` — [authentication.md](./authentication.md). Reject skew outside the configured window (default 300s). HTTP **401** `invalid_signature` on failure.
+
+This authenticates **Qefro → your `/qefro`**. It does not replace customer OTP, org user JWTs, or storage bearer tokens.
+
+## Secrets
+
+| Secret | External | Managed |
+| --- | --- | --- |
+| `/qefro` signing secret | Customer env + ACS encrypted secret | Platform-injected env |
+| ERP credentials | Customer secret store | Prefer platform secret mechanisms / install settings — not git |
+| Storage bearer | N/A or platform token when scoped | `platform.storage.token` / service token |
+
+Never commit real secrets. Docs and demos use placeholders like `dev-secret`. Rotation: `PATCH /api/v1/org/sdk-connections/{id}` then redeploy. Details: [Secrets](/docs/security/secrets).
+
+## Permissions
+
+Managed manifests declare `permissions` / `capabilities` (storage, organization, marketing, workflow). Runtime enforces platform-side authorization for gated APIs.
+
+Tool `permissions: string[]` is advertised metadata (default `[]`). Do not confuse it with solution-service install permission grants.
+
+## Customer Hub isolation
+
+Hub operations require `platform.customer` binding and Hub feature enablement. Apps must not invent cross-tenant customer ids.
+
+## Design checklist
+
+- Validate every tool argument server-side — treat the model as untrusted
+- Return the minimum fields required for the assistant (tool output may enter transcripts)
+- Least capabilities at publish time; treat permission escalation as a major version
+- Keep tenant URLs and credentials out of signed package files
+- Log authorization allow/deny on **your** API; Qefro logs the invoke attempt
+
+## Related topics
+
+- [Security overview](/docs/security/overview)
+- [Application security](/docs/security/application-security)
+- [HMAC authentication](./authentication.md)
+- [Tenancy](./tenancy-and-workspaces.md)
+- [Solution security](/docs/solutions/security)
+
+---
+
+# Security
+
+Source: https://docs.qefro.com/docs/solutions/security/
+
+> The solution security model — the eight platform rules and how each is enforced across the pipeline.
+
+Solutions run inside a hard security envelope. The eight platform rules
+are not guidelines — they are architectural properties enforced at
+publish time, install time and render time.
+
+## The rules and their enforcement
+
+| Rule | Enforcement |
+| --- | --- |
+| No arbitrary JavaScript | Packages contain YAML, JSON and images only; `script`/`js` file kinds are rejected at publish; the portal never evaluates package content |
+| No direct DOM access | There is no package-side runtime in the browser — the portal's own components render everything |
+| No iframe execution | Solution UIs are rendered natively; the renderer contains no iframe host and iframe assets are rejected |
+| No direct database access | Solutions have no database handles; persistence happens only through the runtime and connector bridge |
+| No direct Redis access | Caching infrastructure is platform-internal; no capability exposes it |
+| No direct network access | The only outbound paths are capability-gated source fetches and workflow tool calls, both mediated by the platform |
+| Capability mediation is mandatory | Every host interaction is negotiated at install and re-checked on every call — see [Capabilities](/docs/solutions/capabilities) |
+| Event-driven communication is mandatory | All signaling rides the platform event bus; there is no side channel — see [Events](/docs/solutions/events) |
+
+```mermaid
+flowchart TB
+    subgraph PKG ["Package — data only"]
+        M[manifest.yaml]
+        U[ui/]
+        W[workflows/]
+        C[connectors/]
+        A[assets/]
+    end
+    subgraph ENV ["Platform envelope"]
+        V[Publish validation]
+        S[Signature check]
+        N[Capability negotiation]
+        G[Per-call re-check]
+        R[Portal renderer with error boundaries]
+    end
+    M --> V
+    U --> V
+    W --> V
+    C --> V
+    A --> V
+    V --> S --> N --> G --> R
+```
+
+## Supply chain
+
+1. **Signing.** Every package is Ed25519-signed over
+   `id|version|checksum`; the registry verifies the signature before
+   storing, and the installer re-verifies before activating. See
+   [Packaging](/docs/solutions/packaging).
+2. **Immutability.** Published versions cannot change; tenants are never
+   surprised by content drift. See [Publishing](/docs/solutions/publishing).
+3. **Publisher attribution.** Packages carry `publisher_id` and
+   `signature_kid`, so every installed version traces to a publisher and
+   a verification key. Catalog writes (publish / yank) are restricted to
+   **platform admins** (`QEFRO_PLATFORM_ADMIN_IDS`).
+
+## Tenant isolation
+
+- Installations, settings, granted capabilities, workflow executions and
+  UI events are stored tenant-scoped; every query filters by tenant.
+- Connector containers are a **shared pool**, but every routed call
+  carries the tenant context and credentials are fetched per-tenant from
+  the secret manager.
+- UI bundles are served per installation; one tenant's bundle is never
+  visible to another.
+
+See [Tenant isolation](/docs/security/tenant-isolation).
+
+## Secrets
+
+- Connector credentials are collected at install time, encrypted with
+  AES-256-GCM at rest, and cached with tenant-prefixed keys.
+- Plaintext credentials are never logged or audited.
+- Packages and workflows never see credentials — the platform injects
+  them at the bridge.
+
+See [Secrets](/docs/security/secrets).
+
+## Render-time containment
+
+Even a malformed definition cannot take down the portal:
+
+- **Error boundaries** isolate every page and widget; failures degrade to
+  a scoped error card and emit `ui.error`.
+- **Schema coercion** normalizes degenerate shapes before render; spans
+  and columns are clamped.
+- **Capability gates** mean a widget missing its capability never fires a
+  request at all.
+
+## Design checklist for publishers
+
+- Declare the **fewest** capabilities and permissions that work; the
+  install wizard shows tenants exactly what you asked for.
+- Keep sensitive business logic in connectors and workflows, not in
+  widget payloads.
+- Never encode tenant-specific values, URLs or credentials in package
+  files — they are global, signed and public within the registry.
+- Treat a permission escalation (adding `customer.read`, new connectors)
+  as a major-version event and communicate it in your README.
+
+## Related topics
+
+- [Capabilities](/docs/solutions/capabilities)
+- [Validation](/docs/solutions/validation)
+- [Platform security overview](/docs/security/overview)
+- [Application security](/docs/security/application-security)
+- [Audit logs](/docs/security/audit-logs)
 
 ---
 
