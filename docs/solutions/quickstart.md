@@ -18,7 +18,7 @@ publish and install it. Three reference verticals prove the same SDK surface:
 
 | Example | Domain |
 |---------|--------|
-| [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | Reservations / hospitality (**1.10.3**) |
+| [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | Reservations / hospitality (**1.10.4**) |
 | [`clinic-pro`](/docs/solutions/examples/clinic-pro) | Doctors / healthcare |
 | [`salon-pro`](/docs/solutions/examples/salon-pro) | Stylists / beauty |
 | [`marketing-lab`](/docs/solutions/examples/marketing-lab) | Marketing registration smoke app |

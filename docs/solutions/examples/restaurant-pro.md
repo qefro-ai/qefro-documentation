@@ -1,6 +1,6 @@
 ---
 title: "Example: restaurant-pro"
-description: "The restaurant-pro reference SDK app (1.10.3) — booking bridge, marketing, org caps, /qefro tools, and staff UI."
+description: "The restaurant-pro reference SDK app (1.10.4) — booking bridge, marketing, org caps, /qefro tools, and staff UI."
 sidebar_label: "restaurant-pro"
 ---
 
@@ -9,7 +9,7 @@ sidebar_label: "restaurant-pro"
 `restaurant-pro` is the canonical **installable SDK application** for hospitality
 ([ADR-003](/docs/solutions/managed-apps)): reservations, takeaway, menu, kitchen,
 floor plan, orders, payments, and a light CRM. Current package version:
-**1.10.3**.
+**1.10.4**.
 
 :::tip Scaffold vs reference
 `warehouse-pro` is the **CLI scaffold id** (`qefro create-app warehouse-pro`).
@@ -37,6 +37,7 @@ for its own domain (`hosting: managed`, `endpoint: http://restaurant-pro:8080`).
 | Marketing | Audiences, Book Table CTA attribution (`campaign_id` / `offer_id`) |
 | Organization | Opaque workflow capabilities for Internal Inbox |
 | Pilot hardening (1.10.3) | No hardcoded booking fallback; optional `seed_demo`; `?brand=` |
+| Guest + staff UX (1.10.4) | Dinner sitting chips, party stepper, Tonight dashboard, floor/kitchen polish |
 
 ## Package layout
 
@@ -168,7 +169,7 @@ qefro solution build .    # requires src/
 qefro solution publish
 qefro solution install restaurant-pro
 # upgrade: POST /installations/restaurant-pro/upgrade
-#   { "target_version": "1.10.3" }  (+ workspace_id)
+#   { "target_version": "1.10.4" }  (+ workspace_id)
 ```
 
 Source of truth in the platform repo: `docs/examples/restaurant-pro/`.
