@@ -124,10 +124,6 @@ For embedding in an existing HTTP framework, use `handleRaw(body, headers)` (ver
 
 ## Shared code across models
 
-Keep tools, schemas, and domain logic identical if you later package the
-same SDK app as `hosting: managed` vs an org SDK Connection. Change
-packaging and registration only — see
-[migration-external-to-managed.md](./migration-external-to-managed.md).
-
-That packaging path is still **external-system integration**, not the
-default Marketplace App (metadata / `hosting: runtime`).
+Keep tools, schemas, and domain logic identical whether the adapter is an
+org SDK Connection or a packaged `hosting: external` process. Marketplace
+Apps are metadata and do not use this SDK.

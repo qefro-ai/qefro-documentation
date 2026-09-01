@@ -15,8 +15,8 @@ signature. The registry accepts nothing else.
 and must **not** ship `src/` or an external `/qefro` endpoint.
 `qefro app package` / `qefro solution build` accept that shape.
 
-SDK-hosted apps (`managed` / `external`) still require `src/` (and usually
-a `Dockerfile` for `hosting: managed`). See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+SDK connections (`external`) require `src/` and a `/qefro` process. See
+[Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 :::
 
 ## Build command

@@ -1,56 +1,17 @@
 ---
-title: "Example: clinic-pro"
-description: "Clinic Pro — doctors, visit types, and WhatsApp appointment booking on the installable SDK app surface."
-sidebar_label: "clinic-pro"
+title: "Example: clinic-pro (removed)"
+description: "The SDK-hosted Clinic Pro Marketplace App was removed. Build Clinic as a metadata Marketplace App."
+sidebar_label: "clinic-pro (removed)"
 ---
 
-# Example: clinic-pro
+# clinic-pro (removed)
 
-:::warning Historical SDK package
-`clinic-pro` is an **SDK-hosted** `/qefro` vertical. New Marketplace Apps
-use metadata (`hosting: runtime`) — see
-[restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime)
-and [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
-:::
+The SDK-hosted Clinic Pro Marketplace App (`hosting: managed`, `/qefro`)
+is no longer part of the platform.
 
-`clinic-pro` is a **reference vertical** for clinics: doctors, visit types, and
-WhatsApp appointment prebooking. Same ADR-003 surface as
-[restaurant-pro](/docs/solutions/examples/restaurant-pro) — the `/qefro` process
-is the application.
+Build a clinic app as **metadata** (`entities/`, `workflows/`, `ui/`) the
+same way as [restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime)
+and [real-estate-runtime](/docs/solutions/examples/real-estate-runtime).
 
-```text
-widget / WhatsApp / staff UI
-  → runtime → clinic-pro /qefro
-  → clinic.* → ctx.storage + Customer Hub (patients)
-```
-
-Customer Hub owns **patients**. Clinic Pro owns **doctors** and **appointments**.
-Slots are derived (working hours − existing appointments).
-
-## Collections
-
-| Logical | Purpose |
-| --- | --- |
-| `doctors` | Roster + working hours |
-| `appointments` | Bookings with frozen status + visit type |
-| `patient_profiles` | Optional local notes (not identity source of truth) |
-
-## Develop
-
-Canonical package lives in the platform repo:
-
-```bash
-cd docs/examples/clinic-pro   # qefro-plugin-platform
-npm install
-export QEFRO_SIGNING_SECRET=dev-secret
-npm start
-```
-
-Booking bridge: `booking/` → `https://clinic-pro.portal.qefro.com/booking` after deploy.
-
-## Related topics
-
-- [Build your first app](/docs/solutions/build-your-first-app)
-- [Customer Hub](/docs/solutions/customer-hub)
-- [restaurant-pro](/docs/solutions/examples/restaurant-pro)
-- [salon-pro](/docs/solutions/examples/salon-pro)
+See [Build your first app](/docs/solutions/build-your-first-app) and
+[Runtime vs SDK](/docs/solutions/runtime-vs-sdk).

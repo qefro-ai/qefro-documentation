@@ -64,9 +64,8 @@ ui:
   name: Restaurant Pro
 ```
 
-SDK-hosted packages (`hosting: managed` / `external`) add `endpoint` and
-`src/` — see [Managed apps](/docs/solutions/managed-apps). They are not
-the default Marketplace path.
+SDK Connections (`hosting: external`) add `endpoint` and `src/` — they
+are not Marketplace Apps. See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 
 ## Field reference
 
@@ -75,8 +74,8 @@ the default Marketplace path.
 | `id` | string | Yes | Unique solution id. **kebab-case**: lowercase letters, digits, `-`; must start with a letter. |
 | `name` | string | Yes | Human-readable display name. |
 | `version` | string | Yes | Semver version of this package. Immutable once published. |
-| `hosting` | string | Yes | `runtime` (metadata Marketplace App — **default**), `managed`, or `external` (SDK `/qefro`). |
-| `endpoint` | string | No* | SDK process URL. **Forbidden** for `hosting: runtime` (except the sentinel `runtime://`). Required for `external` (and typical `managed`) SDK apps. |
+| `hosting` | string | Yes | `runtime` (Marketplace App) or `external` (SDK Connection). `managed` is rejected. |
+| `endpoint` | string | No* | SDK process URL. **Forbidden** for `hosting: runtime` (except the sentinel `runtime://`). Required for `external`. |
 | `description` | string | No | One-line summary shown in the marketplace. |
 | `category` | string | No | Marketplace grouping, e.g. `hospitality`, `healthcare`, `real-estate`. |
 | `tags` | string[] | No | Search keywords. |

@@ -69,12 +69,12 @@ No Node.js runtime is required for `hosting: runtime` apps.
 ## Step 1 — Scaffold
 
 ```bash
-qefro app init restaurant-pro --name "Restaurant Pro" --hosting runtime
+qefro app init restaurant-pro --name "Restaurant Pro"
 cd restaurant-pro
 ```
 
-(`qefro app init` is an alias of `qefro create-app`. Prefer
-`--hosting runtime`.)
+(`qefro app init` is an alias of `qefro create-app`. It always scaffolds
+a metadata Marketplace App.)
 
 Generated layout (actual CLI output):
 
@@ -171,7 +171,7 @@ Catalog discovery: [Marketplace](/docs/solutions/marketplace).
 
 You are done when **all** of these pass without writing an SDK server:
 
-- [ ] `qefro app init … --hosting runtime` produced a metadata tree
+- [ ] `qefro app init …` produced a metadata tree
 - [ ] `qefro app validate` reports `hosting=runtime`
 - [ ] `qefro app package` succeeds
 - [ ] Publish returns 201 (platform admin)

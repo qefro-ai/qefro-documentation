@@ -35,29 +35,21 @@ docker run -e QEFRO_SIGNING_SECRET=… -e PORT=8080 -p 8080:8080 your/connector:
 
 Local Docker + ACS in Docker often uses `http://host.docker.internal:8090/qefro`.
 
-## Managed Marketplace App
+## Marketplace App
 
 Metadata Marketplace Apps (`hosting: runtime`) are **not** deployed as
 containers — Qefro Runtime executes the installed package. See
 [Managed Marketplace App](/docs/developer/managed-marketplace-app).
 
-SDK-hosted packages (`hosting: managed`) still ship a Docker image:
+`hosting: managed` (platform-hosted `/qefro` Marketplace App) is not
+supported.
 
-| Artifact | Role |
-| --- | --- |
-| `Dockerfile` | Required for `hosting: managed` |
-| Solution package | Built/signed by `qefro solution build` / `publish` |
-| Install | `qefro solution install` per tenant/workspace |
-| Runtime | Qefro starts/routes container; binding stores endpoint |
+To connect an external system, register an SDK Connection:
 
 ```bash
-qefro create-app my-app --hosting managed
-qefro dev .
-qefro publish .
-qefro solution install my-app
+qefro create-app my-erp --hosting external --endpoint https://api.example.com/qefro
+qefro register --endpoint https://api.example.com/qefro --solution my-erp
 ```
-
-External hosting option on create-app (`--hosting external`) plus `qefro register --endpoint URL` binds a third-party endpoint for an install — confirm in your environment before production use.
 
 ## Shared runtime concerns
 

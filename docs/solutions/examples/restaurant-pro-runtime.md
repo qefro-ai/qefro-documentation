@@ -16,11 +16,7 @@ storage, Person CRM, and Automations.
 Package path:
 `qefro-plugin-platform/docs/examples/restaurant-pro-runtime/`.
 
-:::info SDK takeaway package
-[`restaurant-pro`](/docs/solutions/examples/restaurant-pro) is a separate
-**SDK-hosted** takeaway app (`hosting: managed`, `src/` on `/qefro`). It is
-not how you build a new Marketplace App. Use this runtime package instead.
-:::
+There is no SDK takeaway package. Restaurant Pro is this metadata app.
 
 ## What it proves
 
@@ -169,7 +165,7 @@ Example automation: `reservation.created` → CRM Automation → Send WhatsApp.
 ## Try the loop
 
 ```bash
-qefro app init restaurant-pro --name "Restaurant Pro" --hosting runtime
+qefro app init restaurant-pro --name "Restaurant Pro"
 # or study the reference tree:
 #   qefro-plugin-platform/docs/examples/restaurant-pro-runtime
 

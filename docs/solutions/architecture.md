@@ -52,9 +52,9 @@ External ERP / POS / CRM:
   customer system → SDK → /qefro → FlowRunner + SDKAdapter
 ```
 
-SDK-hosted Marketplace packages (`hosting: managed` / `external`) still
-exist — see [Managed apps](/docs/solutions/managed-apps). They are not
-the default.
+SDK Connections (`hosting: external`) are how Focus ERP / Yaaz attach —
+not Marketplace Apps. See [Managed apps](/docs/solutions/managed-apps)
+only as a pointer to the removed `/qefro` Marketplace model.
 
 ## The pipeline
 
@@ -218,9 +218,8 @@ entity.reservation.create (Runtime capability)
 Isolation, reserved metadata, soft delete, and audit are enforced by
 storage-service. See [Managed storage](/docs/solutions/managed-storage).
 
-SDK-hosted packages (`hosting: managed` / `external`) still persist only
-via `ctx.storage` inside `/qefro` — never from workflow/UI YAML targeting
-`storage/*`.
+SDK Connections persist only via `ctx.storage` inside `/qefro` — never
+from workflow/UI YAML targeting `storage/*`.
 
 ## Connector bridge
 

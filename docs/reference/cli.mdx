@@ -14,20 +14,20 @@ Primary product configuration is still the **Admin Console**.
 ## Marketplace Apps (default)
 
 ```text
-qefro app init <id> [--name NAME] [--hosting runtime]
+qefro app init <id> [--name NAME]
 qefro app validate [dir]
 qefro app package [dir]
 qefro app install <name> [--version V] [--settings JSON]
 ```
 
-`app init` aliases `create-app`. Prefer `--hosting runtime` (metadata
-package, no SDK process). See
+`app init` aliases `create-app` and always scaffolds a **metadata
+Marketplace App** (`hosting: runtime`). See
 [Build your first app](/docs/solutions/build-your-first-app).
 
 ## Also available
 
 ```text
-qefro create-app <id> [--name NAME] [--hosting managed|external|runtime]
+qefro create-app <id> [--name NAME] [--hosting runtime|external]
                                                     [--endpoint URL] [--minimal]
 qefro dev [dir]
 qefro publish [dir]
@@ -37,8 +37,8 @@ qefro workflow trigger|list|logs
 qefro replay <execution-id>
 ```
 
-`hosting: managed` / `external` scaffold an SDK `/qefro` app for
-**external-system** integration — not the default Marketplace path.
+`--hosting external` scaffolds an SDK `/qefro` process for connecting an
+**external** ERP, POS, or CRM. `hosting: managed` is not supported.
 See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 
 Environment: `QEFRO_SOLUTION_URL`, `QEFRO_RUNTIME_URL`, `QEFRO_TENANT_ID`,

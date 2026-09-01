@@ -17,9 +17,8 @@ Publisher (platform admin today)
   → Install wizard → workspace + Qefro Runtime
 ```
 
-Default packages are **metadata** (`hosting: runtime`). SDK `/qefro`
-bindings apply only to SDK-hosted or external integrations — see
-[Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+Default packages are **metadata** (`hosting: runtime`). The SDK is not a
+Marketplace App hosting model — see [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 
 ## For tenants (installers)
 
@@ -58,10 +57,9 @@ until then, use [Publishing](/docs/solutions/publishing) with provisioned keys.
 |-------------|-----|
 | Unique `manifest.id` + semver `version` | Catalog key |
 | Valid signed package | Trust anchors |
-| `hosting: runtime` + `entities/` **or** SDK `src/` + `/qefro` | Metadata app vs SDK-hosted package |
+| `hosting: runtime` + `entities/` | Marketplace App |
 | No `storage/*` in workflows/UI | Rejected at validate/publish |
 | Honest settings defaults | Install wizard |
-| Managed image **or** reachable external `/qefro` | Runtime binding |
 
 ### Upgrade path
 

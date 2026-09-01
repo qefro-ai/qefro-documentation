@@ -23,9 +23,8 @@ Reference packages:
 
 :::info SDK is a different story
 To connect Focus ERP, Yaaz, or another customer system, use
-[External SDK Connection](./external-sdk-connection.md) (`SDK → /qefro`).
-The SDK-hosted takeaway package [`restaurant-pro`](/docs/solutions/examples/restaurant-pro)
-is a historical `/qefro` app, not the default Marketplace tutorial.
+[External SDK Connection](./external-sdk-connection.md). That is not a
+Marketplace App.
 :::
 
 ## Prerequisites
@@ -61,7 +60,7 @@ Comparison: [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 ## Create
 
 ```bash
-qefro app init restaurant-pro --name "Restaurant Pro" --hosting runtime
+qefro app init restaurant-pro --name "Restaurant Pro"
 cd restaurant-pro
 ```
 

@@ -6,21 +6,40 @@ sidebar_label: "Runtime vs SDK"
 
 # Runtime vs SDK
 
-Two different developer stories. Do not mix them.
+**Build a Qefro Marketplace App with metadata.**
+
+A Marketplace App is a declarative application package. Qefro Runtime
+executes the application's entities, UI, workflows, events, automations,
+and business operations.
+
+Use the Qefro SDK only when your application needs to connect Qefro to an
+external system whose data or business logic lives outside Qefro.
 
 ```text
-Marketplace App (default)
-  Developer → Create App Metadata → Validate → Package → Publish
-    → Install into Workspace → Qefro Runtime
-    (UI, Entities, Storage, Business Flows, Business Events, CRM, Automation)
-
-External integration (separate)
-  External ERP / POS / CRM → Qefro SDK → /qefro protocol → Qefro Runtime
+Marketplace App
+      ↓
+Metadata Package
+      ↓
+Qefro Plugin Platform (catalog, install, versioning)
+      ↓
+Qefro Runtime
+      ├── UI Runtime
+      ├── FlowRunner
+      └── Data Runtime
 ```
 
-The old default — **Marketplace App → SDK → /qefro** — is no longer the
-Marketplace story. You do **not** write a `/qefro` server to ship Restaurant,
-Clinic, Real Estate, Booking, or CRM apps.
+```text
+External ERP / POS / CRM
+          ↓
+      Qefro SDK
+          ↓
+     SDKAdapter
+          ↓
+    Qefro Runtime
+```
+
+There is no Marketplace App `/qefro` backend. You do not write an SDK
+server to ship Restaurant, Clinic, Real Estate, Booking, or CRM apps.
 
 ## Comparison
 
@@ -37,9 +56,8 @@ Clinic, Real Estate, Booking, or CRM apps.
 ## Marketplace App
 
 A **Qefro Marketplace App** is a declarative package (`hosting: runtime`).
-Qefro Runtime renders the UI, persists entities in managed storage, and
-compiles `workflows/` into the same **BusinessFlow / FlowRunner** used
-everywhere else.
+`qefro-plugin-platform` validates, stores, versions, and installs it.
+**Qefro Runtime** executes it.
 
 - No `src/`, no Dockerfile, no `/qefro` process.
 - Entities live under `entities/`; UI under `ui/`; flows under `workflows/`.
@@ -74,24 +92,22 @@ still owns orchestration; an **SDKAdapter** invokes the customer's
 `/qefro` tools. Storage stays in the external system unless you
 explicitly use `ctx.storage`.
 
+`hosting: managed` (a platform-hosted `/qefro` Marketplace App) is not
+supported. Register an [SDK Connection](/docs/developer/external-sdk-connection)
+instead.
+
 Start: [External SDK Connection](/docs/developer/external-sdk-connection).
 
 ## Hosting values
 
 | `manifest.hosting` | What it is | When to use |
 | --- | --- | --- |
-| `runtime` | Metadata Marketplace App. No SDK process. | **Default** for new Marketplace apps |
-| `managed` | Qefro runs your `/qefro` container | Legacy / SDK-hosted Marketplace packages |
-| `external` | You run `/qefro`; install binds the URL | Packaged SDK app pointing at your endpoint |
-
-`managed` and `external` still exist for SDK-hosted packages (see
-[`restaurant-pro`](/docs/solutions/examples/restaurant-pro) takeaway). They
-are **not** the default path for a new Marketplace App.
+| `runtime` | Metadata Marketplace App. No SDK process. | **Every Marketplace App** |
+| `external` | You run `/qefro`; Qefro binds the URL | SDK Connection to an external system |
 
 ## Related topics
 
 - [Solution Development overview](/docs/solutions/overview)
 - [Architecture](/docs/solutions/architecture)
-- [Managed apps](/docs/solutions/managed-apps) — SDK-hosted packages
 - [Integration models](/docs/developer/integration-models)
 - [SDK application development](/docs/developer/sdk-application-development)

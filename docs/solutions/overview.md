@@ -25,7 +25,7 @@ Developer → Create App Metadata → Validate → Package → Publish
 ```
 
 ```bash
-qefro app init restaurant-pro --hosting runtime
+qefro app init restaurant-pro
 qefro app validate restaurant-pro
 qefro app package restaurant-pro
 qefro app install restaurant-pro
@@ -35,10 +35,8 @@ qefro app install restaurant-pro
 using [`restaurant-pro-runtime`](/docs/solutions/examples/restaurant-pro-runtime).
 
 :::info Runtime vs SDK
-Marketplace Apps are metadata. The Qefro SDK connects **external** ERP /
-POS / CRM systems over `/qefro`. See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
-The old path **Marketplace App → SDK → /qefro** is not the default
-Marketplace story.
+**Build a Qefro Marketplace App with metadata.** Use the SDK only to
+connect an external ERP, POS, or CRM. See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 :::
 
 ## What is a Qefro Marketplace App?
@@ -73,9 +71,9 @@ Canonical references:
 | [restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime) | `restaurant-pro-runtime` | Hospitality metadata app |
 | [real-estate-runtime](/docs/solutions/examples/real-estate-runtime) | `real-estate-runtime` | Same model, different nouns |
 
-SDK-hosted examples (`restaurant-pro`, `clinic-pro`, `salon-pro`) remain
-as **external / legacy SDK packages** — see
-[Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+SDK-hosted Marketplace examples (`restaurant-pro`, `clinic-pro`,
+`salon-pro`) were **removed**. Build those products as metadata, or
+connect a real external system with the SDK.
 
 ## Core principles
 
@@ -139,7 +137,7 @@ External ERP / POS / CRM integrations take a **separate** path: SDK →
 
 ## Package structure
 
-Prefer `qefro app init <id> --hosting runtime`. The implemented tree
+Prefer `qefro app init <id>`. The implemented tree
 (from `restaurant-pro-runtime` / `qefro app init`) is:
 
 ```text

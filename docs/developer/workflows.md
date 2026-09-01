@@ -12,7 +12,7 @@ sidebar_label: "Workflows"
 | --- | --- | --- |
 | **Marketplace App flows** (`workflows/*.yaml`, `execution: runtime`) | Metadata package | FlowRunner → Runtime entity tools |
 | **Business Flows** (`app.flow`) | SDK metadata (external systems) | FlowRunner → SDKAdapter `/qefro` |
-| **SDK-hosted solution workflows** | `hosting: managed` package | Runtime — call **app tools** on `/qefro` |
+| **SDK-hosted solution workflows** | removed | Use metadata Marketplace Apps or an SDK Connection |
 | **Organization workflows** | Platform builder | Organization Runtime — events → tasks → actions |
 
 Marketplace App default: [Solution workflows](/docs/solutions/workflows).

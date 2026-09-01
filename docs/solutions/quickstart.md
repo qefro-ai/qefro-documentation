@@ -20,9 +20,6 @@ server.
 | [`restaurant-pro-runtime`](/docs/solutions/examples/restaurant-pro-runtime) | Reservations / menu (**canonical**) |
 | [`real-estate-runtime`](/docs/solutions/examples/real-estate-runtime) | Properties / leads / viewings |
 
-SDK-hosted takeaway / clinic / salon packages are a
-[separate path](/docs/solutions/runtime-vs-sdk).
-
 ## Prerequisites
 
 - A Qefro organization with admin access to the portal (`app.qefro.com`).
@@ -40,7 +37,7 @@ Tenant and workspace admins can *install* published solutions; they cannot
 ## Step 1 — Scaffold the package
 
 ```bash
-qefro app init restaurant-pro --name "Restaurant Pro" --hosting runtime
+qefro app init restaurant-pro --name "Restaurant Pro"
 cd restaurant-pro
 ```
 

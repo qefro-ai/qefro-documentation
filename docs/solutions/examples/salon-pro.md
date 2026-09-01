@@ -1,51 +1,14 @@
 ---
-title: "Example: salon-pro"
-description: "Salon Pro — stylists, services, and WhatsApp appointment booking on the installable SDK app surface."
-sidebar_label: "salon-pro"
+title: "Example: salon-pro (removed)"
+description: "The SDK-hosted Salon Pro Marketplace App was removed. Build Salon as a metadata Marketplace App."
+sidebar_label: "salon-pro (removed)"
 ---
 
-# Example: salon-pro
+# salon-pro (removed)
 
-:::warning Historical SDK package
-`salon-pro` is an **SDK-hosted** `/qefro` vertical. New Marketplace Apps
-use metadata (`hosting: runtime`) — see
-[real-estate-runtime](/docs/solutions/examples/real-estate-runtime)
-and [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
-:::
+The SDK-hosted Salon Pro Marketplace App is no longer part of the
+platform. Build salon scheduling as a metadata Marketplace App.
 
-`salon-pro` is a **reference vertical** for salons: stylists, services, and
-WhatsApp appointment booking. Same platform surface as
-[clinic-pro](/docs/solutions/examples/clinic-pro) and
-[restaurant-pro](/docs/solutions/examples/restaurant-pro).
-
-```text
-widget / WhatsApp / staff UI
-  → runtime → salon-pro /qefro
-  → salon.* → ctx.storage + ctx.customer + app.marketing metadata
-```
-
-## Collections
-
-| Collection | Purpose |
-| --- | --- |
-| `stylists` | Roster + working hours |
-| `services` | Duration + price catalog |
-| `appointments` | Client bookings |
-| `client_profiles` | Optional Hub linkage |
-
-WhatsApp digits come from the **workspace channel** (never install settings).
-
-## Develop
-
-```bash
-cd docs/examples/salon-pro   # qefro-plugin-platform
-npm install
-npm run dev
-```
-
-## Related topics
-
-- [Build your first app](/docs/solutions/build-your-first-app)
-- [Marketing](/docs/solutions/marketing)
-- [Customer Hub](/docs/solutions/customer-hub)
-- [clinic-pro](/docs/solutions/examples/clinic-pro)
+See [Build your first app](/docs/solutions/build-your-first-app) and
+[real-estate-runtime](/docs/solutions/examples/real-estate-runtime) for
+the package shape.

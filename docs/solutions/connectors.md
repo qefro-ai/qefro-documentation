@@ -12,10 +12,9 @@ never talks to them directly: it declares dependencies, and the platform
 resolves, provisions and mediates every call.
 
 For **solution-owned application documents** (reservations, menus, drafts),
-implement tools in your install’s SDK and persist with
-[`ctx.storage`](/docs/solutions/managed-storage) — no pool connector
-required. `restaurant-pro@1.7.0` ships with `connectors: []` and
-`hosting: managed`.
+declare entities in a Marketplace App and persist through Runtime entity
+tools. Pool connectors (Shopify, Medusa, …) are for **external** systems,
+not for Marketplace-owned data.
 
 :::danger Deprecated
 Do not call platform `storage/*` from workflows or UI sources. That model

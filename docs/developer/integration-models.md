@@ -81,16 +81,11 @@ ops, ERP adapters (Focus, Yaaz, ABM).
 
 Tutorial: [external-sdk-connection.md](./external-sdk-connection.md).
 
-## SDK-hosted Marketplace packages (legacy / advanced)
+## SDK-hosted Marketplace packages
 
-`qefro create-app … --hosting managed|external` still scaffolds a `/qefro`
-container that can be published as a solution. That is **not** the default
-Marketplace story. See [Managed apps](/docs/solutions/managed-apps) and
-the historical [`restaurant-pro`](/docs/solutions/examples/restaurant-pro)
-takeaway package.
-
-CLI: `qefro create-app … --hosting managed|external|runtime` —
-prefer `--hosting runtime` for new Marketplace Apps.
+Removed. `hosting: managed` is not supported. Marketplace Apps are
+metadata. External systems use an SDK Connection
+(`qefro create-app … --hosting external` + `qefro register`).
 
 ## Decision tree
 

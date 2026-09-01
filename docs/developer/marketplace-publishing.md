@@ -9,9 +9,8 @@ sidebar_label: "Marketplace publishing"
 Applies to **Marketplace Apps**. External SDK Connections do not use this
 path — they register a webhook under Business Tools.
 
-Default packages are **metadata** (`hosting: runtime`). SDK-hosted
-`hosting: managed` packages remain supported; see
-[Managed apps](/docs/solutions/managed-apps).
+Default packages are **metadata** (`hosting: runtime`). `hosting: managed`
+is not supported.
 
 ## Lifecycle
 
@@ -24,11 +23,11 @@ qefro app init → edit entities/workflows/ui → qefro app validate
 ## CLI commands (current)
 
 ```text
-qefro app init <id> [--name NAME] [--hosting runtime]
+qefro app init <id> [--name NAME]
 qefro app validate [dir]
 qefro app package [dir]
 qefro app install <name> [--version V] [--settings JSON]
-qefro create-app <id> [--name NAME] [--hosting managed|external|runtime]
+qefro create-app <id> [--name NAME] [--hosting runtime|external]
                                                     [--endpoint URL] [--minimal]
 qefro dev [dir]
 qefro publish [dir]                 # alias of solution publish

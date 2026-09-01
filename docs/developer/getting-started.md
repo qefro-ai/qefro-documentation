@@ -26,7 +26,7 @@ See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 ## Marketplace App (default)
 
 ```bash
-qefro app init restaurant-pro --name "Restaurant Pro" --hosting runtime
+qefro app init restaurant-pro --name "Restaurant Pro"
 qefro app validate restaurant-pro
 qefro app package restaurant-pro
 qefro app install restaurant-pro

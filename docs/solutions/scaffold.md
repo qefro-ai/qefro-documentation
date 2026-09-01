@@ -9,7 +9,7 @@ sidebar_label: "App scaffold"
 :::tip Prefer the full walkthrough
 Primary path:
 **[Build your first app](/docs/solutions/build-your-first-app)**
-(`qefro app init restaurant-pro --hosting runtime`). This page covers
+(`qefro app init restaurant-pro`). This page covers
 ownership + generated layout. The shorter [Quickstart](/docs/solutions/quickstart)
 assumes you already have publish credentials.
 :::
@@ -39,7 +39,7 @@ See [Architecture](/docs/solutions/architecture) and
 ## Create an app (default — metadata)
 
 ```bash
-qefro app init restaurant-pro --name "Restaurant Pro" --hosting runtime
+qefro app init restaurant-pro --name "Restaurant Pro"
 cd restaurant-pro
 qefro app validate .
 ```
@@ -71,26 +71,22 @@ No `src/`, no Dockerfile, no `/qefro` endpoint.
 | Restaurant Pro Runtime | [example](/docs/solutions/examples/restaurant-pro-runtime) | `docs/examples/restaurant-pro-runtime/` |
 | Real Estate Runtime | [example](/docs/solutions/examples/real-estate-runtime) | `docs/examples/real-estate-runtime/` |
 
-## SDK-hosted scaffold (not the Marketplace default)
+## SDK connection scaffold (not a Marketplace App)
 
-Use this only to wrap an **external** system or to maintain a legacy
-`/qefro` package:
+Use this only to connect an **external** ERP, POS, or CRM:
 
 ```bash
-qefro create-app warehouse-pro --name "Warehouse Pro" --hosting managed
-qefro create-app my-app --hosting external --endpoint https://api.example.com/qefro
-qefro create-app my-app --minimal   # hello-only SDK stub
+qefro create-app my-erp --hosting external --endpoint https://api.example.com/qefro
+qefro create-app my-erp --hosting external --minimal   # hello-only SDK stub
 
 export QEFRO_APP_TEMPLATE=/path/to/templates/sdk-app-starter
 ```
 
 That copies [`templates/sdk-app-starter`](https://github.com/qefro-ai/qefro-platform/tree/main/templates/sdk-app-starter)
-(`src/` + Dockerfile). Historical verticals:
-[`restaurant-pro`](/docs/solutions/examples/restaurant-pro),
-[`clinic-pro`](/docs/solutions/examples/clinic-pro),
-[`salon-pro`](/docs/solutions/examples/salon-pro).
+(`src/` + `/qefro`). This is **not** how you build Restaurant, Clinic, or
+Real Estate Marketplace Apps.
 
-See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+See [External SDK Connection](/docs/developer/external-sdk-connection).
 
 ## From scaffold to live
 

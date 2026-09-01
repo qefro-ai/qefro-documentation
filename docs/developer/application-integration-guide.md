@@ -52,10 +52,6 @@ Marketplace story.
 
 **External SDK Connection** = "Bring your existing backend / ERP to Qefro."
 
-SDK-hosted Marketplace packages (`hosting: managed`) still exist for
-legacy `/qefro` apps. They are documented under
-[Managed apps](/docs/solutions/managed-apps) — not the default path.
-
 ---
 
 ## Side-by-side architecture
@@ -262,7 +258,7 @@ Solution Installation
 Qefro Runtime (no /qefro process)
 ```
 
-1. Scaffold with `qefro app init <id> --hosting runtime`.
+1. Scaffold with `qefro app init <id>`.
 2. Declare `entities/`, `workflows/`, `ui/`.
 3. `qefro app validate` → `qefro app package` → `qefro publish`.
 4. Tenant installs into a workspace.
@@ -271,9 +267,6 @@ Qefro Runtime (no /qefro process)
 Full tutorial: [managed-marketplace-app.md](./managed-marketplace-app.md).
 
 Reference: `restaurant-pro-runtime`, `real-estate-runtime`.
-
-SDK-hosted `hosting: managed` packages (Dockerfile + `src/`) are the
-legacy Marketplace shape — [Managed apps](/docs/solutions/managed-apps).
 
 ---
 
@@ -408,9 +401,6 @@ Qefro Runtime → entity.reservation.create + FlowRunner
       + Person CRM + Automations
 ```
 
-The SDK takeaway package `restaurant-pro` (`hosting: managed`) is a
-historical `/qefro` app — not this path.
-
 ---
 
 ## Shared application code
@@ -455,7 +445,7 @@ Migration guide: [migration-external-to-managed.md](./migration-external-to-mana
 ### Managed Marketplace checklist
 
 ```text
-[ ] qefro app init <id> --hosting runtime
+[ ] qefro app init <id>
 [ ] Declare entities/ and workflows/
 [ ] Optional: ui/ (including host: contacts / automations)
 [ ] qefro app validate
