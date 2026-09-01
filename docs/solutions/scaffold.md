@@ -1,17 +1,17 @@
 ---
 title: "App scaffold"
-description: "Overall ownership model and how qefro create-app scaffolds an SDK application."
+description: "Ownership model and how qefro app init scaffolds a metadata Marketplace App (hosting: runtime)."
 sidebar_label: "App scaffold"
 ---
 
 # App scaffold
 
 :::tip Prefer the full walkthrough
-Primary path for third parties:
+Primary path:
 **[Build your first app](/docs/solutions/build-your-first-app)**
-(`qefro create-app warehouse-pro`). This page covers ownership + generated
-layout. The shorter [Quickstart](/docs/solutions/quickstart) assumes you already
-have publish credentials.
+(`qefro app init restaurant-pro --hosting runtime`). This page covers
+ownership + generated layout. The shorter [Quickstart](/docs/solutions/quickstart)
+assumes you already have publish credentials.
 :::
 
 ## Ownership model
@@ -27,7 +27,7 @@ Tenant
 | --- | --- | --- |
 | **Tenant** | Org, users, billing | Portal login boundary |
 | **Workspace** | Channels + one primary app | WhatsApp number binds to the workspace, not the package |
-| **Application** | Domain tools on `/qefro` + optional UI/workflows | Shared catalog package; per-workspace install + settings |
+| **Application** | Metadata package (entities, flows, UI) | Shared catalog package; per-workspace install + settings. Qefro Runtime executes it. |
 
 Installing a second primary app into a workspace that already has one is
 rejected. Channel digits (`?n=` on booking links) come from the workspace
@@ -36,70 +36,69 @@ WhatsApp binding — do not put `whatsapp_business_number` in install settings.
 See [Architecture](/docs/solutions/architecture) and
 [Installation](/docs/solutions/installation).
 
-## Create an app
+## Create an app (default — metadata)
 
 ```bash
-# Full booking starter (storage, Hub, marketing, organization, booking bridge, UI)
-qefro create-app warehouse-pro --name "Warehouse Pro"
-cd warehouse-pro
-npm install && npm run dev
-
-# Flags
-qefro create-app my-app --hosting managed|external [--endpoint URL]
-qefro create-app my-app --minimal   # hello-only stub
-
-# Template path when the CLI is not run from a platform checkout:
-export QEFRO_APP_TEMPLATE=/path/to/templates/sdk-app-starter
+qefro app init restaurant-pro --name "Restaurant Pro" --hosting runtime
+cd restaurant-pro
+qefro app validate .
 ```
 
-Walkthrough: [Build your first app](/docs/solutions/build-your-first-app).
-
-The CLI copies [`templates/sdk-app-starter`](https://github.com/qefro-ai/qefro-platform/tree/main/templates/sdk-app-starter)
-from the platform repo (or the hello stub with `--minimal`).
+(`qefro app init` aliases `qefro create-app`.)
 
 ### Generated layout
 
 ```text
-my-salon/
-├── manifest.yaml          # id, version, hosting, endpoint, permissions
-├── src/                   # required SDK app — tools + ctx.storage
-├── package.json
-├── Dockerfile             # managed hosting image
-├── assets/
-├── workflows/             # optional orchestration (calls app tools only)
-├── prompts/
-├── booking/               # static WhatsApp bridge (?n= filled by platform)
-├── onboarding/
-└── ui/                    # declarative portal UI
-    ├── theme.yaml
+restaurant-pro/
+├── manifest.yaml          # id, version, hosting: runtime, entities, flows, events
+├── entities/              # required — domain schemas
+│   └── record.yaml
+├── workflows/             # Business Flows → FlowRunner
+│   └── create-record.yaml
+└── ui/
     ├── navigation.yaml
     ├── pages.yaml
-    ├── layouts.yaml
     ├── widgets.yaml
-    └── sources.yaml
+    └── sources.yaml       # type: entity
 ```
+
+No `src/`, no Dockerfile, no `/qefro` endpoint.
 
 ### Reference verticals
 
-Same scaffold surface, different domain nouns:
-
 | App | Docs | Path (platform repo) |
 | --- | --- | --- |
-| Restaurant Pro | [example](/docs/solutions/examples/restaurant-pro) | `docs/examples/restaurant-pro/` |
-| Clinic Pro | [example](/docs/solutions/examples/clinic-pro) | `docs/examples/clinic-pro/` |
-| Salon Pro | [example](/docs/solutions/examples/salon-pro) | `docs/examples/salon-pro/` |
-| Marketing Lab | [example](/docs/solutions/examples/marketing-lab) | `docs/examples/marketing-lab/` |
+| Restaurant Pro Runtime | [example](/docs/solutions/examples/restaurant-pro-runtime) | `docs/examples/restaurant-pro-runtime/` |
+| Real Estate Runtime | [example](/docs/solutions/examples/real-estate-runtime) | `docs/examples/real-estate-runtime/` |
 
-`warehouse-pro` is the **scaffold id**, not a separate vertical package.
+## SDK-hosted scaffold (not the Marketplace default)
+
+Use this only to wrap an **external** system or to maintain a legacy
+`/qefro` package:
+
+```bash
+qefro create-app warehouse-pro --name "Warehouse Pro" --hosting managed
+qefro create-app my-app --hosting external --endpoint https://api.example.com/qefro
+qefro create-app my-app --minimal   # hello-only SDK stub
+
+export QEFRO_APP_TEMPLATE=/path/to/templates/sdk-app-starter
+```
+
+That copies [`templates/sdk-app-starter`](https://github.com/qefro-ai/qefro-platform/tree/main/templates/sdk-app-starter)
+(`src/` + Dockerfile). Historical verticals:
+[`restaurant-pro`](/docs/solutions/examples/restaurant-pro),
+[`clinic-pro`](/docs/solutions/examples/clinic-pro),
+[`salon-pro`](/docs/solutions/examples/salon-pro).
+
+See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 
 ## From scaffold to live
 
-1. Implement tools in `src/` (domain rules live here only).
-2. Optional: workflows, prompts, declarative UI.
-3. `qefro solution build .` — validate + sign.
+1. Edit entities, workflows, and UI YAML.
+2. `qefro app validate .`
+3. `qefro app package .` — validate + sign.
 4. **Platform admin** publishes — see [Publishing](/docs/solutions/publishing).
 5. Tenant installs into a workspace — see [Installation](/docs/solutions/installation).
-6. Deploy / bind the `/qefro` process (`hosting: managed` or `external`).
 
 :::important
 Tenants and workspace admins **install** apps. Only **platform admins**
@@ -109,7 +108,8 @@ publish versions into the global catalog.
 ## Related topics
 
 - [Build your first app](/docs/solutions/build-your-first-app) — primary path
-- [Managed apps](/docs/solutions/managed-apps) — ADR-003 developer guide
+- [Runtime vs SDK](/docs/solutions/runtime-vs-sdk)
+- [Managed apps](/docs/solutions/managed-apps) — SDK-hosted packages
 - [Manifest](/docs/solutions/manifest) — package identity
 - [Publishing](/docs/solutions/publishing) — platform-admin-only catalog write
-- [Quickstart](/docs/solutions/quickstart) — shorter loop (demoted)
+- [Quickstart](/docs/solutions/quickstart) — shorter loop

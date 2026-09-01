@@ -1,6 +1,6 @@
 ---
 title: "Core Concepts"
-description: "Map of Qefro concepts — workspaces, SDK apps vs SDK Connections, Customer Hub, Marketing, Organization, tools, and channels."
+description: "Map of Qefro concepts — workspaces, Marketplace Apps vs SDK Connections, Customer Hub, Marketing, Organization, tools, and channels."
 sidebar_label: "Concepts"
 ---
 
@@ -20,18 +20,19 @@ for how-to steps.
 | Knowledge / Hybrid RAG | Grounded answers with citations | [Hybrid RAG](/docs/concepts/hybrid-rag) |
 | RBAC | Owner / Admin / Member + teams | [RBAC](/docs/platform/rbac) |
 
-## Two different “SDK” stories
+## Marketplace Apps vs SDK Connections
 
 Do not confuse these:
 
 | Concept | What it is | Read more |
 | --- | --- | --- |
-| **SDK Connection** (Business Tools) | Signed webhook to **your** backend; tools registered as Business Tools | [Backend SDK](/docs/business-tools/backend-sdk) |
-| **SDK app** (installable) | Managed `/qefro` package from Marketplace; the process **is** the app | [Managed apps](/docs/solutions/managed-apps) · [Build your first app](/docs/solutions/build-your-first-app) |
+| **Marketplace App** | Metadata package (`hosting: runtime`) executed by Qefro Runtime | [Runtime vs SDK](/docs/solutions/runtime-vs-sdk) · [Build your first app](/docs/solutions/build-your-first-app) |
+| **SDK Connection** (Business Tools) | Signed webhook to **your** ERP/POS/CRM backend | [Backend SDK](/docs/business-tools/backend-sdk) |
+| **SDK-hosted package** (legacy) | Managed `/qefro` process published as a solution | [Managed apps](/docs/solutions/managed-apps) |
 
 Canonical entry for shipping apps: [Build your first app](/docs/solutions/build-your-first-app)
-(`warehouse-pro` is the **scaffold id**; vertical examples like `restaurant-pro`
-are reference packages).
+(`qefro app init … --hosting runtime`; reference
+[`restaurant-pro-runtime`](/docs/solutions/examples/restaurant-pro-runtime)).
 
 ## Platform capabilities used by apps
 

@@ -1,42 +1,46 @@
 ---
 title: "Managed storage"
-description: "Platform document storage for installable apps — ctx.storage / sdk.storage from the SDK process only (ADR-002), isolation, and collection naming."
+description: "Platform document storage for Marketplace App entities and SDK-hosted apps — isolation and collection naming (ADR-002)."
 sidebar_label: "Managed storage"
 ---
 
 # Managed storage
 
-Installable apps need durable application state (reservations, orders,
-drafts, …) without direct database access. **Managed storage** is the
+Installable apps need durable application state (reservations, listings,
+orders, …) without direct database access. **Managed storage** is the
 platform document plane ([ADR-002](https://github.com/qefro-ai/qefro-plugin-platform/blob/main/docs/adr-002-managed-storage.md)).
 
-**Who may call it:** only the install’s **SDK application** via
+**Marketplace Apps (`hosting: runtime`):** Qefro Runtime persists declared
+entities through entity tools (`entity.reservation.create`). Packages
+never receive a Mongo connection string.
+
+**SDK-hosted apps:** only the install’s **SDK application** may call
 `ctx.storage` / `sdk.storage.*` (injected on `/qefro` `tool.invoke`).
+Workflows and UI must not target `storage/insert` / `storage/find`.
 
-**Who must not:** workflows, UI sources, or any YAML that targets
-`storage/insert`, `storage/find`, etc. That path is **deprecated** and
-forbidden under [ADR-003](/docs/solutions/managed-apps) — business logic
-belongs in the app process.
-
-Solutions never receive a Mongo connection string and never invent
-storage-service URLs. Every op is scoped by tenant, workspace, and
-installation.
+Solutions never invent storage-service URLs. Every op is scoped by tenant,
+workspace, and installation.
 
 ## Mental model
 
 ```text
-Widget / WhatsApp / staff form
-  → runtime → tool invoker → installation /qefro
-  → app tool (e.g. restaurant.createReservation)
-  → ctx.storage.insert|find|…
-  → storage-service  /v1/internal/storage/*
-  → MongoDB database `managed_apps`
+Marketplace App:
+  entity.reservation.create (Runtime)
+    → storage-service  /v1/internal/storage/*
+    → MongoDB database `managed_apps`
+
+SDK-hosted app:
+  Widget / WhatsApp / staff form
+    → runtime → /qefro → app tool → ctx.storage.*
+    → storage-service  /v1/internal/storage/*
+    → MongoDB database `managed_apps`
 ```
 
 | Layer | Role |
 | --- | --- |
-| SDK app (`src/`) | Domain tools; only caller of `ctx.storage` |
-| Workflows / UI | Call `{solution}/{tool}` — never `storage/*` |
+| Runtime entity tools | Default Marketplace App persistence |
+| SDK app (`src/`) | SDK-hosted path; only `/qefro` caller of `ctx.storage` |
+| Workflows / UI | Never `storage/*` directly |
 | storage-service | Isolation, metadata, soft-delete, audit |
 | MongoDB `managed_apps` | Physical collections `{solution_slug}__{logical}` |
 
@@ -46,12 +50,14 @@ Control-plane data (packages, installs, secrets) stays in Postgres.
 
 | Need | Use |
 | --- | --- |
-| Solution-owned app state | **Managed storage** from inside the SDK |
-| External system of record (Shopify, Stripe, PMS, POS) | **Pool connector** (`connectors:` + bridge) |
+| Marketplace App entity state | **Managed storage** via Runtime entity tools |
+| SDK-hosted app state | **Managed storage** from inside the SDK (`ctx.storage`) |
+| External system of record (Shopify, Stripe, PMS, POS, ERP) | **Pool connector** or [SDK `/qefro`](/docs/solutions/runtime-vs-sdk) |
 | Tenant runtime metrics / executions | **Runtime** sources (`type: runtime`) |
 
-`restaurant-pro@1.7.0` is the reference: `connectors: []`, self-hosted
-`/qefro`, all app state through `ctx.storage`.
+`restaurant-pro-runtime` is the metadata reference: entities in YAML,
+Runtime tools, no `/qefro`. `restaurant-pro` (SDK takeaway) still uses
+`ctx.storage` from `src/`.
 
 ## Capabilities and permissions
 

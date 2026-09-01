@@ -1,14 +1,18 @@
 ---
 title: "Architecture"
-description: "The solution delivery pipeline: SDK app (/qefro), registry, installer, runtime, managed storage, connector bridge and portal renderer (ADR-003)."
+description: "The Marketplace App pipeline: metadata package, registry, installer, Qefro Runtime (UI, entities, FlowRunner, storage). SDK is for external systems."
 sidebar_label: "Architecture"
 ---
 
 # Architecture
 
-An installable solution is an **SDK application** plus optional declarative
-UI/workflows. The platform validates, stores, installs, routes tools,
-persists documents, and renders the staff UI — it never owns domain rules.
+The **default** installable solution is a **metadata Marketplace App**
+(`hosting: runtime`). The platform validates, stores, installs, renders
+UI, persists entities, and runs Business Flows on FlowRunner.
+
+Developers do not ship a `/qefro` server for Restaurant, Clinic, Real
+Estate, Booking, or CRM apps. That SDK path is [external
+integration](/docs/solutions/runtime-vs-sdk).
 
 ## Tenant → workspace → app
 
@@ -20,68 +24,79 @@ Tenant
 ```
 
 - **Catalog** (global): signed packages published by **platform admins only**.
-- **Install** (per workspace): tenant admins activate a published version,
-  configure settings, and bind the install’s `/qefro` endpoint.
+- **Install** (per workspace): tenant admins activate a published version
+  and configure settings. Runtime apps have **no** `/qefro` binding.
 - **Channels**: WhatsApp (and similar) bind to the **workspace**, not to
-  package settings. Booking links get `?n=` from that binding.
+  package settings.
 
 Scaffolding a new app: [App scaffold](/docs/solutions/scaffold).
 Publishing into the catalog: [Publishing](/docs/solutions/publishing).
 
-## SDK application (ADR-003)
+## Runtime vs SDK
+
+|                | Marketplace App       | External Integration          |
+| -------------- | --------------------- | ----------------------------- |
+| Definition     | Metadata              | SDK                           |
+| Runtime        | Qefro Runtime         | External server               |
+| Business logic | Qefro Runtime         | Customer system               |
+| Storage        | Qefro managed storage | External system               |
+| Tools          | Runtime capabilities  | SDK capabilities              |
+| Events         | Runtime events        | SDK events                    |
+| Flow           | Qefro FlowRunner      | Qefro FlowRunner + SDKAdapter |
 
 ```text
-runtime → tool invoker → installation binding → /qefro → app tools → ctx.storage → Mongo
+Marketplace App:
+  metadata → installer → Qefro Runtime → entity tools → managed storage
+
+External ERP / POS / CRM:
+  customer system → SDK → /qefro → FlowRunner + SDKAdapter
 ```
 
-Required: `src/`, signed `/qefro`, `hosting` + endpoint. Optional: UI,
-workflows, prompts, assets. Workflows and UI call `{solution}/{tool}` —
-never platform `storage/*` directly. See [Managed apps](/docs/solutions/managed-apps).
+SDK-hosted Marketplace packages (`hosting: managed` / `external`) still
+exist — see [Managed apps](/docs/solutions/managed-apps). They are not
+the default.
 
 ## The pipeline
 
 ```mermaid
 flowchart TB
     subgraph Build
-        A[Solution package<br/>src · manifest · optional ui/workflows]
+        A[Marketplace App package<br/>manifest · entities · workflows · ui]
     end
     subgraph Control plane
         B[Registry<br/>publish · sign · version lifecycle]
-        C[Installer<br/>capabilities · installation_bindings]
+        C[Installer<br/>capabilities · workspace install]
     end
     subgraph Execution plane
-        D[Runtime<br/>workflow execution · runtime data]
-        E[Tool invoker]
-        APP[Install SDK /qefro]
-        S[Managed storage<br/>storage-service · Mongo managed_apps]
+        D[Qefro Runtime<br/>FlowRunner · entity tools · events]
+        S[Managed storage]
         F[Pool connector bridge]
+        SDK[SDKAdapter — external /qefro only]
     end
     subgraph Presentation plane
         G[Portal renderer<br/>themes · navigation · pages · widgets]
+        CRM[Person CRM · Automations]
     end
     A -->|signed package| B
-    B -->|resolve version + deps| C
-    C -->|register workflows / prompts| D
-    C -->|binding endpoint| APP
-    D --> E
-    E --> APP
-    APP --> S
-    E --> F
-    C -->|UI bundle + granted capabilities| G
-    D -->|runtime sources| G
-    APP -->|own-app UI sources| G
-    F -->|pool connector sources| G
+    B -->|resolve version| C
+    C -->|register workflows| D
+    D --> S
+    D --> F
+    D -.->|external integrations only| SDK
+    C -->|UI bundle| G
+    D -->|entity + runtime sources| G
+    G --> CRM
 ```
 
 | Stage | Component | Tenant-scoped | Page |
 | --- | --- | --- | --- |
-| Solution package | Your source directory (`src/` required) | n/a | [Manifest](/docs/solutions/manifest) |
+| App package | Metadata directory (`entities/` required for `hosting: runtime`) | n/a | [Manifest](/docs/solutions/manifest) |
 | Registry | Global signed catalog | No | [Publishing](/docs/solutions/publishing) |
-| Installer | Tenant activation + binding | Yes | [Installation](/docs/solutions/installation) |
-| Runtime | Flow engine + event bus | Yes | [Workflows](/docs/solutions/workflows) |
-| SDK app | Domain tools on `/qefro` | Yes (per install) | [Managed apps](/docs/solutions/managed-apps) |
-| Managed storage | Documents via `ctx.storage` | Yes (per op) | [Managed storage](/docs/solutions/managed-storage) |
+| Installer | Tenant activation | Yes | [Installation](/docs/solutions/installation) |
+| Qefro Runtime | FlowRunner + entity tools + event bus | Yes | [Workflows](/docs/solutions/workflows) |
+| Managed storage | Documents for declared entities | Yes (per op) | [Managed storage](/docs/solutions/managed-storage) |
 | Connector bridge | Shared pool for external SoR | Pool shared; calls carry tenant | [Connectors](/docs/solutions/connectors) |
+| SDKAdapter | External `/qefro` tools | Yes (per connection) | [Runtime vs SDK](/docs/solutions/runtime-vs-sdk) |
 | Portal renderer | Native widget registry | Yes | [Pages](/docs/solutions/pages) |
 
 
@@ -145,17 +160,19 @@ Key properties:
 
 ## Runtime
 
-The runtime is the single execution engine of the platform. For solutions
-it provides:
+The runtime is the single execution engine of the platform. For Marketplace
+Apps it provides:
 
-- **Workflow execution** — installed workflow definitions run on the
-  runtime's flow engine (`ask`, `tool`, `condition`, `delay`, `approval`,
-  `challenge`, `complete` steps). See [Runtime concept](/docs/developer/concepts/runtime).
+- **Workflow execution** — installed workflow definitions run on
+  FlowRunner (`ask`, `tool`, `condition`, `delay`, `approval`,
+  `challenge`, `complete`). Metadata flows compile into the **same**
+  BusinessFlow model. See [Runtime concept](/docs/developer/concepts/runtime).
+- **Entity tools** — `entity.<id>.create` (and siblings) persist declared
+  entities through managed storage. `execution: runtime` — no SDKAdapter.
 - **Runtime data sources** — `metrics`, `executions` and `workflows`
-  targets serve the tenant's own runtime data to solution UIs
-  (capability `runtime.query`).
-- **Event bus** — `ui.*` lifecycle events and business events ride the
-  existing bus unchanged. See [Events](/docs/solutions/events).
+  targets (capability `runtime.query`).
+- **Event bus** — `ui.*` lifecycle events and business events.
+  See [Events](/docs/solutions/events).
 
 :::info
 A solution never executes workflows itself. Installation *registers*
@@ -170,8 +187,8 @@ appointment, guest, table, or visit type is.
 
 | Layer | Owns |
 | --- | --- |
-| App (`src/` + manifest) | Business rules, field names, choice values, when to confirm |
-| SDK / manifest | Generic `conversation_slots`, trigger `reply_signals` / `required_slots` / `identity`, chat `tools[].reply_signals` |
+| App (`entities/` + `workflows/` + manifest) | Business nouns, field names, choice values, when to confirm |
+| Manifest | Generic `conversation_slots`, trigger `reply_signals` / `required_slots` / `identity` |
 | Runtime | Extract declared slots, map `{chip_prefix}:{value}` chips, identity OTP, fire the **pending** declared capability on generic “yes” |
 
 **Runtime-owned protocol vocabulary** (Runtime may understand these):
@@ -180,33 +197,30 @@ appointment, guest, table, or visit type is.
 
 **App-owned opaque vocabulary** (Runtime must never special-case, even if
 common): `guest_name`, `pickup_date`, `room_type`, `visit_type`, `table_id`,
-`order_id`, …. If it is app-defined, it is opaque. Do not special-case
-`order_id` because it is frequent. Confirmation copy and when to ask Yes stay
-in the app; `yes` detection stays in Runtime.
+`order_id`, …. If it is app-defined, it is opaque.
 
-App/tool output should be a generic `{status, reference:{type:opaque,value}}`.
-Runtime displays/stores `reference.value` without interpreting prefixes such
-as `R-`.
-
-A new app (Hotel, Salon, …) plugs in by declaring slots and triggers — no
-Runtime change. The contract is ADR-006
+A new app (Hotel, Salon, Real Estate, …) plugs in by declaring entities,
+slots, and triggers — no Runtime change. The contract is ADR-006
 (`qefro-plugin-platform/docs/adr-006-domain-agnostic-runtime.md`).
 
 ## Managed storage
 
-Solution-owned documents go through the install’s SDK (`ctx.storage`) —
-never from workflow/UI YAML targeting `storage/*`, and never via a Mongo
-connection string in the package.
+Marketplace App entities persist through **Qefro-managed storage**.
+Packages never receive a Mongo connection string and never invent
+storage-service URLs.
 
 ```text
-app tool on /qefro
-  → ctx.storage.*
+entity.reservation.create (Runtime capability)
   → storage-service /v1/internal/storage/*
   → MongoDB `managed_apps`  ({solution_slug}__{logical})
 ```
 
 Isolation, reserved metadata, soft delete, and audit are enforced by
 storage-service. See [Managed storage](/docs/solutions/managed-storage).
+
+SDK-hosted packages (`hosting: managed` / `external`) still persist only
+via `ctx.storage` inside `/qefro` — never from workflow/UI YAML targeting
+`storage/*`.
 
 ## Connector bridge
 
@@ -221,8 +235,10 @@ bridge, which:
 - enforces that the calling solution holds `connector.invoke` and declared
   the connector in its manifest.
 
-Sources whose `target` is `{solution}/{tool}` for **this install** skip the
-pool bridge and call the installation `/qefro` (gated on `runtime.query`).
+Sources whose `target` is `{solution}/{tool}` for an **SDK-hosted**
+install skip the pool bridge and call that installation `/qefro` (gated
+on `runtime.query`). Metadata apps use `type: entity` sources instead —
+see [Sources](/docs/solutions/sources).
 
 See [Connectors](/docs/solutions/connectors) and the
 [connector reference](/docs/reference/connector-reference).
@@ -287,6 +303,7 @@ flowchart LR
 
 ## Related topics
 
+- [Runtime vs SDK](/docs/solutions/runtime-vs-sdk)
 - [App scaffold](/docs/solutions/scaffold)
 - [Solution Development overview](/docs/solutions/overview)
 - [Installation](/docs/solutions/installation)

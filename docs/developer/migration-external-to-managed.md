@@ -6,6 +6,14 @@ sidebar_label: "Migrate to managed"
 
 # Migration: External → Managed
 
+:::info SDK packaging, not Marketplace metadata
+This page moves an **SDK** `/qefro` connector from an org SDK Connection
+to a `hosting: managed` package. It does **not** convert an ERP adapter
+into a metadata Marketplace App (`hosting: runtime`).
+
+New Marketplace Apps: [Build your first app](/docs/solutions/build-your-first-app).
+:::
+
 ## Ideal architecture
 
 ```text

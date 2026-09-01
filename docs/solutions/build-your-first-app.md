@@ -1,68 +1,61 @@
 ---
 title: "Build your first app"
-description: "Scaffold, customize, publish, and install an SDK app with qefro create-app — without asking the platform team."
+description: "Scaffold, validate, package, and install a metadata Marketplace App with qefro app init — Restaurant Pro Runtime, no SDK server."
 sidebar_label: "Build your first app"
 ---
 
 # Build your first app
 
-The maturity test for Qefro is not another internal vertical. It is:
+The default Qefro Marketplace path is metadata, not an SDK server:
 
 ```text
-qefro create-app warehouse-pro
-  → customize
-  → publish
-  → install
-  → works
+qefro app init restaurant-pro
+  → customize entities / workflows / ui
+  → qefro app validate
+  → qefro app package
+  → qefro app install
+  → Qefro Runtime (UI, storage, FlowRunner, CRM, Automation)
 ```
 
-This guide is that loop, written so you can finish it without Slack.
+You do **not** write a `/qefro` process to ship Restaurant, Clinic, Real
+Estate, Booking, or CRM apps. Connecting an existing ERP / POS / CRM uses
+the [SDK](/docs/solutions/runtime-vs-sdk) — a separate story.
 
 ## What you will build
 
-`qefro create-app` scaffolds a **full booking starter**: managed storage,
-Customer Hub (optional), Marketing metadata, Organization capability ids,
-WhatsApp booking bridge, onboarding, and a staff dashboard.
+A **Restaurant Pro** style app: tables, reservations, menu, a staff UI,
+and a conversation flow that books a table. The reference package is
+[`restaurant-pro-runtime`](/docs/solutions/examples/restaurant-pro-runtime)
+(app id **`restaurant-pro-runtime`**, `hosting: runtime`).
 
-Rename the domain nouns to your vertical (warehouse, clinic, salon, …).
-Keep the platform capabilities — that is the point.
+`qefro app init` scaffolds the same shape with a generic `record` entity.
+Rename nouns to match your vertical, or copy the Restaurant Pro Runtime
+tree.
 
-| Reference examples | Path |
-|--------------------|------|
-| Restaurant Pro | `qefro-plugin-platform/docs/examples/restaurant-pro` |
-| Clinic Pro | `…/clinic-pro` |
-| Salon Pro | `…/salon-pro` |
-| Finance Pro | `…/finance-pro` |
+| Reference | Path | App id |
+|-----------|------|--------|
+| Restaurant Pro Runtime | `qefro-plugin-platform/docs/examples/restaurant-pro-runtime` | `restaurant-pro-runtime` |
+| Real Estate Runtime | `qefro-plugin-platform/docs/examples/real-estate-runtime` | `real-estate-runtime` |
 
 ## Prerequisites
 
-1. **`qefro` CLI** on your `PATH`  
-   Build from the platform checkout if you do not have a release binary:
+1. **`qefro` CLI** on your `PATH`
 
    ```bash
    cd qefro-plugin-platform/services/qefro-cli
    cargo install --path .
    ```
 
-   For `create-app`, either run the CLI from a tree that contains
-   `templates/sdk-app-starter`, or set:
-
-   ```bash
-   export QEFRO_APP_TEMPLATE=/absolute/path/to/templates/sdk-app-starter
-   ```
-
-2. **Node.js 18+** (starter is `@qefro-ai/backend`).
-
-3. **Publish credentials** (only for the publish step — see
-   [Publishing](/docs/solutions/publishing)):
+2. **Publish credentials** (only for publish / install against a live
+   stack — see [Publishing](/docs/solutions/publishing)):
 
    | Env | Purpose |
    |-----|---------|
    | `QEFRO_SOLUTION_URL` | solution-service base URL |
    | `QEFRO_PUBLISHER_ID` | UUID in `QEFRO_PLATFORM_ADMIN_IDS` |
    | `QEFRO_SIGNING_KEY_HEX` | Ed25519 private key (32-byte hex) matching catalog trust anchors |
-   | `QEFRO_TENANT_ID` / `QEFRO_ORGANIZATION_ID` | For `qefro solution install` |
-   | `QEFRO_INTERNAL_BEARER` | When service auth is enforce |
+   | `QEFRO_TENANT_ID` / `QEFRO_ORGANIZATION_ID` | For `qefro app install` |
+   | `QEFRO_INTERNAL_BEARER` | When service auth is enforced |
 
 :::info Partner publish
 Today, **catalog publish is platform-admin only**. Tenant admins install;
@@ -71,107 +64,87 @@ key, or use a local stack with `QEFRO_PUBLISH_OPEN=true`. See
 [Marketplace](/docs/solutions/marketplace).
 :::
 
+No Node.js runtime is required for `hosting: runtime` apps.
+
 ## Step 1 — Scaffold
 
 ```bash
-qefro create-app warehouse-pro --name "Warehouse Pro"
-cd warehouse-pro
-npm install
-npm run dev
-# → listening on http://0.0.0.0:8080/qefro
+qefro app init restaurant-pro --name "Restaurant Pro" --hosting runtime
+cd restaurant-pro
 ```
 
-Useful flags:
+(`qefro app init` is an alias of `qefro create-app`. Prefer
+`--hosting runtime`.)
 
-```bash
-qefro create-app warehouse-pro --hosting managed          # default
-qefro create-app warehouse-pro --hosting external --endpoint https://api.example.com/qefro
-qefro create-app scratch --minimal                        # hello-only stub
-```
-
-Generated layout:
+Generated layout (actual CLI output):
 
 ```text
-warehouse-pro/
-├── manifest.yaml      # id, version, tools, onboarding, settings
-├── src/index.js       # required SDK app (/qefro)
-├── package.json
-├── Dockerfile
-├── workflows/         # optional orchestration → app tools
-├── prompts/
-├── booking/           # static WhatsApp bridge (store-nothing)
-├── onboarding/
-├── ui/                # staff dashboard
-└── assets/
+restaurant-pro/
+├── manifest.yaml
+├── entities/
+│   └── record.yaml
+├── workflows/
+│   └── create-record.yaml
+└── ui/
+    ├── navigation.yaml
+    ├── pages.yaml
+    ├── widgets.yaml
+    └── sources.yaml
 ```
+
+To study the full hospitality package instead of the generic stub, copy
+`docs/examples/restaurant-pro-runtime/` — that tree adds `table`,
+`reservation`, `menu_item`, themed pages, and `create-reservation`.
 
 ## Step 2 — Make it your domain
 
-You do **not** need a new ADR. Change nouns and collections:
+You do **not** need a new backend. Change YAML:
 
-1. **Tools** — `__TOOL_PREFIX__` becomes `warehouse` automatically from the
-   app id. Rename handlers (`createAppointment` → `createPick`, …) in
-   `src/index.js` and `manifest.yaml` `tools:`.
-2. **Storage** — pick collections that match the domain
-   (`bins`, `skus`, `picks` instead of `staff` / `services` / `appointments`).
-   Persist only via `ctx.storage.*`.
-3. **Workflows / prompts / UI** — update YAML to call your new tool ids.
-4. **Marketing / Organization** — keep `app.marketing` and
-   `app.organization` registrations; change **opaque ids** and labels to
-   fit the domain (`stock_low`, `fulfillment_requested`, …). Never put
-   another app's name in an id (`finance.approve` is forbidden).
+1. **Entities** — fields and types under `entities/`. Storage is
+   Qefro-managed; you never open a database.
+2. **Workflows** — `ask` → `tool` (`entity.<id>.create`,
+   `execution: runtime`) → `complete`. Same FlowRunner as every Business
+   Flow.
+3. **UI** — pages, widgets, `type: entity` sources. Use `host: contacts`
+   and `host: automations` for platform CRM surfaces.
+4. **Manifest** — `entities:`, `flows:`, `events:`, `triggers`,
+   `conversation_slots`.
 
 Rules that never change:
 
-- Business logic only in the SDK process on `/qefro`.
-- Workflows and UI call **app tools**, never `storage/*`.
+- No `src/` and no `/qefro` endpoint on `hosting: runtime`.
+- No direct database or `storage/*` from YAML.
 - WhatsApp number comes from the **workspace channel**, not install settings.
 - Same package version for every tenant.
 
-## Step 3 — Validate locally
+## Step 3 — Validate
 
 ```bash
-qefro dev .
+qefro app validate restaurant-pro
+# alias of: qefro dev restaurant-pro
 ```
 
-This assembles the package (including `onboarding/*.yaml`) and checks
-forbidden storage targets. Fix any errors before publish.
+Expect `hosting=runtime` and “metadata package, no SDK process”. Fix
+errors before packaging.
 
-Smoke the app:
-
-```bash
-curl -s http://127.0.0.1:8080/qefro   # expect signed protocol responses via runtime in real installs
-```
-
-For a full local stack, run solution-service + runtime + storage per
-[Managed apps](/docs/solutions/managed-apps).
-
-## Step 4 — Build and publish
+## Step 4 — Package and publish
 
 ```bash
 export QEFRO_SOLUTION_URL=https://…          # or http://127.0.0.1:8105
 export QEFRO_PUBLISHER_ID=<admin-uuid>
 export QEFRO_SIGNING_KEY_HEX=<32-byte-hex>
 
-# Bump version in manifest.yaml when re-publishing
-qefro solution build .
-qefro solution publish .
-# alias: qefro publish .
+qefro app package restaurant-pro
+# alias of: qefro solution build restaurant-pro
+
+qefro publish restaurant-pro
 ```
 
-Success returns a `201` with `name`, `version`, and `checksum`.  
-Details: [Publishing](/docs/solutions/publishing).
+Success returns a signed `dist/package.json` (`name`, `version`,
+`checksum`). Details: [Publishing](/docs/solutions/publishing).
 
-**Managed hosting:** the platform must run your container image at the
-manifest `endpoint` (e.g. `http://warehouse-pro:8080`). Ship a `Dockerfile`
-(the starter includes one). Coordinate image build/tag with ops until
-partner self-serve image push exists.
-
-**External hosting:** deploy `/qefro` yourself, then:
-
-```bash
-qefro register --endpoint https://your-host/qefro --solution warehouse-pro
-```
+Runtime apps are **not** container images. Qefro Runtime executes the
+installed metadata.
 
 ## Step 5 — Install
 
@@ -180,43 +153,52 @@ From the Admin Console (**Applications → Marketplace → Install**), or CLI:
 ```bash
 export QEFRO_TENANT_ID=…
 export QEFRO_ORGANIZATION_ID=…
-# workspace context as required by your deployment
 
-qefro solution install warehouse-pro --version 0.1.0
+qefro app install restaurant-pro --version 0.1.0
 ```
 
 Then in the portal:
 
-1. Open the workspace → Installed solutions → Configure (`business_name`, brand).
-2. **Settings → Customer channels** → connect WhatsApp (one active number per workspace).
-3. Complete onboarding (WhatsApp, business name, optional demo seed, booking link).
-4. Open the solution UI and create a real record (skip demo seed for production).
+1. Open the workspace → Installed solutions.
+2. **Settings → Customer channels** → connect WhatsApp if you need chat.
+3. Open the solution UI (tables, forms, Contacts, Automations).
+4. In chat, try a declared intent (e.g. “book a table”).
 
 Tenant install docs: [Installation](/docs/solutions/installation).  
 Catalog discovery: [Marketplace](/docs/solutions/marketplace).
 
 ## Acceptance checklist
 
-You are done when **all** of these pass without platform-team intervention
-beyond provisioned credentials:
+You are done when **all** of these pass without writing an SDK server:
 
-- [ ] `qefro create-app warehouse-pro` produced a runnable tree
-- [ ] `npm run dev` serves `/qefro`
-- [ ] `qefro solution build .` succeeds (onboarding packaged)
-- [ ] `qefro solution publish .` returns 201
+- [ ] `qefro app init … --hosting runtime` produced a metadata tree
+- [ ] `qefro app validate` reports `hosting=runtime`
+- [ ] `qefro app package` succeeds
+- [ ] Publish returns 201 (platform admin)
 - [ ] Install appears in Marketplace / Installed
-- [ ] Staff UI loads and writes through app tools → `ctx.storage`
-- [ ] WhatsApp or widget can complete one domain action end-to-end
+- [ ] Staff UI lists entity records
+- [ ] Chat or a form completes one flow on FlowRunner
+- [ ] Contacts / Automations host pages open (if declared)
+
+## Connecting an existing system instead
+
+If the system of record is already an ERP, POS, or CRM (Focus, Yaaz, ABM):
+
+```text
+External system → Qefro SDK → /qefro → Qefro Runtime
+```
+
+That is [External SDK Connection](/docs/developer/external-sdk-connection),
+not this tutorial.
 
 ## Next
 
 | Guide | When you need it |
 |-------|------------------|
+| [restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime) | Full hospitality YAML |
+| [real-estate-runtime](/docs/solutions/examples/real-estate-runtime) | Second vertical |
+| [Runtime vs SDK](/docs/solutions/runtime-vs-sdk) | Which path you are on |
 | [Publishing](/docs/solutions/publishing) | Signing, versions, yank |
 | [Marketplace](/docs/solutions/marketplace) | How tenants find and install |
-| [Organization workflows](/docs/solutions/organization-workflows) | Cross-app events/tasks |
-| [Customer Hub](/docs/solutions/customer-hub) | Shared customer identity |
-| [Marketing](/docs/solutions/marketing) | Audiences and WhatsApp campaigns |
+| [Events](/docs/solutions/events) | Tool vs Event vs Flow vs Automation |
 | [Troubleshooting](/docs/solutions/troubleshooting) | Common failures |
-
-Engineering deep-dive: [Building SDK-based solutions](https://github.com/qefro-ai/qefro-platform/blob/main/docs/building-sdk-based-solutions.md).

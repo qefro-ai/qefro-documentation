@@ -1,24 +1,35 @@
 ---
 title: "Marketplace publishing"
-description: "Build, publish, install, and upgrade managed solution packages."
+description: "Build, publish, install, and upgrade Marketplace App packages (metadata first)."
 sidebar_label: "Marketplace publishing"
 ---
 
 # Marketplace publishing
 
-Applies to **Managed Marketplace Apps**. External SDK Connections do not use this path.
+Applies to **Marketplace Apps**. External SDK Connections do not use this
+path — they register a webhook under Business Tools.
+
+Default packages are **metadata** (`hosting: runtime`). SDK-hosted
+`hosting: managed` packages remain supported; see
+[Managed apps](/docs/solutions/managed-apps).
 
 ## Lifecycle
 
 ```text
-create-app → develop src/ + manifest → qefro dev → publish → Marketplace/catalog
-    → tenant install → managed runtime → upgrade
+qefro app init → edit entities/workflows/ui → qefro app validate
+  → qefro app package → publish → Marketplace/catalog
+  → tenant install → Qefro Runtime
 ```
 
 ## CLI commands (current)
 
 ```text
-qefro create-app <id> [--name NAME] [--hosting managed|external] [--endpoint URL] [--minimal]
+qefro app init <id> [--name NAME] [--hosting runtime]
+qefro app validate [dir]
+qefro app package [dir]
+qefro app install <name> [--version V] [--settings JSON]
+qefro create-app <id> [--name NAME] [--hosting managed|external|runtime]
+                                                    [--endpoint URL] [--minimal]
 qefro dev [dir]
 qefro publish [dir]                 # alias of solution publish
 qefro solution build <dir>
@@ -43,14 +54,17 @@ On upgrade, solution-service re-registers with the runtime plane and best-effort
 
 ## Manifest essentials
 
-`id`, `name`, `version`, `hosting`, `endpoint`, `permissions`, `capabilities`, `tools`, optional `ui`, `workflows`, `settings`, `collections`.
+`id`, `name`, `version`, `hosting` (`runtime` for metadata apps),
+`entities` / `flows` / `events`, `permissions`, `capabilities`, optional
+`ui`, `triggers`, `conversation_slots`. SDK-hosted packages also set
+`endpoint`, `tools`, `Dockerfile`.
 
 See [managed-marketplace-app.md](./managed-marketplace-app.md) and [Solution packaging](/docs/solutions/packaging).
 
 ## Secrets & settings
 
-- **Signing secret** — runtime env for `/qefro` HMAC
-- **Install settings** — brand and business config from `manifest.settings` (e.g. `business_name`, colors)
+- **Signing secret** — only for SDK `/qefro` processes
+- **Install settings** — brand and business config from `manifest.settings`
 - **Internal bearers** — platform ↔ storage-service (`QEFRO_INTERNAL_BEARER`, …)
 
 Do not put long-lived customer ERP credentials in manifest defaults; use install settings or secret injection mechanisms provided by the platform.

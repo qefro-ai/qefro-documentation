@@ -6,13 +6,17 @@ sidebar_label: "Workflows"
 
 # Workflows
 
-## Three related concepts
+## Four related concepts
 
 | Kind | Where defined | Who runs it |
 | --- | --- | --- |
-| **Business Flows** (`app.flow`) | SDK metadata | Qefro Runtime |
-| **Solution workflows** (`workflows/*.yaml`) | Managed package | Runtime — must call **app tools** |
+| **Marketplace App flows** (`workflows/*.yaml`, `execution: runtime`) | Metadata package | FlowRunner → Runtime entity tools |
+| **Business Flows** (`app.flow`) | SDK metadata (external systems) | FlowRunner → SDKAdapter `/qefro` |
+| **SDK-hosted solution workflows** | `hosting: managed` package | Runtime — call **app tools** on `/qefro` |
 | **Organization workflows** | Platform builder | Organization Runtime — events → tasks → actions |
+
+Marketplace App default: [Solution workflows](/docs/solutions/workflows).
+SDK (ERP / POS / CRM): sections below.
 
 ## Business Flows (SDK)
 

@@ -1,6 +1,6 @@
 ---
 title: "Events"
-description: "The solution event model — ui.* lifecycle events on the existing platform bus, audited and never workflow-triggering."
+description: "Tool vs Event vs Flow vs Automation — business events, ui.* lifecycle, and CRM Automation on the platform bus."
 sidebar_label: "Events"
 ---
 
@@ -9,6 +9,32 @@ sidebar_label: "Events"
 Event-driven communication is **mandatory**: solutions observe the
 platform event bus and emit their own lifecycle events onto it. There is
 no out-of-band signaling between a solution and the host.
+
+## Tool vs Event vs Flow vs Automation
+
+Keep these four names distinct. They are not interchangeable.
+
+| Concept | What it is | Who runs it | Example |
+| --- | --- | --- | --- |
+| **Tool** | A capability invoked as a flow step | Qefro Runtime (`entity.reservation.create`) or an external SDK tool | Create the reservation document |
+| **Event** | A fact on the bus (`<domain>.<past-tense>`) | Runtime (or SDK `ctx.emit` for external systems) | `reservation.created` |
+| **Flow** | Metadata workflow compiled to **BusinessFlow / FlowRunner** | Qefro FlowRunner | `create-reservation` (`ask` → `tool` → `complete`) |
+| **Automation** | CRM Automation reacting to a business event | Platform Automations host (`host: automations`) | `reservation.created` → Send WhatsApp |
+
+```text
+Chat / form
+  → Flow (create-reservation)
+      → Tool (entity.reservation.create)
+          → Event (reservation.created)
+              → Automation (CRM: Send WhatsApp)
+```
+
+Marketplace Apps declare events on the **manifest** (`events:`). There is
+no `events/` package directory. Automations are not YAML in the app;
+they are configured on the portal Automations host after install.
+
+SDK-hosted apps may also advertise events on `capabilities.list` — that is
+the [external integration](/docs/solutions/runtime-vs-sdk) path.
 
 ## The `ui.*` lifecycle events
 
@@ -67,10 +93,10 @@ which is the fastest way to debug "did the UI actually emit that?".
 | Emission | Portal on behalf of the UI | Runtime, connectors, API |
 | Example | `ui.action` reservation form submitted | `reservation.confirmed` |
 
-`restaurant-pro` emits `ui.action` for audit when a payment fails to
-settle, while the automation itself starts from the business event
-`reservation.confirmed`, which triggers the `reservation-reminder`
-workflow. See [Workflows](/docs/solutions/workflows).
+`restaurant-pro-runtime` emits `ui.action` for audit when a form submits,
+while automation starts from the business event `reservation.created`
+(CRM Automation → Send WhatsApp). The booking itself is the **flow**
+`create-reservation`, not the UI event. See [Workflows](/docs/solutions/workflows).
 
 ## Emitting events declaratively
 
@@ -100,4 +126,5 @@ solution attribution and a server-side timestamp.
 - [Platform events concept](/docs/developer/concepts/events)
 - [Event reference](/docs/reference/event-reference)
 - [Workflows](/docs/solutions/workflows)
+- [Runtime vs SDK](/docs/solutions/runtime-vs-sdk)
 - [Capabilities](/docs/solutions/capabilities) — `ui.emit` is capability-mediated

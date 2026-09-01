@@ -1,37 +1,45 @@
 ---
 title: "Managed apps"
-description: "Developer guide for installable SDK applications — required /qefro process, optional declarative UI/workflows, managed storage via ctx.storage, and brand settings (ADR-003)."
+description: "SDK-hosted packages (hosting: managed | external) — /qefro process, optional UI/workflows, ctx.storage. Not the default Marketplace App path."
 sidebar_label: "Managed apps"
 ---
 
 # Managed apps
 
-A **managed app** is an installable business application whose **SDK
-process is the application** ([ADR-003](/docs/solutions/architecture#sdk-application-adr-003)).
+This page is for **SDK-hosted** packages (`hosting: managed` or
+`external`): a signed `/qefro` process is the application
+([ADR-003](/docs/solutions/architecture)).
+
+**That is not the default Marketplace App.** New Restaurant, Clinic, Real
+Estate, Booking, and CRM apps are **metadata** (`hosting: runtime`)
+executed by Qefro Runtime — no SDK server. Start at
+[Build your first app](/docs/solutions/build-your-first-app) and
+[Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+
+Use this page when you are wrapping an existing system of record or
+maintaining a legacy `/qefro` Marketplace package such as
+[`restaurant-pro`](/docs/solutions/examples/restaurant-pro) (takeaway).
+
 Business logic lives in `src/` (Node.js, Rust, or Python), exposed on a
 signed `/qefro` endpoint. Optional YAML workflows, prompts, and UI only
 **orchestrate and present** — they never own domain rules and never call
 platform `storage/*` directly.
 
-Use this page as the developer entry point. Detailed references live under
-[Solution Development](/docs/solutions/overview).
-
-:::danger Deprecated (pre–ADR-003)
+:::danger Deprecated (pre–ADR-003 YAML-only storage)
 Packages that ship **only** YAML + UI and call `storage/insert` /
-`storage/find` from workflows or UI sources are **incorrect**. Persist only
-from inside the SDK via `ctx.storage` / `sdk.storage.*`. See
-[Managed storage](/docs/solutions/managed-storage).
+`storage/find` from workflows or UI sources are **incorrect** for the
+SDK-hosted path. Metadata Marketplace Apps persist via Runtime entity
+tools instead — see [restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime).
 :::
 
 ## Managed app vs pool connector
 
-| | Managed / external app | Pool connector |
-| --- | --- | --- |
-| Role | The product (domain tools + optional UI) | Shared external SoR adapter (Shopify, POS, …) |
-| Process | Install’s own `/qefro` (`hosting: managed` or `external`) | Shared pool instance |
-| App state | [Managed storage](/docs/solutions/managed-storage) via `ctx.storage` | External API |
-| `connectors:` | Often `[]` (self is not a pool dep) | Declared by solutions that need them |
-| Reference | [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | Commerce / POS connectors |
+| | SDK-hosted app | Pool connector | Metadata Marketplace App |
+| --- | --- | --- | --- |
+| Role | `/qefro` product wrapping your logic or SoR | Shared external SoR adapter | Declarative package, no SDK process |
+| Process | Install’s own `/qefro` (`managed` or `external`) | Shared pool instance | Qefro Runtime |
+| App state | [Managed storage](/docs/solutions/managed-storage) via `ctx.storage` | External API | Runtime entity tools → managed storage |
+| Reference | [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | Commerce / POS connectors | [`restaurant-pro-runtime`](/docs/solutions/examples/restaurant-pro-runtime) |
 
 You can mix both: the app owns solution documents in storage and calls a
 pool connector when syncing to an external system of record.
@@ -268,10 +276,9 @@ is the canonical ADR-003 package:
 
 ## Related docs
 
-- [Overview](/docs/solutions/overview) — principles and platform rules
-- [Quickstart](/docs/solutions/quickstart) — scaffold to first install
-- [Managed storage](/docs/solutions/managed-storage) — ADR-002 document plane
-- [Sources](/docs/solutions/sources) — UI → app tool targets
-- [Workflows](/docs/solutions/workflows) — ask / tool / notify
-- [Capabilities](/docs/solutions/capabilities) — negotiation and grants
+- [Runtime vs SDK](/docs/solutions/runtime-vs-sdk) — choose the right path
+- [Overview](/docs/solutions/overview) — metadata Marketplace Apps (default)
+- [Quickstart](/docs/solutions/quickstart)
+- [Managed storage](/docs/solutions/managed-storage)
+- [restaurant-pro (SDK takeaway)](/docs/solutions/examples/restaurant-pro)
 - [Troubleshooting](/docs/solutions/troubleshooting)

@@ -102,30 +102,52 @@ Pages never fetch data. Every widget references a source from
 capability-gated: a widget whose capability is not granted never fires a
 request. The page itself renders immediately with loading states.
 
+## Host pages (CRM and Automation)
+
+Marketplace Apps can open **platform hosts** instead of a widget layout.
+From `restaurant-pro-runtime` / `real-estate-runtime`:
+
+```yaml
+- id: contacts
+  title: Contacts
+  host: contacts
+- id: automations
+  title: Automations
+  host: automations
+```
+
+| `host` | Surface |
+| --- | --- |
+| `contacts` | Person CRM (not an app-local contacts table) |
+| `automations` | CRM Automation (e.g. `reservation.created` → Send WhatsApp) |
+
+These are not package folders. See [Events](/docs/solutions/events).
+
 ## Guidelines
 
 - One page per operational question ("what's happening now?", "what did we
   sell?") rather than per entity.
 - Keep dashboards under 8 placements; split detail views into separate
   pages.
-- Reuse widgets across pages — `restaurant-pro` uses the same
-  `order_table` on Dashboard and Orders with different spans.
+- Reuse widgets across pages — `restaurant-pro-runtime` uses the same
+  `reservations_table` on Today and Reservations with different spans.
 - Every page referenced by `navigation.yaml` must exist; every page
   should be reachable from navigation.
 
-## Restaurant Pro page list
+## Restaurant Pro Runtime page list
 
 | Page | Layout | Placements |
 | --- | --- | --- |
-| Dashboard | `dashboard-grid` | metrics + preorder link + cook list |
-| Takeaway | `split-grid` | demand + staff prebook form |
-| Kitchen | `dashboard-grid` | demand + kanban |
-| Orders | `split-grid` | table 8 + timeline 4 |
-| Payments | `dashboard-grid` | chart 12 |
-| Reports | `split-grid` | chart 8 + markdown 4 |
+| Today | `dashboard-grid` | intro + reservations table |
+| Reservations | `split-grid` | form + table |
+| Tables / Menu | `split-grid` | entity tables |
+| Contacts | host | Person CRM |
+| Automations | host | CRM Automation |
 
 The full definitions are in the
-[restaurant-pro example](/docs/solutions/examples/restaurant-pro).
+[restaurant-pro-runtime example](/docs/solutions/examples/restaurant-pro-runtime).
+SDK takeaway pages remain in
+[restaurant-pro](/docs/solutions/examples/restaurant-pro).
 
 ## Related topics
 

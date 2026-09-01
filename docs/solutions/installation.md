@@ -20,7 +20,8 @@ Two equivalent paths exist:
 - **CLI** — for automation and testing:
 
 ```bash
-qefro solution install restaurant-pro
+qefro app install restaurant-pro-runtime
+# alias of: qefro solution install restaurant-pro-runtime
 ```
 
 The CLI sends the tenant and organization context headers with the install
@@ -36,7 +37,7 @@ sequenceDiagram
     participant CM as Connector manager
     participant SM as Secret manager
     participant RT as Runtime
-    T->>I: install restaurant-pro@1.0.0
+    T->>I: install restaurant-pro-runtime@0.1.0
     I->>R: resolve version + connector dependencies
     I->>I: verify Ed25519 signature (id|version|checksum)
     I->>I: negotiate capabilities
@@ -94,7 +95,7 @@ keys to be stable across versions.
 ## Upgrade
 
 ```bash
-qefro solution install restaurant-pro   # resolves the latest published version
+qefro app install restaurant-pro-runtime   # resolves the latest published version
 ```
 
 Upgrading replaces the installed version's workflows, prompts and UI bundle

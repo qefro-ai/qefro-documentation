@@ -1,6 +1,6 @@
 ---
 title: "Managed Marketplace App"
-description: "Tutorial: package Restaurant Pro–style apps with manifest, Dockerfile, publish, install, and managed runtime."
+description: "Tutorial: package a metadata Marketplace App (Restaurant Pro Runtime), validate, publish, and install into Qefro Runtime."
 sidebar_label: "Managed Marketplace App"
 ---
 
@@ -8,127 +8,165 @@ sidebar_label: "Managed Marketplace App"
 
 ## Goal
 
-Build a Qefro-native application (Restaurant Pro pattern), package it, publish to the registry/Marketplace, install into a workspace, and let Qefro run `/qefro`.
+Build a Qefro Marketplace App as **metadata**, publish it, install it into
+a workspace, and let **Qefro Runtime** execute UI, entities, storage,
+Business Flows, events, CRM, and Automation.
 
-Reference packages (plugin platform examples):
+You do **not** write a `/qefro` server for this path.
 
-| Package | Notes |
-| --- | --- |
-| `restaurant-pro` | Takeaway preorder, menu, kitchen, marketing + organization metadata, `ctx.storage` |
-| `clinic-pro` | Appointments / clinical booking pattern |
-| `finance-pro` | Organization approval actions (ADR-005) |
+Reference packages:
+
+| Package | App id | Notes |
+| --- | --- | --- |
+| `restaurant-pro-runtime` | `restaurant-pro-runtime` | Reservations + menu, `hosting: runtime` |
+| `real-estate-runtime` | `real-estate-runtime` | Properties / leads / viewings — same model |
+
+:::info SDK is a different story
+To connect Focus ERP, Yaaz, or another customer system, use
+[External SDK Connection](./external-sdk-connection.md) (`SDK → /qefro`).
+The SDK-hosted takeaway package [`restaurant-pro`](/docs/solutions/examples/restaurant-pro)
+is a historical `/qefro` app, not the default Marketplace tutorial.
+:::
 
 ## Prerequisites
 
-- Node.js ≥ 18 and `@qefro-ai/backend`
-- `qefro` CLI configured (`QEFRO_SOLUTION_URL`, tenant headers, publisher credentials)
+- `qefro` CLI (`QEFRO_SOLUTION_URL`, tenant headers, publisher credentials)
 - Platform admin id listed in solution-service `QEFRO_PLATFORM_ADMIN_IDS` to **publish**
-- Docker for `hosting: managed` images
+
+Node.js and Docker are **not** required for `hosting: runtime`.
 
 ## Architecture
 
 ```text
-Application source
+Developer
       ↓
-manifest.yaml
+App metadata (manifest · entities · workflows · ui)
       ↓
-solution package
-      ↓
-publish
+qefro app validate / package / publish
       ↓
 Marketplace / catalog
       ↓
 workspace installation
       ↓
-managed runtime
-      ↓
-/qefro
-      ↓
-connector-manager
+Qefro Runtime
+      ├── UI (dashboards, tables, forms, widgets)
+      ├── Entities + managed storage
+      ├── FlowRunner (Business Flows)
+      ├── Business Events
+      └── CRM + Automation hosts
 ```
+
+Comparison: [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 
 ## Create
 
 ```bash
-qefro create-app restaurant-pro --name "Restaurant Pro" --hosting managed
+qefro app init restaurant-pro --name "Restaurant Pro" --hosting runtime
 cd restaurant-pro
 ```
 
-Typical package layout (from managed-apps / restaurant-pro):
+Typical package layout (from the CLI and `restaurant-pro-runtime`):
 
 ```text
 restaurant-pro/
-├── manifest.yaml          # id, version, hosting, endpoint, permissions, tools, ui, …
-├── package.json
-├── Dockerfile             # required for hosting: managed
-├── src/                   # SDK application — business logic
-│   └── index.js
-├── workflows/             # optional YAML — call app tools only
-├── prompts/               # optional
-├── assets/                # optional
-└── ui/                    # optional staff UI (theme, pages, widgets, …)
+├── manifest.yaml
+├── entities/
+│   └── …              # required for hosting: runtime
+├── workflows/
+└── ui/
+    ├── theme.yaml
+    ├── navigation.yaml
+    ├── pages.yaml
+    ├── layouts.yaml
+    ├── widgets.yaml
+    └── sources.yaml
 ```
 
-## Application code
-
-Same SDK as external:
-
-```javascript
-import { Qefro } from '@qefro-ai/backend';
-
-const app = new Qefro({
-  signingSecret: process.env.QEFRO_SIGNING_SECRET || 'dev-secret',
-  endpointPath: '/qefro',
-});
-
-app.tool('restaurant.createReservation', { /* … */ }, async (ctx) => {
-  const customer = await ctx.customer.resolve({
-    phone: ctx.parameters.phone,
-    display_name: ctx.parameters.guest_name,
-  });
-  const doc = await ctx.storage.insert('reservations', {
-    guest_name: ctx.parameters.guest_name,
-    covers: ctx.parameters.covers,
-    customer_id: customer?.id,
-  }, { allocate_code: { prefix: 'R-', start: 1001 } });
-  return doc;
-});
-
-await app.listen({ port: Number(process.env.PORT || 8080) });
-```
-
-Restaurant Pro also registers `app.marketing({…})` and `app.organization({…})` — metadata advertised on `capabilities.list`.
+The polished reference lives at
+`qefro-plugin-platform/docs/examples/restaurant-pro-runtime/`
+(app id `restaurant-pro-runtime`).
 
 ## Manifest (actual fields)
 
-From `restaurant-pro` / starter templates. Only document fields that exist in those manifests:
+From `restaurant-pro-runtime`. Only document fields that exist there:
 
 | Field | Example | Role |
 | --- | --- | --- |
-| `id` | `restaurant-pro` | Solution id |
+| `id` | `restaurant-pro-runtime` | Solution id |
 | `name` | `Restaurant Pro` | Display name |
-| `version` | `1.10.6` | Package version |
-| `hosting` | `managed` | Runtime ownership |
-| `endpoint` | `http://restaurant-pro:8080` | In-cluster base (platform appends `/qefro`) |
+| `version` | `0.1.0` | Package version |
+| `hosting` | `runtime` | Qefro Runtime executes metadata |
 | `description` | … | Catalog copy |
 | `category` / `tags` | hospitality / … | Discovery |
-| `connectors` | `[]` | Pool connector deps (often empty for self-contained apps) |
 | `channels` | `widget`, `whatsapp` | Channel support |
-| `flows` / `prompts` | ids | Declared orchestration assets |
-| `permissions` | `storage.read`, `organization.write`, … | Install permissions |
+| `entities` | `table`, `reservation`, `menu_item` | Domain schemas under `entities/` |
+| `flows` | `create-reservation` | Workflow ids |
+| `events` | `reservation.created` | Business events |
+| `permissions` | `storage.read`, `workflow.execute`, … | Install permissions |
 | `capabilities` | `runtime.query`, `storage.write`, … | Declared platform capabilities |
-| `settings` | brand colors, business_name, … | Per-install settings |
-| `onboarding` | step ids | Install checklist |
 | `triggers` | intent → workflow | Channel trigger map |
-| `collections` | name + `allocate_code` | Storage collection hints |
-| `ui` | logo, icon, pages… | Staff UI |
-| `tools` | tool ids + parameters | Catalog / chat tool metadata |
+| `conversation_slots` | `covers`, `date`, … | Chat slot harvest (ADR-006) |
+| `ui` | name, logo, icon | Staff UI branding |
 
-**ADR-003:** workflows and UI must call **app tools**, never platform `storage/*` directly. Persist only via `ctx.storage` inside the SDK process.
+`hosting: runtime` must **not** declare an external `/qefro` `endpoint`.
+
+## Entities
+
+```yaml title="entities/reservation.yaml (excerpt)"
+id: reservation
+name: Reservation
+allocate_code:
+  prefix: R-
+  start: 1001
+fields:
+  - name: guest_name
+    type: string
+    required: true
+  - name: covers
+    type: integer
+    required: true
+  - name: date
+    type: date
+    required: true
+  - name: person_id
+    type: person
+    ref_entity: person
+```
+
+Storage is Qefro-managed. There is no direct database access. `person`
+fields bind to the platform Person CRM.
+
+Workflow tools call Runtime capabilities:
+
+```yaml
+- id: create
+  type: tool
+  tool: entity.reservation.create
+  execution: runtime
+```
+
+## UI
+
+Runtime renders navigation, dashboards, tables, forms, and host pages:
+
+```yaml
+# ui/pages.yaml (excerpt)
+- id: contacts
+  title: Contacts
+  host: contacts
+- id: automations
+  title: Automations
+  host: automations
+```
+
+```yaml
+# ui/sources.yaml
+- id: reservations
+  type: entity
+  target: reservation
+```
 
 ## Configure permissions
-
-Restaurant Pro requests storage + organization permissions, for example:
 
 ```yaml
 permissions:
@@ -137,31 +175,17 @@ permissions:
   - storage.write
   - storage.update
   - storage.delete
-  - organization.read
-  - organization.write
 ```
 
-## Run locally
+## Validate, package, install
 
 ```bash
-# validate package
-qefro dev .
-
-# run SDK process (example)
-export QEFRO_SIGNING_SECRET=dev-secret
-npm start   # or node src/index.js — follow package.json
-```
-
-## Publish & install
-
-```bash
-# Platform admin
+qefro app validate .
+qefro app package .
+# platform admin:
 qefro publish .
-# or: qefro solution publish .
-
-# Tenant install
-qefro solution install restaurant-pro --version 1.10.6
-# optional: --settings '{"business_name":"Demo Bistro"}'
+# tenant:
+qefro app install restaurant-pro-runtime --version 0.1.0
 ```
 
 CLI env (from `qefro-cli`):
@@ -174,78 +198,63 @@ CLI env (from `qefro-cli`):
 
 Tenants **install**; they cannot publish.
 
-## Managed runtime
+## Runtime execution
 
 ```text
 Solution Installation
        ↓
-solution-service
+solution-service (metadata install, no /qefro binding)
        ↓
-managed runtime / connector instance
-       ↓
-/qefro
-       ↓
-connector-manager  POST /v1/invoke  target install:{solution}
+Qefro Runtime
+       ├── entity tools (entity.reservation.create, …)
+       ├── FlowRunner (ask → tool → complete)
+       ├── managed storage
+       └── portal UI + Contacts + Automations
 ```
 
-Qefro:
+On install the platform:
 
-1. Accepts published package
-2. Validates / signs registry artifact
-3. On install: records tenant install + **installation binding** (`hosting`, `endpoint_url`, generated `public_key` / `secret_key`, capabilities, status)
-4. Starts/routes managed process (`hosting: managed`)
-5. Health via lifecycle / ping paths used by the platform
-6. Invokes tools through connector-manager with HMAC
-7. Upgrades via `upgrade_for_tenant` (re-registers runtime; refreshes marketing/organization sync best-effort)
-8. Stop/remove follows solution uninstall lifecycle
+1. Accepts the published package
+2. Validates / signs the registry artifact
+3. Records the tenant install (`hosting: runtime`)
+4. Registers workflows with FlowRunner
+5. Persists the UI bundle
+6. Serves entity data from managed storage
 
-Binding lookup (connector-manager):  
-`GET {SOLUTION_SERVICE_URL}/v1/tenant/solutions/{solution}/connector?workspace_id=…`
+## Business events and automation
 
-GET binding response includes `installation_id`, `solution_id`, `workspace_id`, `hosting`, `endpoint`, `public_key`, `capabilities`, `status` — **`secret_key` is never returned**.
+| Concept | Role | Example |
+| --- | --- | --- |
+| **Tool** | Runtime capability | `entity.reservation.create` |
+| **Event** | Fact on the bus | `reservation.created` |
+| **Flow** | Metadata → FlowRunner | `create-reservation` |
+| **Automation** | CRM Automation host | `reservation.created` → Send WhatsApp |
 
-External register path: `POST /v1/tenant/solutions/:name/connector` sets `hosting: external`.
-
-## Managed storage
-
-Application-owned domain data (Restaurant):
-
-```text
-reservations, orders, menu, tables  →  ctx.storage collections
-```
-
-Platform-owned:
-
-```text
-Customer Hub identity
-Organization workflow state / inbox
-Marketing campaigns / delivery
-```
-
-See [storage.md](./storage.md) and [customer-hub.md](./customer-hub.md).
+See [Events](/docs/solutions/events).
 
 ## Test
 
 ```text
-publish → install → health / ping → tool.invoke → upgrade
+validate → package → publish → install → open UI → run create-reservation
 ```
 
-Use package smoke scripts when present (e.g. Restaurant Pro `scripts/smoke-tools.mjs`).
+Walk the reference:
+[restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime).
 
 ## Production considerations
 
-- Pin SDK version in `package.json`
-- Treat `QEFRO_SIGNING_SECRET` as platform-injected for managed runtimes
-- Keep tool contracts stable across upgrades
+- Keep entity field names stable across versions
+- Treat `person` refs as platform CRM, not app-local contacts
 - Never call other solutions’ tools directly — use Organization workflows
+  or CRM Automation
 
 ## Troubleshoot
 
 | Symptom | Check |
 | --- | --- |
-| Install fails | Manifest validation; image; permissions |
-| Tools not available | Install active? Binding endpoint? Sync after upgrade? |
-| Storage errors | Permissions + `platform.storage` on invoke |
-| Wrong workspace | Installation binding / workspace headers |
+| Validate fails | `entities/` present? `hosting: runtime`? No `endpoint`? |
+| Install fails | Manifest validation; permissions |
+| Empty tables | Entity source `type: entity` / `target` matches entity id |
+| Flow never starts | `triggers` + `conversation_slots`; workflow id in `flows:` |
 
 More: [troubleshooting.md](./troubleshooting.md), [marketplace-publishing.md](./marketplace-publishing.md).

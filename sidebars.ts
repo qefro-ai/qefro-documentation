@@ -27,6 +27,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'user/getting-started',
         'solutions/build-your-first-app',
+        'solutions/runtime-vs-sdk',
         'developer/application-integration-guide',
         'getting-started/installation',
         'getting-started/quick-start',
@@ -83,6 +84,7 @@ const sidebars: SidebarsConfig = {
       link: {type: 'doc', id: 'solutions/overview'},
       items: [
         'solutions/overview',
+        'solutions/runtime-vs-sdk',
         'solutions/build-your-first-app',
         'solutions/scaffold',
         'solutions/quickstart',
@@ -150,6 +152,8 @@ const sidebars: SidebarsConfig = {
       label: 'Examples',
       collapsed: false,
       items: [
+        'solutions/examples/restaurant-pro-runtime',
+        'solutions/examples/real-estate-runtime',
         'solutions/examples/restaurant-pro',
         'solutions/examples/clinic-pro',
         'solutions/examples/salon-pro',

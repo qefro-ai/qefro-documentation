@@ -1,10 +1,20 @@
 ---
 title: "SDK application development"
-description: "How to structure a Qefro Backend SDK application — tools, flows, events, marketing, organization."
+description: "How to structure a Qefro Backend SDK application for connecting external ERP / POS / CRM systems — tools, flows, events."
 sidebar_label: "SDK application development"
 ---
 
 # SDK application development
+
+The **Qefro SDK** connects **external** systems to Qefro over `/qefro`.
+It is **not** how you build a Marketplace App.
+
+Marketplace Apps are metadata executed by Qefro Runtime — start at
+[Build your first app](/docs/solutions/build-your-first-app) and
+[Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+
+Use this page for Focus ERP, Yaaz, ABM, on-prem POS, or any customer
+system of record.
 
 ## Package
 
@@ -114,4 +124,10 @@ For embedding in an existing HTTP framework, use `handleRaw(body, headers)` (ver
 
 ## Shared code across models
 
-Keep tools, schemas, and domain logic identical for external and managed deployments. Change packaging and registration only — see [migration-external-to-managed.md](./migration-external-to-managed.md).
+Keep tools, schemas, and domain logic identical if you later package the
+same SDK app as `hosting: managed` vs an org SDK Connection. Change
+packaging and registration only — see
+[migration-external-to-managed.md](./migration-external-to-managed.md).
+
+That packaging path is still **external-system integration**, not the
+default Marketplace App (metadata / `hosting: runtime`).

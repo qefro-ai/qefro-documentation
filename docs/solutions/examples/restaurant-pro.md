@@ -1,21 +1,31 @@
 ---
 title: "Example: restaurant-pro"
-description: "The restaurant-pro reference SDK app (1.10.7) — takeaway preorder bridge, marketing, org caps, /qefro tools, and staff UI."
-sidebar_label: "restaurant-pro"
+description: "Historical SDK-hosted takeaway app (hosting: managed, /qefro). Not the default Marketplace App — see restaurant-pro-runtime."
+sidebar_label: "restaurant-pro (SDK)"
 ---
 
 # Example: restaurant-pro
 
-`restaurant-pro` is the canonical **installable SDK application** for hospitality
-([ADR-003](/docs/solutions/managed-apps)): takeaway preorder (including day-ahead),
-menu, kitchen demand, orders, payments, and a light CRM. It does **not** take
-dine-in table reservations. Current package version: **1.10.7**.
+:::warning Historical SDK package
+This page documents the **SDK-hosted** takeaway app (`hosting: managed`,
+required `src/` on `/qefro`). It is **not** how you build a new Marketplace
+App.
+
+**Default path:** [`restaurant-pro-runtime`](/docs/solutions/examples/restaurant-pro-runtime)
+(`hosting: runtime`, metadata only). See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+:::
+
+`restaurant-pro` is an **installable SDK application** for hospitality
+takeaway ([ADR-003](/docs/solutions/managed-apps)): takeaway preorder
+(including day-ahead), menu, kitchen demand, orders, payments, and a
+light CRM. It does **not** take dine-in table reservations. Current
+package version: **1.10.7**.
 
 :::tip Scaffold vs reference
-`warehouse-pro` is the **CLI scaffold id** (`qefro create-app warehouse-pro`).
-`restaurant-pro` is the **reference vertical** proving the same surface in
-production. Start with [Build your first app](/docs/solutions/build-your-first-app)
-unless you are studying this package.
+New Marketplace Apps use `qefro app init … --hosting runtime`.
+`warehouse-pro` / `qefro create-app` without `--hosting runtime` still
+scaffolds an **SDK** tree. This `restaurant-pro` package is the SDK
+takeaway vertical — not the metadata tutorial.
 :::
 
 ```text

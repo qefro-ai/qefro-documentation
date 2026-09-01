@@ -1,42 +1,57 @@
 ---
 title: "Workflows"
-description: "The workflows/ directory — declarative workflow definitions registered with the runtime at install time."
+description: "The workflows/ directory — declarative Business Flows registered with FlowRunner at install time (same engine as every Qefro flow)."
 sidebar_label: "Workflows"
 ---
 
 # Workflows
 
-Workflows are the automation layer of a solution. Each definition under
-`workflows/` is declarative YAML: at install time it is registered with
-the **runtime**, which owns execution. The package never executes anything
-itself — this is the no-code rule applied to automation.
+Workflows are the automation layer of a Marketplace App. Each definition
+under `workflows/` is declarative YAML: at install time it is registered
+with the **runtime**, which compiles it into the same **BusinessFlow /
+FlowRunner** used by SDK-advertised flows. The package never executes
+anything itself.
 
-## Definition
+Steps: **ask → tool → condition → approval / challenge → complete**.
 
-```yaml title="workflows/reservation-reminder.yaml"
-id: reservation-reminder
-name: Reservation reminder
+## Definition (Marketplace App)
+
+From `restaurant-pro-runtime`:
+
+```yaml title="workflows/create-reservation.yaml"
+id: create-reservation
+name: Create reservation
+description: Book a table through Qefro Runtime (FlowRunner → RuntimeAdapter)
 trigger:
-  event: reservation.confirmed
+  type: conversation
 steps:
-  - type: tool
-    tool: restaurant-pos/reservations.create
-    params:
-      guest: "{{ event.payload.guest_name }}"
-      covers: "{{ event.payload.covers }}"
-      date: "{{ event.payload.date }}"
-      time: "{{ event.payload.time }}"
-  - type: tool
-    tool: restaurant-pos/notify
-    params:
-      message: "Your table is confirmed — see you soon!"
-  - type: delay
-    duration: 2h
-  - type: tool
-    tool: restaurant-pos/notify
-    params:
-      message: "Reminder: your table is ready in 2 hours."
-  - type: complete
+  - id: ask_covers
+    type: ask
+    field: covers
+    message: How many guests?
+  - id: ask_date
+    type: ask
+    field: date
+    message: Which date should we book?
+  - id: ask_name
+    type: ask
+    field: guest_name
+    message: What name should the reservation be under?
+  - id: create
+    type: tool
+    tool: entity.reservation.create
+    execution: runtime
+    input_map:
+      guest_name: guest_name
+      covers: covers
+      date: date
+      time: time
+      table_id: table_id
+  - id: confirm
+    type: message
+    message: Reservation booked for {{covers}} guests on {{date}}.
+  - id: done
+    type: complete
 ```
 
 | Field | Type | Required | Description |
@@ -54,30 +69,38 @@ Step types map onto the runtime's flow engine — the same model as
 | Step | Purpose |
 | --- | --- |
 | `ask` | Collect input from a user on a channel |
-| `tool` | Call a declared connector operation through the bridge |
+| `tool` | Call a Runtime entity capability (`entity.<id>.create`, `execution: runtime`) or, for SDK-hosted / pool apps, a connector / `/qefro` tool |
 | `condition` | Branch on payload values |
 | `delay` | Wait a declared duration |
 | `approval` | Pause for an explicit portal approval |
 | `challenge` | Require identity verification before continuing |
+| `message` | Send a channel message |
 | `complete` | Finish the execution |
 
-`tool` steps reference `connector/operation` pairs that must be declared
-in `connectors/` — undeclared operations fail validation. Parameters
-interpolate event payload fields (`{{ event.payload.* }}`); there is no
-scripting beyond interpolation.
+On **Marketplace Apps**, `tool` steps use Runtime capabilities
+(`entity.reservation.create`). `execution: runtime` selects the
+RuntimeAdapter — not an SDK process.
+
+On **external integrations**, the same FlowRunner uses an **SDKAdapter**
+to invoke `/qefro` tools. See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+
+Parameters interpolate fields (`{{ covers }}`, `{{ event.payload.* }}`);
+there is no scripting beyond interpolation.
 
 ## Triggers
 
 ```mermaid
 flowchart LR
     subgraph Start conditions
-        E[Business event<br/>reservation.confirmed]
+        E[Business event<br/>reservation.created]
         F[Form submit<br/>workflow.trigger capability]
         C[CLI / API trigger]
+        CH[Conversation intent]
     end
-    E --> WF[workflow execution<br/>on the runtime]
+    E --> WF[workflow execution<br/>on FlowRunner]
     F --> WF
     C --> WF
+    CH --> WF
 ```
 
 1. **Business events** — the `trigger.event` name is matched on the
@@ -89,7 +112,7 @@ flowchart LR
 3. **Manual / CLI** — tenants can trigger installed workflows:
 
 ```bash
-qefro workflow trigger --solution restaurant-pro --workflow reservation-reminder
+qefro workflow trigger --solution restaurant-pro-runtime --workflow create-reservation
 ```
 
 ## Registration and execution
@@ -99,14 +122,12 @@ sequenceDiagram
     participant I as Installer
     participant RT as Runtime
     participant B as Event bus
-    participant CM as Connector bridge
-    I->>RT: register reservation-reminder (install)
-    B->>RT: reservation.confirmed (tenant event)
+    I->>RT: register create-reservation (install)
+    B->>RT: conversation / reservation.created (tenant)
     RT->>RT: match trigger + start execution
-    RT->>CM: tool step via bridge (tenant context)
-    CM-->>RT: result
+    RT->>RT: tool step via RuntimeAdapter (entity.reservation.create)
     RT->>RT: delay / next step
-    RT-->>B: execution events
+    RT-->>B: execution events / reservation.created
 ```
 
 - Executions appear in the tenant's runtime data — the `executions` and
@@ -116,11 +137,14 @@ sequenceDiagram
 - Upgrading the solution replaces the workflow definition; in-flight
   executions of the old version run to completion.
 
-## Restaurant Pro workflows
+## Restaurant Pro Runtime workflows
 
 | Workflow | Trigger | Steps |
 | --- | --- | --- |
-| `reservation-reminder` | `reservation.confirmed` | create reservation → confirm message → 2 h delay → reminder → complete |
+| `create-reservation` | conversation (`book a table`) | ask covers/date/name → `entity.reservation.create` → message → complete |
+
+Real Estate uses the same engine: `create-viewing` → `entity.viewing.create`.
+See [real-estate-runtime](/docs/solutions/examples/real-estate-runtime).
 
 ## Guidelines
 
@@ -137,5 +161,5 @@ sequenceDiagram
 
 - [Business Flows](/docs/developer/concepts/flows)
 - [Run Business Flows](/docs/guides/run-business-flows)
-- [Connectors](/docs/solutions/connectors)
 - [Events](/docs/solutions/events)
+- [Runtime vs SDK](/docs/solutions/runtime-vs-sdk)

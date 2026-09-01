@@ -1,6 +1,6 @@
 ---
 title: "Sources"
-description: "sources.yaml — capability-gated data sources that feed widgets from runtime, the install’s /qefro tools, or the connector bridge."
+description: "sources.yaml — capability-gated data sources that feed widgets from entities, runtime, own-app /qefro tools, or the connector bridge."
 sidebar_label: "Sources"
 ---
 
@@ -10,42 +10,38 @@ sidebar_label: "Sources"
 **no direct network access** — a source is the only data path for the
 declarative UI.
 
-In YAML there are two `type` values:
+In YAML there are three `type` values:
 
 | `type` | Meaning |
 | --- | --- |
+| `entity` | Declared Marketplace App entity (`target` is an entity id). **Default for `hosting: runtime`.** |
 | `runtime` | Tenant runtime plane (`metrics`, `executions`, `workflows`) |
-| `connector` | Tool target — **own-app** `{solution}/{tool}`, a **pool connector** op, or (deprecated) platform `storage/*` |
+| `connector` | Tool target — **own-app** `{solution}/{tool}` (SDK-hosted), a **pool connector** op, or (deprecated) platform `storage/*` |
 
-## Definition
+## Entity sources (Marketplace Apps)
+
+From `restaurant-pro-runtime`:
 
 ```yaml title="ui/sources.yaml"
-- id: runtime_metrics
-  type: runtime
-  target: metrics
-
-- id: takeaway
-  type: connector
-  target: restaurant-pro/restaurant.listOrders
-  params:
-    filter:
-      channel: takeaway
-    limit: 50
-    sort:
-      created_at: -1
-
-- id: orders
-  type: connector
-  target: restaurant-pro/restaurant.listOrders
-  params:
-    limit: 25
+- id: reservations
+  type: entity
+  target: reservation
+- id: tables
+  type: entity
+  target: table
+- id: menu
+  type: entity
+  target: menu_item
 ```
+
+`target` is the entity id from `entities/`. Runtime serves documents from
+managed storage. No `/qefro` process is involved.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `id` | string | Yes | Source id referenced by widget `source:` fields. |
-| `type` | string | Yes | `runtime` or `connector`. |
-| `target` | string | Yes | Runtime name, `{solution}/{tool}`, or pool `{connector}/{op}`. |
+| `type` | string | Yes | `entity`, `runtime`, or `connector`. |
+| `target` | string | Yes | Entity id, runtime name, `{solution}/{tool}`, or pool `{connector}/{op}`. |
 | `params` | map | No | Static parameters sent with every query. |
 
 ## Runtime sources
@@ -60,7 +56,7 @@ In YAML there are two `type` values:
 
 Runtime sources require the `runtime.query` capability (always granted).
 
-## Own-app sources (ADR-003)
+## Own-app sources (SDK-hosted packages)
 
 When `target` is `{solution}/{tool}` and `solution` is **this install**
 (e.g. `restaurant-pro/restaurant.listOrders`), the host:
@@ -80,7 +76,8 @@ When `target` is `{solution}/{tool}` and `solution` is **this install**
     limit: 50
 ```
 
-This is the **required** path for solution-owned lists. The app tool
+This is the path for **SDK-hosted** solution-owned lists. Metadata
+Marketplace Apps use `type: entity` instead (see above). The app tool
 implements filters, validation, and `ctx.storage.find`.
 
 ## External connector sources

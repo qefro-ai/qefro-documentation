@@ -6,6 +6,13 @@ sidebar_label: "salon-pro"
 
 # Example: salon-pro
 
+:::warning Historical SDK package
+`salon-pro` is an **SDK-hosted** `/qefro` vertical. New Marketplace Apps
+use metadata (`hosting: runtime`) — see
+[real-estate-runtime](/docs/solutions/examples/real-estate-runtime)
+and [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+:::
+
 `salon-pro` is a **reference vertical** for salons: stylists, services, and
 WhatsApp appointment booking. Same platform surface as
 [clinic-pro](/docs/solutions/examples/clinic-pro) and

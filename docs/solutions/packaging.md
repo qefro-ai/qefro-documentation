@@ -10,19 +10,20 @@ Packaging turns your solution directory into a single immutable artifact:
 a canonical JSON document with a SHA-256 checksum and an Ed25519
 signature. The registry accepts nothing else.
 
-:::info ADR-003
-Installable apps must include a **`src/`** SDK tree (and usually a
-`Dockerfile` for `hosting: managed`). The signed registry package still
-carries declarative `manifest` + `components` (workflows, UI, …); the
-runnable `/qefro` process is the container (or external endpoint) bound
-at install time. `qefro solution build` / `create-app` reject packages
-without `src/`. See [Managed apps](/docs/solutions/managed-apps).
+:::info Hosting
+**Metadata Marketplace Apps** (`hosting: runtime`) must include `entities/`
+and must **not** ship `src/` or an external `/qefro` endpoint.
+`qefro app package` / `qefro solution build` accept that shape.
+
+SDK-hosted apps (`managed` / `external`) still require `src/` (and usually
+a `Dockerfile` for `hosting: managed`). See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 :::
 
 ## Build command
 
 ```bash
-qefro solution build .
+qefro app package .
+# alias of: qefro solution build .
 ```
 
 Output:
@@ -44,6 +45,7 @@ flowchart TB
     A[manifest.yaml] --> M[Parse + validate]
     B[ui/*.yaml] --> M
     C[workflows/*.yaml] --> M
+    ENT[entities/*.yaml] --> M
     D[connectors/*.yaml] --> M
     E[assets/] --> V[Asset validation<br/>images only]
     M --> J[Canonical JSON<br/>sorted keys · compact separators]

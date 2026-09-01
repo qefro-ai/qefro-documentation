@@ -6,6 +6,13 @@ sidebar_label: "External SDK Connection"
 
 # External SDK Connection
 
+:::info Not a Marketplace App
+This tutorial connects an **existing** product catalog / ERP / quotation
+system to Qefro. To ship Restaurant, Clinic, or Real Estate on Marketplace
+without a backend, use
+[Managed Marketplace App](./managed-marketplace-app.md) instead.
+:::
+
 ## Goal
 
 Build a **Product & Quotation** style connector that runs on **your** infrastructure and registers as an org **SDK Connection**.

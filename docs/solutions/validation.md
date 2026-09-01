@@ -21,6 +21,8 @@ the first gate — publishing a broken package is impossible by design.
 | `name` non-empty | `solution name is empty` |
 | `version` non-empty | `solution version is empty` |
 | Connector dependencies non-empty | `empty connector dependency` |
+| `hosting: runtime` has `entities/` | `hosting: runtime requires at least one entity` |
+| `hosting: runtime` has no external `/qefro` endpoint | `must not declare an external /qefro endpoint` |
 | Every `flows` entry has a definition in `workflows/` | `workflow file missing` |
 | Unknown `permissions` / `capabilities` values | `unknown capability` |
 
@@ -54,9 +56,10 @@ the first gate — publishing a broken package is impossible by design.
 
 | Check | Detail |
 | --- | --- |
-| Source type | `runtime` or `connector` only |
+| Source type | `runtime`, `connector`, or `entity` |
 | Runtime targets | `metrics`, `executions`, `workflows` |
-| Connector targets | Declared under `connectors/` and exposed by the connector |
+| Entity targets | Declared under `entities/` (`hosting: runtime`) |
+| Connector targets | Declared under `connectors/` or own-app `{solution}/{tool}` |
 
 ### Assets
 
@@ -76,7 +79,9 @@ the first gate — publishing a broken package is impossible by design.
 ## Local validation loop
 
 ```bash
-qefro solution build .
+qefro app validate .
+qefro app package .
+# aliases: qefro dev .   /   qefro solution build .
 ```
 
 The build performs the full checklist, then assembles and signs the

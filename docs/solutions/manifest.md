@@ -1,40 +1,43 @@
 ---
 title: "Manifest"
-description: "Complete reference for manifest.yaml — identity, connector dependencies, channels, workflows, permissions, settings and the UI section."
+description: "Complete reference for manifest.yaml — identity, hosting (runtime | managed | external), entities, workflows, events, permissions, settings and the UI section."
 sidebar_label: "Manifest"
 ---
 
 # Manifest
 
 `manifest.yaml` is the root of every solution package. It declares
-identity, dependencies, permissions and branding. The registry validates
-the manifest before anything else — most publish failures are manifest
-failures.
+identity, hosting, entities, dependencies, permissions and branding. The
+registry validates the manifest before anything else — most publish
+failures are manifest failures.
 
-## Complete example
+## Complete example (default — `hosting: runtime`)
 
-The canonical `restaurant-pro` manifest:
+The canonical `restaurant-pro-runtime` manifest:
 
 ```yaml title="manifest.yaml"
-id: restaurant-pro
+id: restaurant-pro-runtime
 name: Restaurant Pro
-version: 1.7.0
-hosting: managed
-endpoint: http://restaurant-pro:8080
-description: Takeaway preorder, menu, kitchen ops, orders and payments for restaurants
+version: 0.1.0
+hosting: runtime
+description: Table reservations and menu as a metadata Marketplace App executed by Qefro Runtime
 category: hospitality
 tags:
   - restaurant
   - reservations
-  - storage
-  - sdk
-connectors: []
+  - runtime
 channels:
   - widget
   - whatsapp
-flows:
+entities:
+  - table
   - reservation
-  - reservation-reminder
+  - menu_item
+flows:
+  - create-reservation
+events:
+  - reservation.created
+  - reservation.cancelled
 permissions:
   - workflow.execute
   - storage.read
@@ -49,14 +52,21 @@ capabilities:
   - workflow.trigger
   - storage.read
   - storage.write
-  - storage.update
-  - storage.delete
-settings: []
+triggers:
+  - id: book_table
+    workflow: create-reservation
+    input_variable: reservation_input
+    match:
+      intents:
+        - book a table
+        - reserve a table
 ui:
   name: Restaurant Pro
-  logo: assets/logo.svg
-  icon: assets/icon.svg
 ```
+
+SDK-hosted packages (`hosting: managed` / `external`) add `endpoint` and
+`src/` — see [Managed apps](/docs/solutions/managed-apps). They are not
+the default Marketplace path.
 
 ## Field reference
 
@@ -65,23 +75,29 @@ ui:
 | `id` | string | Yes | Unique solution id. **kebab-case**: lowercase letters, digits, `-`; must start with a letter. |
 | `name` | string | Yes | Human-readable display name. |
 | `version` | string | Yes | Semver version of this package. Immutable once published. |
-| `hosting` | string | Yes* | `managed` or `external` — how the SDK `/qefro` process is reached (*required for ADR-003 apps). |
-| `endpoint` | string | Yes* | Base URL of the SDK process (platform calls `{endpoint}/qefro`). |
+| `hosting` | string | Yes | `runtime` (metadata Marketplace App — **default**), `managed`, or `external` (SDK `/qefro`). |
+| `endpoint` | string | No* | SDK process URL. **Forbidden** for `hosting: runtime` (except the sentinel `runtime://`). Required for `external` (and typical `managed`) SDK apps. |
 | `description` | string | No | One-line summary shown in the marketplace. |
-| `category` | string | No | Marketplace grouping, e.g. `hospitality`, `healthcare`, `retail`. |
+| `category` | string | No | Marketplace grouping, e.g. `hospitality`, `healthcare`, `real-estate`. |
 | `tags` | string[] | No | Search keywords. |
+| `entities` | list | Yes* | Entity ids shipped under `entities/` (*required for `hosting: runtime`). |
 | `connectors` | list | No | Connector dependencies — plain names or `name` + semver `version` constraint. |
 | `channels` | string[] | No | Channels the solution participates in (`widget`, `whatsapp`, `api`). |
 | `flows` | string[] | No | Workflow ids shipped under `workflows/`. Each id must resolve to a definition file. |
+| `events` | string[] | No | Business event names the app emits (manifest list — there is no `events/` directory). |
 | `permissions` | string[] | No | Plane permissions (`workflow.execute`, `storage.read` / `write` / `update` / `delete`, `customer.read`, …). |
 | `capabilities` | string[] | No | Host UI capabilities requested by the UI; negotiated at install. See [Capabilities](/docs/solutions/capabilities). |
 | `settings` | list | No | Tenant-configurable settings; plain keys or full definitions. |
+| `triggers` | list | No | Intent → workflow map for chat. |
+| `conversation_slots` | list | No | Slot harvest for Runtime (ADR-006). |
 | `ui` | object | No | UI branding block: `name`, `logo`, `icon`. |
 
 ### Validation rules
 
-- `id` must be kebab-case (`restaurant-pro`); `Restaurant_Pro` is rejected.
+- `id` must be kebab-case (`restaurant-pro-runtime`); `Restaurant_Pro` is rejected.
 - `name` and `version` must be non-empty.
+- `hosting: runtime` requires at least one file under `entities/` and must
+  not declare an external `/qefro` endpoint.
 - Every connector dependency must name a connector resolvable in the
   registry at install time.
 - Every `flows` entry must match a definition in `workflows/` — missing
@@ -103,8 +119,9 @@ published version satisfies a constraint, installation fails cleanly —
 nothing is activated. See [Connectors](/docs/solutions/connectors).
 
 :::tip
-Apps that own their documents set `connectors: []`, ship `src/` +
-`hosting`/`endpoint`, and use [managed storage](/docs/solutions/managed-storage)
+Metadata Marketplace Apps (`hosting: runtime`) set `entities:` and omit
+`endpoint`. SDK-hosted apps set `connectors: []` (when self-contained),
+ship `src/` + `hosting`/`endpoint`, and use [managed storage](/docs/solutions/managed-storage)
 from inside the SDK (`ctx.storage`). Do **not** declare a connector named
 `storage` (or other reserved SDK namespaces) — publish rejects those names.
 :::
@@ -124,10 +141,10 @@ UI capability negotiation at install time:
 | `storage.update` | `storage.update` — SDK may patch documents |
 | `storage.delete` | `storage.delete` — SDK may soft-delete documents |
 
-`restaurant-pro@1.7.0` declares `workflow.execute` plus the full
-`storage.*` set so the SDK app can persist; UI/workflows call
-`restaurant-pro/restaurant.*` tools. Reference:
-[Capabilities](/docs/solutions/capabilities).
+`restaurant-pro-runtime` declares `workflow.execute` plus `storage.*` so
+Runtime entity tools can persist; UI sources use `type: entity`.
+SDK-hosted `restaurant-pro` instead calls `restaurant-pro/restaurant.*`
+tools. Reference: [Capabilities](/docs/solutions/capabilities).
 
 ## Settings
 
@@ -229,4 +246,5 @@ version, see [Publishing](/docs/solutions/publishing).
 - [Managed storage](/docs/solutions/managed-storage)
 - [Validation](/docs/solutions/validation) — every check applied to the manifest
 - [Packaging](/docs/solutions/packaging) — how the manifest enters the signed package
-- [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
+- [restaurant-pro-runtime example](/docs/solutions/examples/restaurant-pro-runtime)
+- [Runtime vs SDK](/docs/solutions/runtime-vs-sdk)

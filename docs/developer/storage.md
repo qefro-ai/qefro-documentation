@@ -10,11 +10,18 @@ sidebar_label: "Storage"
 
 ### Application-owned domain data
 
+Marketplace Apps persist declared entities through **Runtime** tools
+(`entity.reservation.create`) into storage-service. No SDK process.
+
+SDK-hosted / external apps use:
+
 ```text
 ctx.storage  →  storage-service  →  documents
 ```
 
-Examples (Restaurant Pro): `reservations`, `orders`, `menu`, `tables`.
+Examples (Restaurant Pro Runtime): `reservation`, `table`, `menu_item`.
+SDK takeaway `restaurant-pro` still uses `ctx.storage` collections
+(`orders`, `menu_items`, …).
 
 ### Platform-owned data
 

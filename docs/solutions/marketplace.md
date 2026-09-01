@@ -1,6 +1,6 @@
 ---
 title: "Marketplace"
-description: "How tenants discover, install, and upgrade SDK apps from the catalog — and what publishers must ship."
+description: "How tenants discover, install, and upgrade Marketplace Apps from the catalog — and what publishers must ship."
 sidebar_label: "Marketplace"
 ---
 
@@ -11,11 +11,15 @@ Publishing writes to the catalog; installing binds a version into a workspace.
 
 ```text
 Publisher (platform admin today)
-  → qefro solution publish
+  → qefro app package && qefro publish
   → global catalog (solution-service)
   → Admin Console → Applications → Marketplace
-  → Install wizard → workspace binding + /qefro
+  → Install wizard → workspace + Qefro Runtime
 ```
+
+Default packages are **metadata** (`hosting: runtime`). SDK `/qefro`
+bindings apply only to SDK-hosted or external integrations — see
+[Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 
 ## For tenants (installers)
 
@@ -31,7 +35,7 @@ CLI equivalent (automation / ops):
 export QEFRO_SOLUTION_URL=…
 export QEFRO_TENANT_ID=…
 export QEFRO_ORGANIZATION_ID=…
-qefro solution install <solution-id> --version <semver>
+qefro app install <solution-id> --version <semver>
 ```
 
 Full install contract: [Installation](/docs/solutions/installation).
@@ -54,9 +58,8 @@ until then, use [Publishing](/docs/solutions/publishing) with provisioned keys.
 |-------------|-----|
 | Unique `manifest.id` + semver `version` | Catalog key |
 | Valid signed package | Trust anchors |
-| `src/` + `/qefro` | ADR-003 — the app is the process |
+| `hosting: runtime` + `entities/` **or** SDK `src/` + `/qefro` | Metadata app vs SDK-hosted package |
 | No `storage/*` in workflows/UI | Rejected at validate/publish |
-| Onboarding YAML for every declared step | Publish validation |
 | Honest settings defaults | Install wizard |
 | Managed image **or** reachable external `/qefro` | Runtime binding |
 

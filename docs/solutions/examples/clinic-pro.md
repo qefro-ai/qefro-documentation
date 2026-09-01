@@ -6,6 +6,13 @@ sidebar_label: "clinic-pro"
 
 # Example: clinic-pro
 
+:::warning Historical SDK package
+`clinic-pro` is an **SDK-hosted** `/qefro` vertical. New Marketplace Apps
+use metadata (`hosting: runtime`) — see
+[restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime)
+and [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+:::
+
 `clinic-pro` is a **reference vertical** for clinics: doctors, visit types, and
 WhatsApp appointment prebooking. Same ADR-003 surface as
 [restaurant-pro](/docs/solutions/examples/restaurant-pro) — the `/qefro` process

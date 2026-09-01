@@ -10,12 +10,13 @@ import { InfoBox, RelatedTopics } from '@site/src/components';
 
 The **Qefro Runtime** is the single execution engine for:
 
+- **Marketplace Apps** — metadata UI, entity tools, managed storage
 - AI tool-loop calls into Business Tools
 - **Business Flows** (FlowRunner): ask, tool, condition, delay, approval, challenge, complete
 - Entry from **conversation intent**, **events**, **schedules**, and **webhooks**
 
 <InfoBox>
-Your Backend SDK is passive during flow execution. It only answers signed <code>tool.invoke</code> (and auth challenge) messages — the same as AI-initiated tool use.
+Marketplace App workflows compile into the <strong>same</strong> BusinessFlow / FlowRunner as SDK-advertised flows. External systems use an SDKAdapter on <code>tool.invoke</code>; metadata apps use Runtime entity capabilities — no <code>/qefro</code> server.
 </InfoBox>
 
 ## Deep dives

@@ -8,10 +8,18 @@ import { RelatedTopics } from '@site/src/components';
 
 # Flows
 
-A **Business Flow** is `{ metadata, steps }` advertised by your SDK. The Runtime validates, versions, and executes it.
+A **Business Flow** is `{ metadata, steps }` executed by FlowRunner.
+
+Marketplace Apps declare flows as YAML under `workflows/` — they compile
+into this **same** model (`ask` → `tool` → `condition` → `approval` /
+`challenge` → `complete`). See [Solution workflows](/docs/solutions/workflows).
+
+External systems may also advertise flows from the SDK (`app.flow`). The
+Runtime still executes them; tools run through an **SDKAdapter**.
 
 | Topic | Doc |
 | --- | --- |
+| Marketplace App YAML | [Solution workflows](/docs/solutions/workflows) |
 | Declare in SDK | [Define Business Flows](/docs/guides/define-business-flows) |
 | Execution semantics | [Run Business Flows](/docs/guides/run-business-flows) |
 | Event / schedule entry | [Event-Driven Triggers](/docs/guides/event-driven-triggers) |

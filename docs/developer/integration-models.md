@@ -1,17 +1,60 @@
 ---
 title: "Integration models"
-description: "External SDK Connection vs Managed Marketplace App — when to use each."
+description: "Metadata Marketplace Apps vs External SDK Connection — when to use each."
 sidebar_label: "Integration models"
 ---
 
 # Integration models
 
-Qefro supports two ways to run the **same** SDK application contract.
+Qefro has **two** developer stories. They are not the same application
+contract with different hosting.
 
-## Model A — External SDK Connection
+|                | Marketplace App       | External Integration          |
+| -------------- | --------------------- | ----------------------------- |
+| Definition     | Metadata              | SDK                           |
+| Runtime        | Qefro Runtime         | External server               |
+| Business logic | Qefro Runtime         | Customer system               |
+| Storage        | Qefro managed storage | External system               |
+| Tools          | Runtime capabilities  | SDK capabilities              |
+| Events         | Runtime events        | SDK events                    |
+| Flow           | Qefro FlowRunner      | Qefro FlowRunner + SDKAdapter |
+
+Full page: [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+
+## Model A — Marketplace App (default)
 
 ```text
-Customer Infrastructure
+Developer
+        │
+        ▼
+Metadata package (manifest · entities · workflows · ui)
+        │
+        ▼
+Publish → Marketplace → Install
+        │
+        ▼
+Qefro Runtime (UI, storage, FlowRunner, CRM, Automation)
+```
+
+| Aspect | Behavior |
+| --- | --- |
+| What you write | YAML metadata (`hosting: runtime`) |
+| Runtime owner | Qefro |
+| `/qefro` process | None |
+| Marketplace | Required for catalog distribution |
+| Typical data | Managed storage via entity tools |
+| CLI | `qefro app init\|validate\|package\|install` |
+
+**Choose when:** shipping Restaurant, Clinic, Real Estate, Booking, or CRM
+as a Marketplace product. You do not need a backend.
+
+Tutorial: [managed-marketplace-app.md](./managed-marketplace-app.md).  
+Examples: `restaurant-pro-runtime`, `real-estate-runtime`.
+
+## Model B — External SDK Connection
+
+```text
+Customer Infrastructure (ERP / POS / CRM)
         │
         ▼
 SDK Application
@@ -22,7 +65,7 @@ SDK Application
 Qefro Connector Manager / ACS
         │
         ▼
-Qefro Runtime / AI / Workflows
+Qefro Runtime / FlowRunner + SDKAdapter
 ```
 
 | Aspect | Behavior |
@@ -30,64 +73,31 @@ Qefro Runtime / AI / Workflows
 | Runtime owner | Developer / customer |
 | Registration | Org **SDK Connection** (`webhook_url`, signing secret) |
 | Marketplace | Not required |
-| Installation binding | No |
 | Typical data | External ERP/CRM/DB (app-owned) |
 | `ctx.storage` | Only when invoke includes install/solution scope |
 
-**Choose when:** existing systems of record, on-prem, customer-controlled ops, ERP adapters (e.g. ABM).
+**Choose when:** existing systems of record, on-prem, customer-controlled
+ops, ERP adapters (Focus, Yaaz, ABM).
 
 Tutorial: [external-sdk-connection.md](./external-sdk-connection.md).
 
-## Model B — Managed Marketplace App
+## SDK-hosted Marketplace packages (legacy / advanced)
 
-```text
-Qefro Marketplace
-        │
-        ▼
-Solution Package
-        │
-        ▼
-Solution Installation
-        │
-        ▼
-Qefro Managed Runtime
-        │
-      /qefro
-        │
-        ▼
-Connector Manager
-        │
-        ▼
-Qefro Runtime
-```
+`qefro create-app … --hosting managed|external` still scaffolds a `/qefro`
+container that can be published as a solution. That is **not** the default
+Marketplace story. See [Managed apps](/docs/solutions/managed-apps) and
+the historical [`restaurant-pro`](/docs/solutions/examples/restaurant-pro)
+takeaway package.
 
-| Aspect | Behavior |
-| --- | --- |
-| Runtime owner | Qefro |
-| Registration | Publish solution → install into workspace |
-| Marketplace | Required for catalog distribution |
-| Installation binding | Yes (`/v1/tenant/solutions/{solution}/connector`) |
-| Typical data | Managed storage via `ctx.storage` |
-| Packaging | `manifest.yaml` + `Dockerfile` + `src/` |
-
-**Choose when:** Qefro-native SaaS apps for many tenants (Restaurant Pro, Clinic Pro).
-
-Tutorial: [managed-marketplace-app.md](./managed-marketplace-app.md).
-
-## Shared vs different
-
-**Shared:** `/qefro` protocol, HMAC scheme, tool definitions, SDK APIs, Customer Hub / Marketing / Organization *contracts*.
-
-**Different:** who runs the process, how the endpoint is registered, upgrades, secrets placement, whether install scope exists for managed storage.
-
-CLI also supports `qefro create-app … --hosting managed|external` — `external` hosting is for packaging an app that still points at a developer-operated endpoint (`qefro register --endpoint URL`). Confirm current hosting behavior in your platform version before relying on hybrid modes.
+CLI: `qefro create-app … --hosting managed|external|runtime` —
+prefer `--hosting runtime` for new Marketplace Apps.
 
 ## Decision tree
 
 ```text
-Do you need to run the application yourself?
+Are you connecting an existing ERP / POS / CRM?
 YES → External SDK Connection
-NO  → Want Qefro to host/manage? YES → Managed Marketplace App
+NO  → Metadata Marketplace App (hosting: runtime)
 ```
 
-Full comparison table: [application-integration-guide.md](./application-integration-guide.md#critical-distinction).
+Full walkthrough: [application-integration-guide.md](./application-integration-guide.md).

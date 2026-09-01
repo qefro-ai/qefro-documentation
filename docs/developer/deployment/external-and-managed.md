@@ -37,6 +37,12 @@ Local Docker + ACS in Docker often uses `http://host.docker.internal:8090/qefro`
 
 ## Managed Marketplace App
 
+Metadata Marketplace Apps (`hosting: runtime`) are **not** deployed as
+containers — Qefro Runtime executes the installed package. See
+[Managed Marketplace App](/docs/developer/managed-marketplace-app).
+
+SDK-hosted packages (`hosting: managed`) still ship a Docker image:
+
 | Artifact | Role |
 | --- | --- |
 | `Dockerfile` | Required for `hosting: managed` |

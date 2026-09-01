@@ -1,6 +1,6 @@
 ---
 title: "CLI"
-description: "Command-line interfaces related to Qefro SDKs and tooling."
+description: "qefro CLI for Marketplace Apps and platform operations."
 sidebar_label: "CLI"
 ---
 
@@ -8,21 +8,53 @@ import { RelatedTopics } from '@site/src/components';
 
 # CLI
 
-Qefro primary configuration is the **Admin Console**. Backend SDKs are libraries embedded in your service (no required global CLI).
+The **`qefro`** CLI lives in `qefro-plugin-platform/services/qefro-cli`.
+Primary product configuration is still the **Admin Console**.
 
-| Tooling | Notes |
-| --- | --- |
-| `npm` / `pnpm` / `cargo` / `pip` | Install language SDKs |
-| Connector services | Usually `node`/`docker` entrypoints per connector package |
-| Docs site | `npm start` / `npm run build` in `qefro-documentation` |
+## Marketplace Apps (default)
 
-If a dedicated `qefro` CLI ships later, this page will list commands and global flags.
+```text
+qefro app init <id> [--name NAME] [--hosting runtime]
+qefro app validate [dir]
+qefro app package [dir]
+qefro app install <name> [--version V] [--settings JSON]
+```
+
+`app init` aliases `create-app`. Prefer `--hosting runtime` (metadata
+package, no SDK process). See
+[Build your first app](/docs/solutions/build-your-first-app).
+
+## Also available
+
+```text
+qefro create-app <id> [--name NAME] [--hosting managed|external|runtime]
+                                                    [--endpoint URL] [--minimal]
+qefro dev [dir]
+qefro publish [dir]
+qefro register --endpoint URL [--solution ID]
+qefro solution build|publish|install|list
+qefro workflow trigger|list|logs
+qefro replay <execution-id>
+```
+
+`hosting: managed` / `external` scaffold an SDK `/qefro` app for
+**external-system** integration — not the default Marketplace path.
+See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+
+Environment: `QEFRO_SOLUTION_URL`, `QEFRO_RUNTIME_URL`, `QEFRO_TENANT_ID`,
+`QEFRO_ORGANIZATION_ID`, `QEFRO_PUBLISHER_ID`, `QEFRO_SIGNING_KEY_HEX` /
+`QEFRO_KEYS_FILE`, `QEFRO_INTERNAL_BEARER`.
+
+Language SDKs (`@qefro-ai/backend`, `qefro-backend`, `qefro-backend-sdk`)
+are libraries embedded in **your** ERP/POS/CRM connector — they are not
+required to build a Marketplace App.
 
 ## Related topics
 
 <RelatedTopics
   topics={[
     {label: 'Environment variables', to: '/docs/reference/environment-variables'},
-    {label: 'Developer quick start', to: '/docs/developer/quick-start'},
+    {label: 'Build your first app', to: '/docs/solutions/build-your-first-app'},
+    {label: 'Developer getting started', to: '/docs/developer/getting-started'},
   ]}
 />

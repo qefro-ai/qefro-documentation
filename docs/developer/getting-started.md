@@ -1,22 +1,51 @@
 ---
 title: "Getting started"
-description: "Install @qefro-ai/backend, expose POST /qefro, and connect to Qefro."
+description: "Start with a metadata Marketplace App, or connect an external system with the Qefro SDK over /qefro."
 sidebar_label: "Getting started"
 ---
 
 # Getting started
 
-## Goal
+## Which path?
 
-Run a minimal signed `/qefro` process and register it with Qefro (external path), or scaffold a managed app package.
+| Goal | Path |
+| --- | --- |
+| Ship Restaurant / Clinic / Real Estate / Booking / CRM on Marketplace | **Metadata** — no backend |
+| Connect Focus ERP, Yaaz, ABM, on-prem POS / CRM | **SDK** → `/qefro` |
 
-## Prerequisites
+```text
+Marketplace App (default)
+  qefro app init → validate → package → publish → install → Qefro Runtime
+
+External integration
+  npm install @qefro-ai/backend → POST /qefro → SDK Connection
+```
+
+See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+
+## Marketplace App (default)
+
+```bash
+qefro app init restaurant-pro --name "Restaurant Pro" --hosting runtime
+qefro app validate restaurant-pro
+qefro app package restaurant-pro
+qefro app install restaurant-pro
+```
+
+Tutorial: [Managed Marketplace App](./managed-marketplace-app.md) ·
+[Build your first app](/docs/solutions/build-your-first-app).
+
+Reference: `qefro-plugin-platform/docs/examples/restaurant-pro-runtime`
+(app id `restaurant-pro-runtime`).
+
+## External SDK (ERP / POS / CRM)
+
+### Prerequisites
 
 - Node.js **≥ 18**
 - Org Portal access to **Business Tools → SDK Connections**
-- For managed apps: `qefro` CLI and platform admin rights to publish
 
-## Install the SDK
+### Install the SDK
 
 ```bash
 npm install @qefro-ai/backend
@@ -31,7 +60,7 @@ Other languages:
 | Python | `qefro-backend` |
 | Rust | `qefro-backend-sdk` |
 
-## Minimal external app
+### Minimal external app
 
 ```javascript
 import { Qefro } from '@qefro-ai/backend';
@@ -64,35 +93,20 @@ Run:
 ```bash
 export QEFRO_SIGNING_SECRET=dev-secret
 node index.js
-# or: npm start  (if defined in your package.json)
 ```
 
-The SDK’s own `npm run dev` builds the library in watch mode — it does **not** start your application server. Application repos typically use `npm start` (see `mock-order-status-sdk`, `abm-demo`).
-
-## Connect (external)
+### Connect (external)
 
 1. Expose HTTPS to `…/qefro` (or tunnel for local: ngrok / `host.docker.internal`).
 2. Org Portal → **Business Tools** → **SDK Connections** → **Add Connection**
    - **Name**
    - **Webhook URL** (must end at `/qefro` or your configured path)
    - **Signing Secret** (same as `QEFRO_SIGNING_SECRET`, or leave empty to let the platform generate one)
-   - **Enabled** (create API defaults `enabled` to false if omitted)
+   - **Enabled**
 3. **Test Connection**
 4. Select a workspace → **Sync Tools**
 
 API: `POST /api/v1/org/sdk-connections` with `{ name, webhook_url, enabled?, signing_secret? }`.
-
-## Scaffold (managed)
-
-```bash
-qefro create-app my-app --hosting managed
-cd my-app
-# edit src/, manifest.yaml
-qefro dev .
-# platform admin:
-qefro publish .
-qefro solution install my-app
-```
 
 ## Next
 

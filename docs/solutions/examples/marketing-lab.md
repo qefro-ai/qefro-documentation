@@ -6,6 +6,12 @@ sidebar_label: "marketing-lab"
 
 # Example: marketing-lab
 
+:::info SDK lab app
+`marketing-lab` is an **SDK-hosted** smoke app (`/qefro` +
+`app.marketing`). It is not a metadata Marketplace App. See
+[Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+:::
+
 `marketing-lab` is a **smoke / lab** installable SDK app. Its only job is to
 register `app.marketing({…})` so Admin Console → **Marketing** shows real
 audiences, variables, actions, and channels ([ADR-004](/docs/solutions/marketing)).

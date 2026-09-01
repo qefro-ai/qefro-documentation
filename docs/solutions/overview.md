@@ -1,63 +1,98 @@
 ---
 title: "Solution Development"
-description: "Build installable SDK applications — required /qefro process, optional declarative UI/workflows, managed storage via ctx.storage (ADR-003)."
+description: "Build installable Marketplace Apps as metadata packages executed by Qefro Runtime — entities, UI, flows, events. SDK is for external systems only."
 sidebar_label: "Overview"
 ---
 
 # Solution Development
 
 **Solution Development** is how you build complete, branded business
-applications on Qefro: a restaurant manager, a hospital front desk, a CRM, a
-hotel property system, a school administration portal, or an inventory
-back office — all shipped as a single **installable package**.
+applications on Qefro: a restaurant manager, a clinic front desk, a real
+estate CRM, a booking product — shipped as a single **installable
+package**.
 
-**The SDK process is the application** ([ADR-003](/docs/solutions/managed-apps)):
-domain logic lives in required `src/` (Node / Rust / Python) on signed
-`/qefro`. Optional YAML workflows, prompts, and UI only orchestrate and
-present. Solution-owned documents persist via
-[managed storage](/docs/solutions/managed-storage) **from inside the SDK**
-(`ctx.storage`). External systems of record stay behind pool connectors.
+A **Qefro Marketplace App** is a **declarative package**, not an SDK
+server. Developers do **not** need a backend to create Restaurant, Clinic,
+Real Estate, Booking, or CRM apps. Qefro Runtime executes the metadata:
+UI, entities, storage, Business Flows, Business Events, CRM, and
+Automation.
+
+**Default developer story:**
+
+```text
+Developer → Create App Metadata → Validate → Package → Publish
+  → Install into Workspace → Qefro Runtime
+```
+
+```bash
+qefro app init restaurant-pro --hosting runtime
+qefro app validate restaurant-pro
+qefro app package restaurant-pro
+qefro app install restaurant-pro
+```
 
 **Start here:** [Build your first app](/docs/solutions/build-your-first-app)
-(`qefro create-app warehouse-pro` → publish → install).
+using [`restaurant-pro-runtime`](/docs/solutions/examples/restaurant-pro-runtime).
 
-:::danger Deprecated
-YAML-only packages that call `storage/*` from workflows or UI sources are
-incorrect. See [Managed apps](/docs/solutions/managed-apps).
+:::info Runtime vs SDK
+Marketplace Apps are metadata. The Qefro SDK connects **external** ERP /
+POS / CRM systems over `/qefro`. See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+The old path **Marketplace App → SDK → /qefro** is not the default
+Marketplace story.
 :::
+
+## What is a Qefro Marketplace App?
+
+An installable YAML package with `hosting: runtime`. Identity, entities,
+workflows, events, UI, and permissions live in the package. After install,
+Qefro Runtime:
+
+- renders dashboards, tables, forms, detail pages, navigation, and widgets
+- persists entities in [managed storage](/docs/solutions/managed-storage) (no direct DB)
+- compiles `workflows/` into the same **BusinessFlow / FlowRunner** as every other flow
+- emits business events that CRM Automation can consume
+- hosts Contacts (`host: contacts`) and Automations (`host: automations`)
+
+You never run `npm run dev` on a `/qefro` process for this path.
 
 ## What you can build
 
-Any business domain that fits the Qefro model — an SDK app with tools,
-optional workflows/events, managed storage and/or pool connectors, and an
-optional portal-rendered UI — can be packaged as a solution:
+Any business domain that fits entities + flows + UI:
 
-| Domain | Typical pages | Typical data plane |
+| Domain | Typical pages | Data plane |
 | --- | --- | --- |
-| Restaurant management | Dashboard, reservations, tables, kitchen, orders, payments | SDK + managed storage (+ optional POS) |
-| Hospital management | Appointments, wards, billing, duty roster | SDK + storage + HMS connectors |
-| CRM | Pipeline, contacts, activities, reports | SDK + storage + CRM hub |
-| Hotel management | Rooms, bookings, housekeeping, folios | SDK + storage + PMS |
-| School management | Classes, attendance, fees, timetables | SDK + storage + SIS |
-| Inventory management | Stock levels, transfers, purchase orders | SDK + storage + WMS |
+| Restaurant | Dashboard, reservations, tables, menu | Runtime entities + managed storage |
+| Clinic | Appointments, patients, schedule | Runtime entities + managed storage |
+| Real estate | Properties, leads, viewings | Runtime entities + managed storage |
+| CRM / booking | Pipeline, contacts, bookings | Runtime entities + Person CRM |
 
-Throughout this section, [`restaurant-pro`](/docs/solutions/examples/restaurant-pro)
-is the canonical reference solution. Every concept page uses it as the
-running example.
+Canonical references:
+
+| Package | App id | Role |
+| --- | --- | --- |
+| [restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime) | `restaurant-pro-runtime` | Hospitality metadata app |
+| [real-estate-runtime](/docs/solutions/examples/real-estate-runtime) | `real-estate-runtime` | Same model, different nouns |
+
+SDK-hosted examples (`restaurant-pro`, `clinic-pro`, `salon-pro`) remain
+as **external / legacy SDK packages** — see
+[Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 
 ## Core principles
 
-1. **The SDK process is required.** Business logic runs in `src/` on
-   `/qefro`. The platform must not encode domain rules (reservation, menu, …).
+1. **Metadata is the application.** `hosting: runtime` packages ship
+   `manifest.yaml`, `entities/`, `workflows/`, and `ui/`. No SDK process.
 2. **UI is declarative data.** Theme, nav, pages, and widgets are YAML —
    no package JS in the portal UI (no iframes, no injected scripts).
-3. **Capability mediation is mandatory.** Host interactions pass through
-   the capability registry; negotiated at install and re-checked on every call.
-4. **Event-driven communication is mandatory.** Solutions react to the
-   platform event bus and emit `ui.*` lifecycle events — no out-of-band
-   signaling.
-5. **Persist only via `ctx.storage`.** Workflows/UI call app tools
-   (`{solution}/{tool}`), never `storage/*` directly.
+3. **Storage is Qefro-managed.** Entity tools such as
+   `entity.reservation.create` persist documents. No Mongo connection, no
+   direct `storage/*` from YAML.
+4. **Flows compile to FlowRunner.** `ask` → `tool` → `condition` →
+   `approval` / `challenge` → `complete` on the same engine as every
+   Business Flow.
+5. **Capability mediation is mandatory.** Host interactions pass through
+   the capability registry.
+6. **Event-driven communication is mandatory.** Business events drive
+   automation; `ui.*` events are observational.
 
 ### Platform rules
 
@@ -79,70 +114,64 @@ See [Security model](/docs/solutions/security) for how each rule is enforced.
 
 ## The delivery pipeline
 
-A solution travels a fixed pipeline from your editor to a tenant's portal:
-
 ```mermaid
 flowchart TB
-    A[Solution package<br/>src + optional UI/workflows] --> B[Registry]
+    A[Marketplace App package<br/>manifest · entities · workflows · ui] --> B[Registry]
     B --> C[Installer]
-    C --> D[Runtime]
-    D --> E[Tool invoker]
-    E --> APP[Install /qefro SDK app]
-    APP --> S[ctx.storage → storage-service]
-    E --> F[Pool connector bridge]
-    C --> G[Portal renderer]
-    APP --> G
-    F --> G
-    D --> G
+    C --> D[Qefro Runtime]
+    D --> FR[FlowRunner]
+    D --> S[Managed storage]
+    D --> G[Portal renderer]
+    D --> CRM[Person CRM · Automations]
 ```
 
 | Stage | Responsibility | Details |
 | --- | --- | --- |
-| Solution package | Required `src/` SDK + optional UI/workflows/connectors | [Package structure](#package-structure) |
+| App package | Metadata: manifest, entities, workflows, UI | [Package structure](#package-structure) |
 | Registry | Signed global catalog (platform-admin publish only) | [Publishing](/docs/solutions/publishing) |
-| Installer | Activation, capabilities, installation binding | [Installation](/docs/solutions/installation) |
-| Runtime | Executes workflows, serves runtime data sources | [Workflows](/docs/solutions/workflows) |
-| SDK app | Domain tools on `/qefro` | [Managed apps](/docs/solutions/managed-apps) |
-| Managed storage | Documents via `ctx.storage` → Mongo | [Managed storage](/docs/solutions/managed-storage) |
-| Connector bridge | External pool connectors | [Connectors](/docs/solutions/connectors) |
-| Portal renderer | Declarative pages/widgets/themes | [Pages](/docs/solutions/pages) |
+| Installer | Activation, capabilities, workspace install | [Installation](/docs/solutions/installation) |
+| Qefro Runtime | UI, entity tools, FlowRunner, events | [Architecture](/docs/solutions/architecture) |
+| Managed storage | Documents for declared entities | [Managed storage](/docs/solutions/managed-storage) |
+| Portal renderer | Dashboards, tables, forms, widgets | [Pages](/docs/solutions/pages) |
 
-The full architecture is covered in [Architecture](/docs/solutions/architecture).
+External ERP / POS / CRM integrations take a **separate** path: SDK →
+`/qefro` → Runtime. See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 
 ## Package structure
 
-Prefer `qefro create-app <id>` — see [App scaffold](/docs/solutions/scaffold).
-Every solution is a directory with this layout:
+Prefer `qefro app init <id> --hosting runtime`. The implemented tree
+(from `restaurant-pro-runtime` / `qefro app init`) is:
 
 ```text
-restaurant-pro/
-├── manifest.yaml        # identity, hosting, endpoint, permissions, settings
-├── src/                 # required — SDK application (/qefro)
-├── package.json         # and/or Cargo.toml / pyproject.toml
-├── Dockerfile           # required for hosting: managed
-├── assets/              # images only (png/jpg/jpeg/svg/webp)
-├── workflows/           # optional — tool steps → {solution}/{tool}
-├── connectors/          # optional — external pool connector contracts
-├── ui/                  # optional declarative staff UI
-│   ├── theme.yaml
-│   ├── navigation.yaml
-│   ├── pages.yaml
-│   ├── layouts.yaml
-│   ├── widgets.yaml
-│   └── sources.yaml     # runtime | {solution}/{tool} | pool connector
-└── README.md
+my-app/
+├── manifest.yaml        # identity, hosting: runtime, entities, flows, events, UI, permissions
+├── entities/            # domain schemas (required for hosting: runtime)
+│   └── record.yaml
+├── workflows/           # Business Flows → FlowRunner
+│   └── create-record.yaml
+└── ui/                  # Runtime-rendered staff UI
+    ├── theme.yaml
+    ├── navigation.yaml
+    ├── pages.yaml
+    ├── layouts.yaml
+    ├── widgets.yaml
+    └── sources.yaml     # type: entity | runtime
 ```
 
-YAML sources are assembled into a canonical JSON package, checksummed and
-signed at build time — see [Packaging](/docs/solutions/packaging).
+There is no `src/`, no `events/` directory, and no `automations/`
+directory. Events are declared on the manifest (`events:`). Automations
+are a portal host page (`host: automations`), not package files.
+
+YAML is assembled into a canonical JSON package, checksummed and signed —
+see [Packaging](/docs/solutions/packaging).
 
 ## Documentation map
 
 | Topic | Page |
 | --- | --- |
-| **Managed apps (start here)** | [Managed apps](/docs/solutions/managed-apps) |
+| **Runtime vs SDK (read this)** | [Runtime vs SDK](/docs/solutions/runtime-vs-sdk) |
+| Build your first Marketplace App | [Build your first app](/docs/solutions/build-your-first-app) |
 | Platform architecture | [Architecture](/docs/solutions/architecture) |
-| Build your first solution | [Quickstart](/docs/solutions/quickstart) |
 | Tenant-side activation | [Installation](/docs/solutions/installation) |
 | `manifest.yaml` reference | [Manifest](/docs/solutions/manifest) |
 | Branding | [Themes](/docs/solutions/themes) |
@@ -161,20 +190,22 @@ signed at build time — see [Packaging](/docs/solutions/packaging).
 | Publishing to the registry | [Publishing](/docs/solutions/publishing) |
 | Security model & rules | [Security](/docs/solutions/security) |
 | Fixing common failures | [Troubleshooting](/docs/solutions/troubleshooting) |
-| Complete reference solution | [restaurant-pro](/docs/solutions/examples/restaurant-pro) |
+| Canonical metadata app | [restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime) |
+| Second vertical | [real-estate-runtime](/docs/solutions/examples/real-estate-runtime) |
+| SDK-hosted packages (not default) | [Managed apps](/docs/solutions/managed-apps) |
 
 ## How this differs from playbooks
 
 [Solution playbooks](/docs/solutions/playbooks) are outcome-oriented guides
 that compose *existing* platform features (customer support, order tracking,
 refunds). Solution Development produces **new installable packages** with
-their own manifest, UI, workflows and data-plane requirements (managed
-storage and/or connectors).
+their own manifest, entities, UI, and workflows.
 
 ## Related platform concepts
 
 - [Runtime](/docs/developer/concepts/runtime) — the execution engine that runs installed workflows.
 - [Events](/docs/developer/concepts/events) — the platform event bus that solutions ride.
-- [Managed storage](/docs/solutions/managed-storage) — document plane via `ctx.storage` (SDK-only).
+- [Managed storage](/docs/solutions/managed-storage) — document plane for declared entities.
 - [Connectors](/docs/developer/concepts/connectors) — stateless integration containers behind the bridge.
 - [Business Flows](/docs/developer/concepts/flows) — the flow model workflows compile to.
+- [External SDK Connection](/docs/developer/external-sdk-connection) — ERP / POS / CRM → SDK → `/qefro`.

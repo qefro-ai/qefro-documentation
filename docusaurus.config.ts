@@ -6,7 +6,7 @@ const siteUrl = 'https://docs.qefro.com';
 
 const config: Config = {
   title: 'Qefro Docs',
-  tagline: 'AI Workspaces and installable SDK apps for your organization',
+  tagline: 'AI Workspaces and Marketplace Apps for your organization',
   favicon: 'img/favicon.ico',
 
   url: siteUrl,
@@ -101,7 +101,7 @@ const config: Config = {
       {
         name: 'description',
         content:
-          'Official Qefro documentation for AI Workspaces, installable SDK apps, Marketplace, Customer Hub (People), Marketing, Organization workflows, and Business Tools.',
+          'Official Qefro documentation for AI Workspaces, Marketplace Apps, Marketplace, Customer Hub (People), Marketing, Organization workflows, and Business Tools.',
       },
       {name: 'twitter:card', content: 'summary_large_image'},
       {name: 'twitter:site', content: '@qefro'},
@@ -302,7 +302,7 @@ const config: Config = {
         operatingSystem: 'Web',
         url: 'https://qefro.com',
         description:
-          'AI Workspace Platform for Customer AI, Employee AI, installable SDK apps, and secure Business Actions.',
+          'AI Workspace Platform for Customer AI, Employee AI, Marketplace Apps, and secure Business Actions.',
         offers: {
           '@type': 'Offer',
           price: '0',

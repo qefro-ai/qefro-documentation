@@ -1,42 +1,35 @@
 ---
 title: "Quickstart"
-description: "Scaffold, build, sign, publish and install your first SDK application — restaurant-pro — in under an hour."
+description: "Scaffold, validate, package, publish and install a metadata Marketplace App — restaurant-pro-runtime — in under an hour."
 sidebar_label: "Quickstart"
 ---
 
 # Quickstart
 
 :::tip Prefer the full walkthrough
-For the unassisted path (`create-app` → publish → install → works), use
-**[Build your first app](/docs/solutions/build-your-first-app)** (`warehouse-pro`
-example). This page is a shorter loop for people who already have publish
-credentials.
+For the unassisted path (`app init` → validate → package → install), use
+**[Build your first app](/docs/solutions/build-your-first-app)**. This page
+is a shorter loop for people who already have publish credentials.
 :::
 
-Scaffold a working takeaway app in minutes with `qefro create-app`, then
-publish and install it. Three reference verticals prove the same SDK surface:
+Scaffold a metadata Marketplace App. Qefro Runtime executes it — no SDK
+server.
 
 | Example | Domain |
 |---------|--------|
-| [`restaurant-pro`](/docs/solutions/examples/restaurant-pro) | Takeaway preorder / hospitality (**1.10.7**) |
-| [`clinic-pro`](/docs/solutions/examples/clinic-pro) | Doctors / healthcare |
-| [`salon-pro`](/docs/solutions/examples/salon-pro) | Stylists / beauty |
-| [`marketing-lab`](/docs/solutions/examples/marketing-lab) | Marketing registration smoke app |
+| [`restaurant-pro-runtime`](/docs/solutions/examples/restaurant-pro-runtime) | Reservations / menu (**canonical**) |
+| [`real-estate-runtime`](/docs/solutions/examples/real-estate-runtime) | Properties / leads / viewings |
 
-This guide walks the full loop: scaffold → build/sign → publish → install →
-open the portal UI.
+SDK-hosted takeaway / clinic / salon packages are a
+[separate path](/docs/solutions/runtime-vs-sdk).
 
 ## Prerequisites
 
 - A Qefro organization with admin access to the portal (`app.qefro.com`).
-- The `qefro` CLI on your `PATH` (create-app / build require a `src/` tree).
+- The `qefro` CLI on your `PATH`.
 - A signing key for publishing: either `QEFRO_SIGNING_KEY_HEX` (32 bytes
   of hex) or a keys file containing `REGISTRY_PRIVATE_KEY` pointed to by
   `QEFRO_KEYS_FILE`.
-- Platform **managed storage** deployed (`storage-service` + Mongo
-  `managed_apps`) and a place to run your `/qefro` process (managed image
-  or external URL). See [Managed apps](/docs/solutions/managed-apps) and
-  [Managed storage](/docs/solutions/managed-storage).
 
 :::danger Platform admin only
 Publishing is restricted to **platform admins** (`QEFRO_PLATFORM_ADMIN_IDS`).
@@ -46,62 +39,47 @@ Tenant and workspace admins can *install* published solutions; they cannot
 
 ## Step 1 — Scaffold the package
 
-Prefer the CLI (full booking starter with storage, Hub, marketing, booking
-bridge, onboarding, and dashboard UI):
-
 ```bash
-qefro create-app salon-pro
-cd salon-pro
-npm install && npm run dev
+qefro app init restaurant-pro --name "Restaurant Pro" --hosting runtime
+cd restaurant-pro
 ```
-
-Hello-only stub (tiny experiments): `qefro create-app my-app --minimal`.
 
 Generated layout:
 
 ```text
-salon-pro/
+restaurant-pro/
 ├── manifest.yaml
-├── src/                 # required SDK app (/qefro)
-├── package.json
-├── Dockerfile
-├── assets/
+├── entities/
 ├── workflows/
-├── prompts/
-├── booking/             # static WhatsApp bridge (?n= from workspace channel)
-├── onboarding/
 └── ui/
-    ├── theme.yaml
     ├── navigation.yaml
     ├── pages.yaml
-    ├── layouts.yaml
     ├── widgets.yaml
     └── sources.yaml
 ```
 
-Or study a polished vertical: Restaurant Pro, Clinic Pro, or Salon Pro under
-`qefro-plugin-platform/docs/examples/`.
+Or study the polished vertical:
+`qefro-plugin-platform/docs/examples/restaurant-pro-runtime/`
+(app id `restaurant-pro-runtime`).
 
 ## Step 2 — Write the manifest
 
 ```yaml
-id: restaurant-pro
+id: restaurant-pro-runtime
 name: Restaurant Pro
-version: 1.7.0
-hosting: managed
-endpoint: http://restaurant-pro:8080
-description: Takeaway preorder, menu, kitchen ops, orders and payments for restaurants
+version: 0.1.0
+hosting: runtime
+description: Table reservations and menu as a metadata Marketplace App
 category: hospitality
-tags:
-  - restaurant
-  - takeaway
-  - sdk
-connectors: []
-channels:
-  - widget
-  - whatsapp
+entities:
+  - table
+  - reservation
+  - menu_item
 flows:
-  - takeaway
+  - create-reservation
+events:
+  - reservation.created
+  - reservation.cancelled
 permissions:
   - workflow.execute
   - storage.read
@@ -116,164 +94,106 @@ capabilities:
   - workflow.trigger
   - storage.read
   - storage.write
-  - storage.update
-  - storage.delete
-settings: []
 ui:
   name: Restaurant Pro
-  logo: assets/logo.svg
-  icon: assets/icon.svg
 ```
 
-Every field is documented in [Manifest](/docs/solutions/manifest).
+Do **not** set `endpoint`. Every field is documented in
+[Manifest](/docs/solutions/manifest).
 
-## Step 3 — Implement the SDK app
+## Step 3 — Declare entities
 
-Business logic lives in `src/` — tools call `ctx.storage`, never Mongo:
-
-```js title="src/index.js (excerpt)"
-import { Qefro } from '@qefro-ai/backend';
-
-const app = new Qefro({
-  signingSecret: process.env.QEFRO_SIGNING_SECRET,
-  endpointPath: '/qefro',
-});
-
-app.tool(
-  { name: 'restaurant.placeOrder', /* … */ },
-  async (ctx) => {
-    /* validate then */
-    return ctx.storage.insert('orders', { /* … */ });
-  },
-);
-
-app.tool(
-  { name: 'restaurant.listOrders', /* … */ },
-  async (ctx) => ctx.storage.find('orders', { limit: 50 }),
-);
-
-await app.listen({ port: Number(process.env.PORT || 8080) });
+```yaml title="entities/reservation.yaml (excerpt)"
+id: reservation
+fields:
+  - name: guest_name
+    type: string
+    required: true
+  - name: covers
+    type: integer
+    required: true
+  - name: date
+    type: date
+    required: true
 ```
 
-## Step 4 — Define the UI (optional)
+Storage is Qefro-managed. See [Managed storage](/docs/solutions/managed-storage).
+
+## Step 4 — Define the UI
 
 ```yaml title="ui/sources.yaml"
-- id: runtime_metrics
-  type: runtime
-  target: metrics
-- id: orders
-  type: connector
-  target: restaurant-pro/restaurant.listOrders
-  params:
-    limit: 25
+- id: reservations
+  type: entity
+  target: reservation
 ```
 
-```yaml title="ui/widgets.yaml"
-- id: active_orders
-  type: metric
-  title: Active orders
-  source: runtime_metrics
-  options:
-    value_path: executions.active
-    label: currently running workflows
-- id: order_table
+```yaml title="ui/widgets.yaml (excerpt)"
+- id: reservations_table
   type: table
-  title: Orders
-  source: orders
+  title: Reservations
+  source: reservations
   options:
     rows_path: items
-    limit: 25
     columns:
-      - { key: id, header: Order }
-      - { key: status, header: Status }
-      - { key: total, header: Total }
+      - { key: guest_name, header: Guest }
+      - { key: covers, header: Covers }
+      - { key: date, header: Date }
 ```
 
 Wire navigation, pages, layouts, and theme as in
 [Themes](/docs/solutions/themes), [Sources](/docs/solutions/sources).
 
-## Step 5 — Add a workflow (optional)
+## Step 5 — Add a workflow
 
-Orchestrate only — call the **app** tool:
+Same FlowRunner as every Business Flow:
 
-```yaml title="workflows/takeaway.yaml (excerpt)"
-id: takeaway
-name: Takeaway order
+```yaml title="workflows/create-reservation.yaml (excerpt)"
+id: create-reservation
+name: Create reservation
 trigger:
   type: conversation
 steps:
-  - id: collect_order
+  - id: ask_covers
     type: ask
-    prompt: takeaway-assistant
-    variable: takeaway_input
-  - id: create_takeaway
+    field: covers
+    message: How many guests?
+  - id: create
     type: tool
-    tool: restaurant-pro/restaurant.placeOrder
-    params:
-      guest_name: "{{ variables.takeaway_input.guest_name }}"
-      items: "{{ variables.takeaway_input.items }}"
-      pickup_date: "{{ variables.takeaway_input.pickup_date }}"
-      pickup_time: "{{ variables.takeaway_input.pickup_time }}"
+    tool: entity.reservation.create
+    execution: runtime
   - id: done
     type: complete
 ```
 
-:::danger Do not use `storage/insert` in workflows
-Persist only inside the SDK via `ctx.storage`. See
-[Managed storage](/docs/solutions/managed-storage).
-:::
-
 Details: [Workflows](/docs/solutions/workflows).
 
-## Step 6 — Build and sign
+## Step 6 — Validate, package, publish, install
 
 ```bash
-qefro solution build .
+qefro app validate .
+qefro app package .
+qefro publish .
+qefro app install restaurant-pro-runtime
 ```
 
-The build requires `src/`, assembles the package, checksums, and signs
-`id|version|checksum`. See [Validation](/docs/solutions/validation) and
-[Packaging](/docs/solutions/packaging).
-
-```text
-built restaurant-pro@1.7.0
-  checksum:  9f2c…
-  signature: 71ab…
-  package:   ./dist/package.json
-```
-
-## Step 7 — Publish
-
-```bash
-qefro solution publish
-```
-
-See [Publishing](/docs/solutions/publishing).
-
-## Step 8 — Install into a tenant
-
-```bash
-qefro solution install restaurant-pro
-```
-
-or install from the portal marketplace wizard. The installer negotiates
-capabilities, registers workflows, stores the UI bundle, and creates an
-**installation binding** to your `/qefro` endpoint. See
+See [Validation](/docs/solutions/validation),
+[Packaging](/docs/solutions/packaging),
+[Publishing](/docs/solutions/publishing),
 [Installation](/docs/solutions/installation).
 
-## Step 9 — Open the UI
+## Step 7 — Open the UI
 
 ```text
-/app/solutions/ui/restaurant-pro/dashboard
+/app/solutions/ui/restaurant-pro-runtime/dashboard
 ```
 
-or `https://restaurant-pro.portal.qefro.com/`. Tables are fed by
-`restaurant-pro/restaurant.list*` sources (gated on `runtime.query`).
+Tables are fed by `type: entity` sources. Chat “book a table” starts
+`create-reservation`.
 
 ## What's next
 
-- Full package walkthrough: [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
-- Developer guide: [Managed apps](/docs/solutions/managed-apps)
-- Document plane: [Managed storage](/docs/solutions/managed-storage)
+- [restaurant-pro-runtime example](/docs/solutions/examples/restaurant-pro-runtime)
+- [real-estate-runtime](/docs/solutions/examples/real-estate-runtime)
+- [Runtime vs SDK](/docs/solutions/runtime-vs-sdk)
 - [Validation](/docs/solutions/validation) · [Security](/docs/solutions/security) ·
   [Troubleshooting](/docs/solutions/troubleshooting)
