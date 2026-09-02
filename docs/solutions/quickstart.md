@@ -19,6 +19,7 @@ server.
 |---------|--------|
 | [`restaurant-pro-runtime`](/docs/solutions/examples/restaurant-pro-runtime) | Reservations / menu (**canonical**) |
 | [`real-estate-runtime`](/docs/solutions/examples/real-estate-runtime) | Properties / leads / viewings |
+| [`shopify-runtime`](/docs/solutions/examples/shopify-runtime) | Products / customers / orders |
 
 ## Prerequisites
 

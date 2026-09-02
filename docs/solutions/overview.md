@@ -62,6 +62,7 @@ Any business domain that fits entities + flows + UI:
 | Restaurant | Dashboard, reservations, tables, menu | Runtime entities + managed storage |
 | Clinic | Appointments, patients, schedule | Runtime entities + managed storage |
 | Real estate | Properties, leads, viewings | Runtime entities + managed storage |
+| Commerce | Products, customers, orders | Runtime entities + managed storage |
 | CRM / booking | Pipeline, contacts, bookings | Runtime entities + Person CRM |
 
 Canonical references:
@@ -70,6 +71,7 @@ Canonical references:
 | --- | --- | --- |
 | [restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime) | `restaurant-pro-runtime` | Hospitality metadata app |
 | [real-estate-runtime](/docs/solutions/examples/real-estate-runtime) | `real-estate-runtime` | Same model, different nouns |
+| [shopify-runtime](/docs/solutions/examples/shopify-runtime) | `shopify-runtime` | Commerce metadata + generic Runtime HTTP |
 
 SDK-hosted Marketplace examples (`restaurant-pro`, `clinic-pro`,
 `salon-pro`) were **removed**. Build those products as metadata, or
@@ -190,6 +192,7 @@ see [Packaging](/docs/solutions/packaging).
 | Fixing common failures | [Troubleshooting](/docs/solutions/troubleshooting) |
 | Canonical metadata app | [restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime) |
 | Second vertical | [real-estate-runtime](/docs/solutions/examples/real-estate-runtime) |
+| Commerce metadata app | [shopify-runtime](/docs/solutions/examples/shopify-runtime) |
 | SDK-hosted packages (not default) | [Managed apps](/docs/solutions/managed-apps) |
 
 ## How this differs from playbooks

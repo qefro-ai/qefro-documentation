@@ -6,15 +6,21 @@ sidebar_label: "Connectors"
 
 # Connectors
 
-Connectors are how a solution reaches the **outside world** — Shopify,
-payment gateways, property management systems, legacy POS APIs. A solution
+Connectors are how a solution reaches the **outside world** — payment
+gateways, property management systems, legacy POS APIs. A solution
 never talks to them directly: it declares dependencies, and the platform
 resolves, provisions and mediates every call.
 
-For **solution-owned application documents** (reservations, menus, drafts),
-declare entities in a Marketplace App and persist through Runtime entity
-tools. Pool connectors (Shopify, Medusa, …) are for **external** systems,
-not for Marketplace-owned data.
+For **solution-owned application documents** (reservations, menus, products,
+orders), declare entities in a Marketplace App and persist through Runtime
+entity tools. The Shopify Marketplace App
+([`shopify-runtime`](/docs/solutions/examples/shopify-runtime)) is metadata
+executed by Qefro Runtime — it does **not** use a Shopify connector or the
+Qefro SDK. A future Shopify Admin API connector under `qefro-connectors`
+would stay independent of that Marketplace App.
+
+Pool connectors (Medusa, a future Shopify API adapter, …) are for
+**external** systems, not for Marketplace-owned data.
 
 :::danger Deprecated
 Do not call platform `storage/*` from workflows or UI sources. That model

@@ -1,6 +1,6 @@
 ---
 title: "Shopify integration"
-description: "Connect Shopify to Qefro — installation, auth, events, tools, and examples."
+description: "Connect Shopify to Qefro — Marketplace app, OAuth, events, tools. Shopify does not use the SDK."
 sidebar_label: "Overview"
 ---
 
@@ -11,61 +11,66 @@ import { InfoBox, RelatedTopics, WorkflowCard } from '@site/src/components';
 Ideal for abandoned cart recovery and order tracking solutions.
 
 <InfoBox>
-Namespace convention: events under <code>shopify.*</code>. Connectors emit only; FlowRunner stays in Qefro.
+Shopify on Qefro is a **metadata Marketplace App** executed by generic Runtime
+HTTP. There is no Shopify SDK, connector process, or <code>/qefro</code> webhook
+in the app package. SDK connections remain for Focus ERP / Yaaz.
 </InfoBox>
 
 ## Installation
 
-1. Deploy or enable the Shopify connector service (Qefro connectors monorepo / your fork).
-2. Configure credentials (below) and `QEFRO_API_BASE_URL`, `QEFRO_TENANT_ID`, API token.
-3. Point external webhooks at the connector public URL (not directly at FlowRunner).
-4. In Qefro, declare flows with `trigger.event` matching emitted names — [Event-Driven Triggers](/docs/guides/event-driven-triggers).
-5. Sync SDK tools if the connector exposes Backend SDK handlers.
+1. Install the **Shopify** Marketplace app on the target AI Workspace.
+2. In the workspace **Tools** tab, **Connect Shopify**: shop domain plus **that tenant’s** Shopify app client ID and secret.
+3. Chat tools use the workspace HTTP connection (shop host + encrypted Admin API token).
+4. Webhooks POST to Qefro `/webhooks/http/shopify`. HMAC is verified with **that workspace’s** app secret on the raw body; topics map to Business Events via package metadata, then `orchestration_events` → CRM Automation.
+
+Operator steps: [Connect Shopify](/docs/user/how-to/connect-shopify).
+Package internals: [shopify-runtime](/docs/solutions/examples/shopify-runtime).
 
 ## Authentication
 
-Shopify Admin API access token / custom app; store domain.
+OAuth authorization code. Client id/secret are entered per workspace at
+Connect and encrypted at rest. Shop domain is validated (`*.myshopify.com`);
+OAuth `state` is workspace- and session-bound. Workspace A cannot steal
+workspace B’s shop.
 
-Store secrets in the connector environment or secret manager — not in flow metadata.
+Do not put Shopify app secrets in package YAML or process environment.
 
 ## Events
 
-| Event name | Notes |
+| Event name | Source topic (metadata) |
 | --- | --- |
-| `shopify.cart.abandoned` | Emit when source system notifies connector |
-| `shopify.order.created` | Emit when source system notifies connector |
-| `shopify.order.fulfilled` | Emit when source system notifies connector |
-| `shopify.order.cancelled` | Emit when source system notifies connector |
+| `order.created` | `orders/create` |
+| `order.updated` | `orders/updated` |
+| `order.cancelled` | `orders/cancelled` |
+| `customer.created` | `customers/create` |
+| `customer.updated` | `customers/update` |
 
 Envelope fields (idempotency, correlation, TTL): [Event reference](/docs/reference/event-reference).
 
 ## Tools
 
-Typical tool surface: **lookup order, cancel order, customer lookup**.
-
-Implement as Backend SDK tools or REST Business Tools. Keep PII minimization and least privilege scopes.
+Lookup products, customers, and orders through generic HTTP tools
+(`read_products`, `read_customers`, `read_orders`). Missing scopes reject
+execution. Keep PII minimization and least privilege.
 
 ## Webhooks
 
-1. Receive provider webhook → verify signature.
-2. Normalize payload → `EventEmitter.emit({ name: 'shopify.…', payload, idempotencyKey })`.
-3. Return 2xx quickly; let Qefro dispatch asynchronously.
-
-## Examples
-
-- Abandoned cart pattern: [Solutions — Abandoned cart](/docs/solutions/abandoned-cart) (Shopify-oriented; adapt event names).
-- Order tracking: [Solutions — Order tracking](/docs/solutions/order-tracking).
+1. Receive provider webhook at the generic Qefro endpoint.
+2. Identify the workspace from the shop identity header (selects that tenant’s app secret).
+3. Verify HMAC on the raw body with that secret (constant-time). Reject missing/invalid signatures.
+4. Map topic → Business Event via metadata; emit onto `orchestration_events`.
+5. CRM Automation consumes the bus. Replay uses the Shopify webhook id.
 
 ## Workflow checklist
 
 <WorkflowCard
   title="Shopify go-live"
   steps={[
-    {title: 'Auth', description: 'Least-privilege credentials in connector env.'},
-    {title: 'Webhooks', description: 'Verify signatures; map to shopify.* events.'},
-    {title: 'Flows', description: 'Enable flows with matching trigger.event.'},
-    {title: 'Test emit', description: 'Idempotent test event; watch Flow Runs.'},
-    {title: 'Observe', description: 'Event list + tool logs + dead-letter retry.'},
+    {title: 'Auth', description: 'Connect Shopify OAuth with per-workspace app credentials; tokens encrypted at rest.'},
+    {title: 'Webhooks', description: 'Generic HMAC ingest; map to order.* / customer.*.'},
+    {title: 'Flows / CRM', description: 'Chat tools + automations on Business Events.'},
+    {title: 'Test emit', description: 'Idempotent webhook; watch Flow Runs / CRM.'},
+    {title: 'Observe', description: 'Connection status + event list + dead-letter retry.'},
   ]}
 />
 
@@ -73,8 +78,9 @@ Implement as Backend SDK tools or REST Business Tools. Keep PII minimization and
 
 <RelatedTopics
   topics={[
+    {label: 'Connect Shopify', to: '/docs/user/how-to/connect-shopify'},
+    {label: 'shopify-runtime example', to: '/docs/solutions/examples/shopify-runtime'},
     {label: 'Integrations overview', to: '/docs/integrations/overview'},
-    {label: 'Connectors concept', to: '/docs/developer/concepts/connectors'},
     {label: 'Event-Driven Triggers', to: '/docs/guides/event-driven-triggers'},
   ]}
 />

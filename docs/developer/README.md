@@ -36,7 +36,7 @@ Full comparison: [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 
 | Tutorial | Path | Reference implementation |
 | --- | --- | --- |
-| [Managed Marketplace App](./managed-marketplace-app.md) | Metadata → Runtime | `restaurant-pro-runtime`, `real-estate-runtime` |
+| [Managed Marketplace App](./managed-marketplace-app.md) | Metadata → Runtime | `restaurant-pro-runtime`, `real-estate-runtime`, `shopify-runtime` |
 | [External SDK Connection](./external-sdk-connection.md) | SDK → `/qefro` | `abm-demo`, `mock-order-status-sdk` (Focus / Yaaz / ABM style) |
 | [Migration: External → Managed](./migration-external-to-managed.md) | SDK packaging | Same SDK app, different plumbing |
 

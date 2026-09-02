@@ -8,36 +8,51 @@ import { InfoBox, WorkflowCard, RelatedTopics } from '@site/src/components';
 
 # How to connect Shopify
 
-**Goal:** Link your Shopify store so support or commerce assistants can use order/catalog context and (with engineering) event-driven flows such as abandoned cart.
+**Goal:** Link your Shopify store so support or commerce assistants can use order/catalog context and event-driven CRM automations.
 
 ## Who does what
 
 | Role | Tasks |
 | --- | --- |
-| **You (admin)** | Choose workspace, approve access, test chat |
-| **Engineering** | Deploy/configure the Shopify connector, secrets, and flow triggers |
+| **You (admin)** | Install the Shopify Marketplace app, enter **your** Shopify app client ID and secret, shop domain, then **Connect Shopify** |
+| **Engineering** | Qefro Runtime HTTPS callback (`PUBLIC_API_URL`) — not Shopify app credentials |
 
 <InfoBox>
-Qefro does not replace Shopify Admin. It **calls** Shopify (tools) and/or **receives** store events (connector → Runtime).
+Qefro Marketplace Shopify is **metadata + generic Runtime HTTP**. There is no
+Shopify SDK in the app package. Tools run:
+
+`Shopify metadata → FlowRunner → RuntimeAdapter → Generic HTTP Executor → Shopify Admin API`
+
+SDK connections stay for Focus ERP / Yaaz only.
 </InfoBox>
 
 ## What you need
 
 - Owner or Admin on the Qefro organization
-- Shopify store admin access (or a collaborator who can install apps / create admin tokens — per your security policy)
+- Shopify store admin access
 - A target **AI Workspace** (e.g. Support or Commerce)
+- The **Shopify** Marketplace app installed on that workspace
+- A Shopify Partner app (client ID and secret) for **this** workspace
 
 ## Steps (operator)
 
 1. Open [app.qefro.com](https://app.qefro.com) → your organization.
 2. Open the **AI Workspace** that should own commerce answers and tools.
-3. Confirm **knowledge** is ready for policies (shipping, returns) — [Knowledge Base](/docs/user/knowledge-base/overview).
-4. Ask engineering to enable the **Shopify** integration for this org/workspace — they follow [Integrations → Shopify](/docs/integrations/shopify/overview).
-5. When tools appear under Business Tools, run **Test** from Admin Console chat:
+3. Open **Tools → Marketplace app** and install **Shopify** if it is not already installed.
+4. Under **Store connection**, enter:
+   - `your-store.myshopify.com`
+   - Shopify app **client ID** and **secret** from Partners (this workspace only — Qefro does not use a shared app secret)
+   - Click **Connect**.
+5. Approve the requested scopes in Shopify (products, customers, orders — from the app metadata).
+6. After redirect, the card shows **Connected**. Tokens are never shown in the UI.
+7. Confirm **knowledge** is ready for policies (shipping, returns) — [Knowledge Base](/docs/user/knowledge-base/overview).
+8. From Admin Console chat, try:
    - “Where is order 1001?”
    - “What is your return window?” (should cite knowledge, not invent policy)
-6. Optional: enable **website widget** or **WhatsApp** on the same workspace — [Channels](/docs/user/channels/overview).
-7. Optional outcomes: [Order tracking](/docs/solutions/order-tracking), [Abandoned cart](/docs/solutions/abandoned-cart).
+9. Optional: enable **website widget** or **WhatsApp** on the same workspace — [Channels](/docs/user/channels/overview).
+10. Optional outcomes: [Order tracking](/docs/solutions/order-tracking), [Abandoned cart](/docs/solutions/abandoned-cart).
+
+**Reconnect** runs OAuth again and replaces credentials. **Disconnect** revokes the token and deletes stored credentials; tools then fail safely until you connect again.
 
 ## Workflow
 
@@ -45,26 +60,45 @@ Qefro does not replace Shopify Admin. It **calls** Shopify (tools) and/or **rece
   title="Shopify connected"
   steps={[
     {title: 'Pick workspace', description: 'Support vs Commerce isolation.'},
-    {title: 'Upload policies', description: 'Returns, shipping, FAQs.'},
-    {title: 'Engineering connects store', description: 'Connector + credentials.'},
+    {title: 'Install Shopify app', description: 'Marketplace metadata app on this workspace.'},
+    {title: 'Connect store', description: 'Tenant Shopify app credentials + OAuth; shop cannot be stolen by another workspace.'},
     {title: 'Verify tools in chat', description: 'Real order IDs in a safe environment first.'},
     {title: 'Turn on channel', description: 'Widget and/or WhatsApp.'},
   ]}
 />
 
+## Events (webhooks)
+
+After Connect, Qefro registers webhooks for the topics declared in the app metadata. Inbound requests hit a **generic Qefro webhook** (`/webhooks/http/shopify`), not a Shopify server in the package.
+
+HMAC is checked on the **raw body** first. The shop domain header selects the workspace — the payload cannot pick a workspace. Topics map to Business Events:
+
+| Shopify topic | Business Event |
+| --- | --- |
+| `orders/create` | `order.created` |
+| `orders/updated` | `order.updated` |
+| `orders/cancelled` | `order.cancelled` |
+| `customers/create` | `customer.created` |
+| `customers/update` | `customer.updated` |
+
+Those events go onto `orchestration_events` and can start **CRM Automation**. People are matched through **Customer Hub** (email/phone/existing mapping). Shopify customer ids are never used as Person IDs.
+
 ## Troubleshooting
 
 | Symptom | What to check |
 | --- | --- |
-| Assistant cannot see orders | Tool registered? Correct workspace? Engineering credentials valid? |
-| Wrong store data | Multiple shops — confirm which connection is bound to this workspace |
-| Events not starting flows | Engineering: event names + flow `metadata.trigger` — [Event-driven triggers](/docs/guides/event-driven-triggers) |
+| Assistant cannot see orders | Connected? Correct workspace? Scope `read_orders` granted? |
+| Wrong store data | Confirm which shop is bound to this workspace |
+| “Already connected to another workspace” | Disconnect the other workspace first |
+| Events not starting flows | Event names + CRM Automation trigger — [Event-driven triggers](/docs/guides/event-driven-triggers) |
+| Connect button fails | Client ID/secret for **this** workspace? Shop domain `*.myshopify.com`? Partner redirect URL matches Qefro callback? |
 
 ## Related topics
 
 <RelatedTopics
   topics={[
     {label: 'Shopify integration', to: '/docs/integrations/shopify/overview'},
+    {label: 'shopify-runtime example', to: '/docs/solutions/examples/shopify-runtime'},
     {label: 'Order tracking solution', to: '/docs/solutions/order-tracking'},
     {label: 'Abandoned cart', to: '/docs/solutions/abandoned-cart'},
     {label: 'Create an AI agent', to: '/docs/user/how-to/create-ai-agent'},

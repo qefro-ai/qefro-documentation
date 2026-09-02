@@ -49,7 +49,7 @@ Qefro Runtime (UI, storage, FlowRunner, CRM, Automation)
 as a Marketplace product. You do not need a backend.
 
 Tutorial: [managed-marketplace-app.md](./managed-marketplace-app.md).  
-Examples: `restaurant-pro-runtime`, `real-estate-runtime`.
+Examples: `restaurant-pro-runtime`, `real-estate-runtime`, `shopify-runtime`.
 
 ## Model B — External SDK Connection
 

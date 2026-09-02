@@ -154,6 +154,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'solutions/examples/restaurant-pro-runtime',
         'solutions/examples/real-estate-runtime',
+        'solutions/examples/shopify-runtime',
         'solutions/examples/restaurant-pro',
         'solutions/examples/clinic-pro',
         'solutions/examples/salon-pro',

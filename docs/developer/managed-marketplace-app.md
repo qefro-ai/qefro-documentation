@@ -20,6 +20,7 @@ Reference packages:
 | --- | --- | --- |
 | `restaurant-pro-runtime` | `restaurant-pro-runtime` | Reservations + menu, `hosting: runtime` |
 | `real-estate-runtime` | `real-estate-runtime` | Properties / leads / viewings — same model |
+| `shopify-runtime` | `shopify-runtime` | Products / customers / orders via generic Runtime HTTP |
 
 :::info SDK is a different story
 To connect Focus ERP, Yaaz, or another customer system, use

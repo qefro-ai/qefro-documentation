@@ -32,6 +32,7 @@ Marketplace story.
 | --- | --- |
 | **Restaurant Pro Runtime** | Metadata: tables, reservations, menu, `create-reservation` |
 | **Real Estate Runtime** | Metadata: properties, leads, viewings, `create-viewing` |
+| **Shopify Runtime** | Metadata: products, customers, orders — no Shopify API in the package |
 | **ABM / Focus / Yaaz** (external) | SDK tools: product search, pricing, quotation |
 
 ---
@@ -266,7 +267,7 @@ Qefro Runtime (no /qefro process)
 
 Full tutorial: [managed-marketplace-app.md](./managed-marketplace-app.md).
 
-Reference: `restaurant-pro-runtime`, `real-estate-runtime`.
+Reference: `restaurant-pro-runtime`, `real-estate-runtime`, `shopify-runtime`.
 
 ---
 

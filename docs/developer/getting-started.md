@@ -36,7 +36,8 @@ Tutorial: [Managed Marketplace App](./managed-marketplace-app.md) ·
 [Build your first app](/docs/solutions/build-your-first-app).
 
 Reference: `qefro-plugin-platform/docs/examples/restaurant-pro-runtime`
-(app id `restaurant-pro-runtime`).
+(app id `restaurant-pro-runtime`). Commerce example:
+`docs/examples/shopify-runtime` (app id `shopify-runtime`).
 
 ## External SDK (ERP / POS / CRM)
 

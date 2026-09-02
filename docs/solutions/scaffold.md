@@ -70,6 +70,7 @@ No `src/`, no Dockerfile, no `/qefro` endpoint.
 | --- | --- | --- |
 | Restaurant Pro Runtime | [example](/docs/solutions/examples/restaurant-pro-runtime) | `docs/examples/restaurant-pro-runtime/` |
 | Real Estate Runtime | [example](/docs/solutions/examples/real-estate-runtime) | `docs/examples/real-estate-runtime/` |
+| Shopify Runtime | [example](/docs/solutions/examples/shopify-runtime) | `docs/examples/shopify-runtime/` |
 
 ## SDK connection scaffold (not a Marketplace App)
 
