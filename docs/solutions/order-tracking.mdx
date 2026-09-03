@@ -12,7 +12,11 @@ Customers ask where their order is; the assistant calls your order API via a Bus
 
 ## Architecture
 
-Chat intent → flow or tool_loop → order_status_check → cited/status response
+For **Shopify** Marketplace: customer chat → `list_my_orders` / `get_my_order` → generic HTTP executor → Admin API filtered by Hub `{person.email}` → ownership check.
+
+For **SDK / custom API**: chat intent → flow or tool_loop → order_status_check → cited/status response.
+
+See [HTTP tools](/docs/solutions/http-tools) and [Connect Shopify](/docs/user/how-to/connect-shopify).
 
 ## Prerequisites
 

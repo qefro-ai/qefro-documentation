@@ -68,9 +68,11 @@ No `src/`, no Dockerfile, no `/qefro` endpoint.
 
 | App | Docs | Path (platform repo) |
 | --- | --- | --- |
-| Restaurant Pro Runtime | [example](/docs/solutions/examples/restaurant-pro-runtime) | `docs/examples/restaurant-pro-runtime/` |
-| Real Estate Runtime | [example](/docs/solutions/examples/real-estate-runtime) | `docs/examples/real-estate-runtime/` |
-| Shopify Runtime | [example](/docs/solutions/examples/shopify-runtime) | `docs/examples/shopify-runtime/` |
+| Restaurant Pro Runtime | [example](/docs/solutions/examples/restaurant-pro-runtime) | `apps/restaurant-pro-runtime/` |
+| Real Estate Runtime | [example](/docs/solutions/examples/real-estate-runtime) | `apps/real-estate-runtime/` |
+| Shopify Runtime | [example](/docs/solutions/examples/shopify-runtime) | `apps/shopify-runtime/` |
+
+Trees live in [qefro-marketplace-apps](https://github.com/qefro-ai/qefro-marketplace-apps).
 
 ## SDK connection scaffold (not a Marketplace App)
 

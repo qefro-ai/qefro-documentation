@@ -50,8 +50,12 @@ Envelope fields (idempotency, correlation, TTL): [Event reference](/docs/referen
 ## Tools
 
 Lookup products, customers, and orders through generic HTTP tools
-(`read_products`, `read_customers`, `read_orders`). Missing scopes reject
-execution. Keep PII minimization and least privilege.
+(`read_products`, `read_customers`, `read_orders`). **Staff** Console can
+list the shop. **Customers** on WhatsApp/widget see only their own orders
+(Hub email, OTP if needed, ownership after the response). Missing scopes
+reject execution. Keep PII minimization and least privilege.
+
+Details: [HTTP tools](/docs/solutions/http-tools).
 
 ## Webhooks
 

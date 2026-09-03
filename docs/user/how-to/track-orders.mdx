@@ -14,18 +14,17 @@ import { InfoBox, WorkflowCard, RelatedTopics } from '@site/src/components';
 
 - AI Workspace for Support or Commerce
 - Policy docs in knowledge (shipping times, carriers) for non-account questions
-- Engineering: an **order status** Business Tool (Shopify, WooCommerce, custom API, or SDK handler)
-- Optional: identity / order-id collection so the tool is authorized
+- For Shopify: install **Shopify** on the workspace and Connect the store — [Connect Shopify](/docs/user/how-to/connect-shopify)
+- Engineering (non-Shopify): an order-status Business Tool or SDK handler
+- Customer identity: Hub email (WhatsApp collects and OTP-verifies it when missing)
 
 ## Steps (operator)
 
 1. Create or open the workspace — [Create an AI agent](/docs/user/how-to/create-ai-agent).
 2. Upload **shipping and delivery FAQs** to knowledge.
-3. Ask engineering to register the order status tool and bind it to this workspace — start from [Order tracking solution](/docs/solutions/order-tracking).
-4. In Console test chat, try:
-   - Policy: “How long does standard shipping take?”
-   - Tool: “Status of order `TEST-ORDER-ID`” (use a sandbox order)
-5. Confirm the assistant **asks for order id / email** when required instead of guessing.
+3. For Shopify, skip a custom tool: customer WhatsApp “show my recent orders” / “where is my order” uses `list_my_orders` / `get_my_order` with Hub email + ownership. Otherwise ask engineering to register an order status tool — [Order tracking solution](/docs/solutions/order-tracking).
+4. In Console test chat (staff), try shop-wide “list all orders” and a sandbox order id.
+5. On WhatsApp, confirm the assistant **asks for email + OTP** when the Person has no Hub email, then returns **only that customer’s** orders.
 6. Enable the customer channel (widget / WhatsApp).
 7. Spot-check **Conversations** in the first days; refine instructions if the model skips the tool.
 
@@ -50,6 +49,7 @@ Order data always comes from **tools** (or events), never from the LLM’s train
 
 <RelatedTopics
   topics={[
+    {label: 'HTTP tools', to: '/docs/solutions/http-tools'},
     {label: 'Order tracking solution', to: '/docs/solutions/order-tracking'},
     {label: 'Connect Shopify', to: '/docs/user/how-to/connect-shopify'},
     {label: 'Business Tools', to: '/docs/business-tools'},

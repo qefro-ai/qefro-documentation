@@ -21,6 +21,8 @@ server.
 | [`real-estate-runtime`](/docs/solutions/examples/real-estate-runtime) | Properties / leads / viewings |
 | [`shopify-runtime`](/docs/solutions/examples/shopify-runtime) | Products / customers / orders |
 
+Collection: [qefro-marketplace-apps](/docs/solutions/examples/marketplace-apps).
+
 ## Prerequisites
 
 - A Qefro organization with admin access to the portal (`app.qefro.com`).
@@ -57,7 +59,7 @@ restaurant-pro/
 ```
 
 Or study the polished vertical:
-`qefro-plugin-platform/docs/examples/restaurant-pro-runtime/`
+[`apps/restaurant-pro-runtime`](https://github.com/qefro-ai/qefro-marketplace-apps/tree/main/apps/restaurant-pro-runtime)
 (app id `restaurant-pro-runtime`).
 
 ## Step 2 — Write the manifest

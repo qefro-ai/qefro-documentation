@@ -34,9 +34,10 @@ tree.
 
 | Reference | Path | App id |
 |-----------|------|--------|
-| Restaurant Pro Runtime | `qefro-plugin-platform/docs/examples/restaurant-pro-runtime` | `restaurant-pro-runtime` |
-| Real Estate Runtime | `qefro-plugin-platform/docs/examples/real-estate-runtime` | `real-estate-runtime` |
-| Shopify Runtime | `qefro-plugin-platform/docs/examples/shopify-runtime` | `shopify-runtime` |
+| Collection | [qefro-marketplace-apps](https://github.com/qefro-ai/qefro-marketplace-apps) | — |
+| Restaurant Pro Runtime | `apps/restaurant-pro-runtime` | `restaurant-pro-runtime` |
+| Real Estate Runtime | `apps/real-estate-runtime` | `real-estate-runtime` |
+| Shopify Runtime | `apps/shopify-runtime` | `shopify-runtime` |
 
 ## Prerequisites
 

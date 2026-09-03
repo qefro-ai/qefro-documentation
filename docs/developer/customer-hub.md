@@ -63,3 +63,11 @@ SDK exports `isCustomerHubEnabled` / `isCustomerHubOptional` based on `QEFRO_CUS
 ## Person mutations
 
 `tool.invoke` may include a `person` snapshot. Handlers can queue `person_mutations` on `result` for the runtime to apply. Prefer Hub APIs on `ctx` when available.
+
+## Metadata HTTP tools (not SDK)
+
+Marketplace HTTP tools do **not** call `ctx.customer`. Qefro Runtime
+resolves the conversation **Person**, injects `{person.email}` (and
+phone / mapped external id), and can collect a missing email with
+`identity.collect: email_otp` on WhatsApp/widget. See
+[HTTP tools](/docs/solutions/http-tools).

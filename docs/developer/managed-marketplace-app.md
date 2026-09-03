@@ -22,6 +22,9 @@ Reference packages:
 | `real-estate-runtime` | `real-estate-runtime` | Properties / leads / viewings — same model |
 | `shopify-runtime` | `shopify-runtime` | Products / customers / orders via generic Runtime HTTP |
 
+Collection: [qefro-marketplace-apps](https://github.com/qefro-ai/qefro-marketplace-apps).
+HTTP surfaces, Hub email OTP, ownership: [HTTP tools](/docs/solutions/http-tools).
+
 :::info SDK is a different story
 To connect Focus ERP, Yaaz, or another customer system, use
 [External SDK Connection](./external-sdk-connection.md). That is not a
@@ -83,7 +86,7 @@ restaurant-pro/
 ```
 
 The polished reference lives at
-`qefro-plugin-platform/docs/examples/restaurant-pro-runtime/`
+[`apps/restaurant-pro-runtime`](https://github.com/qefro-ai/qefro-marketplace-apps/tree/main/apps/restaurant-pro-runtime)
 (app id `restaurant-pro-runtime`).
 
 ## Manifest (actual fields)

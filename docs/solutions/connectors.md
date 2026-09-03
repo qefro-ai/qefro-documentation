@@ -16,7 +16,10 @@ orders), declare entities in a Marketplace App and persist through Runtime
 entity tools. The Shopify Marketplace App
 ([`shopify-runtime`](/docs/solutions/examples/shopify-runtime)) is metadata
 executed by Qefro Runtime — it does **not** use a Shopify connector or the
-Qefro SDK. A future Shopify Admin API connector under `qefro-connectors`
+Qefro SDK. Customer vs staff order tools, Hub email OTP, and ownership:
+[HTTP tools](/docs/solutions/http-tools). Collection:
+[qefro-marketplace-apps](https://github.com/qefro-ai/qefro-marketplace-apps).
+A future Shopify Admin API connector under `qefro-connectors`
 would stay independent of that Marketplace App.
 
 Pool connectors (Medusa, a future Shopify API adapter, …) are for

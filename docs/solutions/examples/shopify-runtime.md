@@ -24,6 +24,8 @@ The HTTP executor is **provider-agnostic**. The same path runs the
 Pro and Real Estate keep `entity.*` storage tools.
 
 Package path:
+[`qefro-marketplace-apps/apps/shopify-runtime`](https://github.com/qefro-ai/qefro-marketplace-apps/tree/main/apps/shopify-runtime)
+(collection). Platform CI still vendors a copy under
 `qefro-plugin-platform/docs/examples/shopify-runtime/`.
 
 ## What it proves
@@ -39,11 +41,16 @@ manifest + connections + http_tools + entities + workflows + ui
 ```
 
 Chat “find black shoes” starts **search-products** (`search_products`,
-`execution: http`). Chat “show my recent orders” starts
-**list-recent-orders** (`list_orders`). Host and token come from the
-**workspace connection**, never from package URLs or caller parameters.
+`execution: http`). Customer chat “show my recent orders” starts
+**list-my-orders** (`list_my_orders`). Staff Console “list all orders”
+starts **list-recent-orders** (`list_orders`, staff-only). Host and token
+come from the **workspace connection**, never from package URLs or caller
+parameters.
 
-Contacts stay on the existing Person model (Customer Hub).
+Contacts stay on the existing Person model (Customer Hub). WhatsApp
+customers without a Hub email are asked for an address and verify it
+with a mailed OTP before orders are fetched. `{person.email}` is
+server-resolved — never an LLM parameter. See [HTTP tools](/docs/solutions/http-tools).
 
 ## Package layout
 
@@ -56,14 +63,18 @@ shopify-runtime/
 │   ├── search_products.yaml
 │   ├── list_products.yaml
 │   ├── get_product.yaml
-│   ├── list_customers.yaml
-│   ├── get_customer.yaml
-│   ├── list_orders.yaml
-│   └── get_order.yaml
+│   ├── list_customers.yaml    # staff
+│   ├── get_customer.yaml      # staff
+│   ├── list_orders.yaml       # staff, shop-wide
+│   ├── get_order.yaml         # staff
+│   ├── list_my_orders.yaml    # customer, Hub email + ownership
+│   └── get_my_order.yaml      # customer, order number + ownership
 ├── entities/                 # staff UI schema (not the chat execution path)
 ├── workflows/
 │   ├── search-products.yaml
-│   └── list-recent-orders.yaml
+│   ├── list-recent-orders.yaml
+│   ├── list-my-orders.yaml
+│   └── get-my-order.yaml
 └── ui/
 ```
 
@@ -98,16 +109,23 @@ HTTP tool). Disconnect revokes the token and deletes credentials.
 
 ## HTTP tools
 
-| Tool | Method / path | Scope |
-| --- | --- | --- |
-| `search_products` | `GET /admin/api/2024-10/products.json` | `read_products` |
-| `list_products` | `GET /admin/api/2024-10/products.json` | `read_products` |
-| `get_product` | `GET /admin/api/2024-10/products/{id}.json` | `read_products` |
-| `list_customers` / `get_customer` | customers.json | `read_customers` |
-| `list_orders` / `get_order` | orders.json | `read_orders` |
+| Tool | Surface | Method / path | Scope |
+| --- | --- | --- | --- |
+| `search_products` | all | `GET /admin/api/2024-10/products.json` | `read_products` |
+| `list_products` | all | `GET /admin/api/2024-10/products.json` | `read_products` |
+| `get_product` | all | `GET /admin/api/2024-10/products/{id}.json` | `read_products` |
+| `list_customers` / `get_customer` | staff | customers.json | `read_customers` |
+| `list_orders` / `get_order` | staff | orders.json (shop-wide) | `read_orders` |
+| `list_my_orders` | customer | orders.json `email={person.email}` | `read_orders` |
+| `get_my_order` | customer | orders.json `name` + `email={person.email}` | `read_orders` |
 
-These are generic HTTP tool specs (`connection`, `method`, `path`). There
-is no `if provider == "shopify"` in the executor.
+Customer order tools declare `identity.require_any: [person.email]`,
+`collect: email_otp`, and `ownership` on the response. Do not change
+`list_orders` to take an email filter — it stays staff shop-wide.
+
+These are generic HTTP tool specs (`connection`, `method`, `path`,
+`access`, `identity`, `ownership`). There is no `if provider == "shopify"`
+in the executor.
 
 SDK-connected apps (Focus ERP / Yaaz) cannot call these tools or steal
 another workspace's HTTP connection.
@@ -163,6 +181,8 @@ webhooks use that workspace’s secret.
 
 ## Related topics
 
+- [HTTP tools](/docs/solutions/http-tools) (surfaces, Hub email OTP, ownership)
+- [Marketplace Apps collection](/docs/solutions/examples/marketplace-apps)
 - [Connect Shopify](/docs/user/how-to/connect-shopify)
 - [restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime) (`entity.*` storage)
 - [real-estate-runtime](/docs/solutions/examples/real-estate-runtime) (`entity.*` storage)

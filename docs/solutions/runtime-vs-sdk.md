@@ -79,6 +79,9 @@ Canonical packages:
 - [`real-estate-runtime`](/docs/solutions/examples/real-estate-runtime)
 - [`shopify-runtime`](/docs/solutions/examples/shopify-runtime)
 
+Collection: [qefro-marketplace-apps](/docs/solutions/examples/marketplace-apps).
+HTTP tools (surfaces, email OTP, ownership): [HTTP tools](/docs/solutions/http-tools).
+
 Start: [Build your first app](/docs/solutions/build-your-first-app).
 
 ## External Integration

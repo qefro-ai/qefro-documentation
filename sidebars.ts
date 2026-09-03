@@ -59,6 +59,7 @@ const sidebars: SidebarsConfig = {
         'developer/integration-models',
         'developer/external-sdk-connection',
         'developer/managed-marketplace-app',
+        'solutions/http-tools',
         'developer/sdk-application-development',
         'developer/qefro-protocol',
         'developer/tools',
@@ -143,6 +144,7 @@ const sidebars: SidebarsConfig = {
         'solutions/sources',
         'solutions/events',
         'solutions/workflows',
+        'solutions/http-tools',
         'solutions/assets',
         'solutions/connectors',
       ],
@@ -152,6 +154,7 @@ const sidebars: SidebarsConfig = {
       label: 'Examples',
       collapsed: false,
       items: [
+        'solutions/examples/marketplace-apps',
         'solutions/examples/restaurant-pro-runtime',
         'solutions/examples/real-estate-runtime',
         'solutions/examples/shopify-runtime',

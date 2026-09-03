@@ -14,7 +14,7 @@ Qefro Runtime owns entities, staff UI, FlowRunner execution, managed
 storage, Person CRM, and Automations.
 
 Package path:
-`qefro-plugin-platform/docs/examples/restaurant-pro-runtime/`.
+[`qefro-marketplace-apps/apps/restaurant-pro-runtime`](https://github.com/qefro-ai/qefro-marketplace-apps/tree/main/apps/restaurant-pro-runtime).
 
 There is no SDK takeaway package. Restaurant Pro is this metadata app.
 
@@ -167,7 +167,7 @@ Example automation: `reservation.created` → CRM Automation → Send WhatsApp.
 ```bash
 qefro app init restaurant-pro --name "Restaurant Pro"
 # or study the reference tree:
-#   qefro-plugin-platform/docs/examples/restaurant-pro-runtime
+#   qefro-marketplace-apps/apps/restaurant-pro-runtime
 
 qefro app validate restaurant-pro-runtime
 qefro app package restaurant-pro-runtime

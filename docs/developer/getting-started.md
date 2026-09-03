@@ -35,9 +35,10 @@ qefro app install restaurant-pro
 Tutorial: [Managed Marketplace App](./managed-marketplace-app.md) ·
 [Build your first app](/docs/solutions/build-your-first-app).
 
-Reference: `qefro-plugin-platform/docs/examples/restaurant-pro-runtime`
-(app id `restaurant-pro-runtime`). Commerce example:
-`docs/examples/shopify-runtime` (app id `shopify-runtime`).
+Reference: [qefro-marketplace-apps](https://github.com/qefro-ai/qefro-marketplace-apps)
+`apps/restaurant-pro-runtime` (app id `restaurant-pro-runtime`). Commerce
+example: `apps/shopify-runtime` (app id `shopify-runtime`).
+HTTP identity and email OTP: [HTTP tools](/docs/solutions/http-tools).
 
 ## External SDK (ERP / POS / CRM)
 

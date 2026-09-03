@@ -111,5 +111,4 @@ stays empty — your core app tools still work.
 
 - Capability contract: platform `docs/organization-capability.md`
 - [Build your first app](/docs/solutions/build-your-first-app)
-- Example registrations: Restaurant Pro, Finance Pro under
-  `qefro-plugin-platform/docs/examples/`
+- Example registrations: [Marketplace Apps collection](/docs/solutions/examples/marketplace-apps)

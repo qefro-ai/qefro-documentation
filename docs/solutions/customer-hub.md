@@ -64,6 +64,13 @@ succeed.
   `ctx.platform.channels.whatsapp`.
 - Do not call Hub HTTP APIs from the browser; stay inside `ctx.*`.
 
+## Metadata HTTP tools
+
+For Shopify-style packages, Runtime binds Hub Person identity into HTTP
+tools (`{person.email}`). WhatsApp customers verify email with OTP when
+the Person has none. That is not `ctx.customer` — see
+[HTTP tools](/docs/solutions/http-tools).
+
 ## Related
 
 - Platform deep-dive: `qefro-plugin-platform/docs/customer-hub-integration.md`

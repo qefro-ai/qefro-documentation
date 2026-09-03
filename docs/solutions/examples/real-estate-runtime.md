@@ -14,7 +14,7 @@ primitives (property / lead / viewing), same installer, FlowRunner,
 RuntimeAdapter, events, and managed storage.
 
 Package path:
-`qefro-plugin-platform/docs/examples/real-estate-runtime/`.
+[`qefro-marketplace-apps/apps/real-estate-runtime`](https://github.com/qefro-ai/qefro-marketplace-apps/tree/main/apps/real-estate-runtime).
 
 ## Package layout
 

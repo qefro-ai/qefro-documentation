@@ -47,9 +47,10 @@ SDK connections stay for Focus ERP / Yaaz only.
 6. After redirect, the card shows **Connected**. Tokens are never shown in the UI.
 7. Confirm **knowledge** is ready for policies (shipping, returns) — [Knowledge Base](/docs/user/knowledge-base/overview).
 8. From Admin Console chat, try:
+   - “List all orders” (shop-wide, **staff only**)
    - “Where is order 1001?”
    - “What is your return window?” (should cite knowledge, not invent policy)
-9. Optional: enable **website widget** or **WhatsApp** on the same workspace — [Channels](/docs/user/channels/overview).
+9. Optional: enable **website widget** or **WhatsApp** on the same workspace — [Channels](/docs/user/channels/overview). On WhatsApp, “show my recent orders” uses **that customer’s** Hub email (OTP-verified if missing), not the shop-wide staff list.
 10. Optional outcomes: [Order tracking](/docs/solutions/order-tracking), [Abandoned cart](/docs/solutions/abandoned-cart).
 
 **Reconnect** runs OAuth again and replaces credentials. **Disconnect** revokes the token and deletes stored credentials; tools then fail safely until you connect again.
@@ -87,7 +88,9 @@ Those events go onto `orchestration_events` and can start **CRM Automation**. Pe
 
 | Symptom | What to check |
 | --- | --- |
-| Assistant cannot see orders | Connected? Correct workspace? Scope `read_orders` granted? |
+| Assistant cannot see orders | Connected? Correct workspace? Scope `read_orders` granted? Protected customer data approved in Partner? |
+| WhatsApp shows no orders / asks for email | Person needs a **verified Hub email** matching the Shopify customer. Reply with the email, then the OTP. Shop-wide `list_orders` is staff-only. |
+| Customer sees another person's order | Should not happen — ownership is checked after Shopify responds. File a bug if it does. |
 | Wrong store data | Confirm which shop is bound to this workspace |
 | “Already connected to another workspace” | Disconnect the other workspace first |
 | Events not starting flows | Event names + CRM Automation trigger — [Event-driven triggers](/docs/guides/event-driven-triggers) |
@@ -98,6 +101,7 @@ Those events go onto `orchestration_events` and can start **CRM Automation**. Pe
 <RelatedTopics
   topics={[
     {label: 'Shopify integration', to: '/docs/integrations/shopify/overview'},
+    {label: 'HTTP tools', to: '/docs/solutions/http-tools'},
     {label: 'shopify-runtime example', to: '/docs/solutions/examples/shopify-runtime'},
     {label: 'Order tracking solution', to: '/docs/solutions/order-tracking'},
     {label: 'Abandoned cart', to: '/docs/solutions/abandoned-cart'},

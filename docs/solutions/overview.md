@@ -62,7 +62,7 @@ Any business domain that fits entities + flows + UI:
 | Restaurant | Dashboard, reservations, tables, menu | Runtime entities + managed storage |
 | Clinic | Appointments, patients, schedule | Runtime entities + managed storage |
 | Real estate | Properties, leads, viewings | Runtime entities + managed storage |
-| Commerce | Products, customers, orders | Runtime entities + managed storage |
+| Commerce | Products, customers, orders | Generic Runtime HTTP (Shopify) or entities |
 | CRM / booking | Pipeline, contacts, bookings | Runtime entities + Person CRM |
 
 Canonical references:
@@ -72,6 +72,9 @@ Canonical references:
 | [restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime) | `restaurant-pro-runtime` | Hospitality metadata app |
 | [real-estate-runtime](/docs/solutions/examples/real-estate-runtime) | `real-estate-runtime` | Same model, different nouns |
 | [shopify-runtime](/docs/solutions/examples/shopify-runtime) | `shopify-runtime` | Commerce metadata + generic Runtime HTTP |
+
+Collection repo: [qefro-marketplace-apps](https://github.com/qefro-ai/qefro-marketplace-apps)
+([index](/docs/solutions/examples/marketplace-apps)).
 
 SDK-hosted Marketplace examples (`restaurant-pro`, `clinic-pro`,
 `salon-pro`) were **removed**. Build those products as metadata, or
