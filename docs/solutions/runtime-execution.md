@@ -11,7 +11,7 @@ interprets declarative YAML — entities, workflows, triggers — and
 executes them through a unified flow engine. Apps define **what** the
 business logic is; the Runtime defines **how** it runs.
 
-```
+```text
 Marketplace App (metadata)
     │
     ├── manifest.yaml
@@ -121,7 +121,7 @@ error message.
 
 ### Execution lifecycle
 
-```
+```text
 User message
     ↓
 Flow matching (catalog)
@@ -149,7 +149,7 @@ The runtime translates these into storage operations via EntityService.
 
 ### Operation format
 
-```
+```text
 entity.<entity_name>.<operation>
 ```
 
@@ -191,7 +191,7 @@ field. If zero or multiple records match, the operation fails.
 When a flow starts, the runtime seeds its variable context from multiple
 sources:
 
-```
+```text
 1. Explicit user input (extracted from current message)
        ↓
 2. Current flow state (active execution's variables)
@@ -209,7 +209,7 @@ sources:
 
 The runtime maintains a `ConversationState` for each conversation:
 
-```
+```text
 ConversationState
 ├── conversation_id
 ├── person_id (Customer Hub Person UUID)
@@ -314,7 +314,7 @@ Events include a CRM-compatible payload:
 
 Events use idempotency keys to prevent duplicates:
 
-```
+```text
 entity:{workspace_id}:{event_name}:{resource_id}
 ```
 
@@ -323,7 +323,7 @@ entity:{workspace_id}:{event_name}:{resource_id}
 Flows can span multiple user messages. The runtime persists the flow's
 variable context between turns, allowing conversations like:
 
-```
+```text
 User: "I want to see properties"
 Assistant: "What type of property?"        ← ask step
 User: "Apartment"

@@ -147,6 +147,7 @@ const sidebars: SidebarsConfig = {
         'solutions/workflows',
         'solutions/flow-parameters',
         'solutions/runtime-execution',
+        'solutions/whatsapp-response-formatting',
         'solutions/http-tools',
         'solutions/assets',
         'solutions/connectors',

@@ -167,7 +167,7 @@ When the runtime resolves a value reference (e.g., `property_title` in
 an `input_map`), it searches the flow's variable context. Variables are
 seeded from multiple sources in priority order:
 
-```
+```text
 1. Current flow state (active execution's collected variables)
        ↓
 2. Conversation memory (values from earlier in this conversation)
