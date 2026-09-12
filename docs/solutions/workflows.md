@@ -87,6 +87,265 @@ to invoke `/qefro` tools. See [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
 Parameters interpolate fields (`{{ covers }}`, `{{ event.payload.* }}`);
 there is no scripting beyond interpolation.
 
+## Step reference
+
+### ask — collect user input
+
+Collects a value from the user on a channel (WhatsApp, widget). If the
+flow's variable context already has a usable value, the step is
+auto-skipped.
+
+```yaml
+- id: ask_city
+  type: ask
+  field: city
+  message: Which city or area should I search in?
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes | Unique step identifier. |
+| `type` | `ask` | Yes | Step type. |
+| `field` | string | Yes | Conversation slot id to collect. Must match a `conversation_slots` entry or a flow variable name. |
+| `message` | string | Yes | Prompt shown to the user. |
+| `choices` | string[] | No | Static choice list rendered as buttons. |
+| `choices_from` | string | No | Dynamic choices from a previous tool step's `output`. |
+| `title_field` | string | No | Field name for display text in dynamic choices. |
+| `value_field` | string | No | Field name for the stored value in dynamic choices. |
+| `chip_prefix` | string | No | Prefix for chip UI elements (e.g., `time:10:00`). |
+
+**Static choices** (from search-properties):
+
+```yaml
+- id: ask_type
+  type: ask
+  field: property_type
+  message: What type of property are you looking for?
+  choices:
+    - Apartment
+    - Villa
+    - Plot / Land
+    - Commercial
+```
+
+**Dynamic choices** (from book-appointment — choices from a tool step):
+
+```yaml
+# First, fetch the data
+- id: list_practitioners
+  type: tool
+  tool: entity.practitioner.list
+  execution: runtime
+  output: practitioners            # store for next step
+  input_map:
+    limit: $literal:20
+
+# Then, present as choices
+- id: ask_doctor
+  type: ask
+  field: practitioner_name
+  message: Which doctor would you like?
+  choices_from: practitioners      # reference to tool output
+  title_field: name                # display field
+  value_field: name                # stored value
+  chip_prefix: doctor
+```
+
+### tool — execute an operation
+
+Calls an entity operation or HTTP tool. This is how flows read and write
+data.
+
+```yaml
+- id: run
+  type: tool
+  tool: entity.viewing.create
+  execution: runtime
+  input_map:
+    property_title: property_title
+    date: date
+    time: time
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes | Unique step identifier. |
+| `type` | `tool` | Yes | Step type. |
+| `tool` | string | Yes | Operation reference: `entity.<name>.<op>` for runtime, or tool name for HTTP. |
+| `execution` | string | Yes | `runtime` (EntityService) or `http` (ConnectorBridge). |
+| `input_map` | object | No | Maps tool parameters to flow variables. See [Flow Parameters](/docs/solutions/flow-parameters). |
+| `output` | string | No | Variable name to store the tool's result for later steps. |
+| `constants` | object | No | Step-level trusted constants (e.g., `expand`). |
+
+**List with filters** (from search-properties):
+
+```yaml
+- id: run
+  type: tool
+  tool: entity.property.list
+  execution: runtime
+  input_map:
+    filter.property_type: property_type    # dotted key → nested object
+    filter.city: city
+```
+
+**Create with auto-injected identity** (from request-viewing):
+
+```yaml
+- id: run
+  type: tool
+  tool: entity.viewing.create
+  execution: runtime
+  input_map:
+    property_title: property_title
+    date: date
+    time: time
+  # person_id is auto-injected by runtime (scope: customer)
+```
+
+**Capture output for later steps**:
+
+```yaml
+- id: search
+  type: tool
+  tool: entity.travel_package.list
+  execution: runtime
+  input_map:
+    filter.status: $literal:active
+    limit: $literal:20
+  output: packages               # store result
+
+- id: show_results
+  type: message
+  message: |
+    Here are available packages:
+    {{packages}}                 # reference stored output
+```
+
+### message — send a response
+
+Sends a text message to the user. Supports `{{ variable }}`
+interpolation from the flow's variable context.
+
+```yaml
+- id: confirm
+  type: message
+  message: Viewing scheduled for {{property_title}} on {{date}}.
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes | Unique step identifier. |
+| `type` | `message` | Yes | Step type. |
+| `message` | string | Yes | Message template with `{{ variable }}` interpolation. |
+
+**Template variables**:
+
+```yaml
+# Simple variable interpolation
+message: "Appointment booked for {{patient_name}} on {{date}}."
+
+# List results from a tool step
+message: |
+  Here are matching properties:
+  {{items_text}}
+
+# Dotted path into entity objects
+message: "Order {{order.code}} status: {{order.status}}"
+```
+
+**Image delivery**: When a message step follows a tool step that
+returned records with `type: image` fields, the runtime automatically
+extracts and delivers images via the channel (WhatsApp media message or
+widget inline image).
+
+### complete — end the flow
+
+Terminal step that marks the flow execution as complete.
+
+```yaml
+- id: done
+  type: complete
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes | Unique step identifier. |
+| `type` | `complete` | Yes | Step type. |
+| `message` | string | No | Optional final message to the user. |
+
+```yaml
+# With a final message
+- id: done
+  type: complete
+  message: "Thank you! Your request has been submitted."
+
+# Without a message (silent completion)
+- id: done
+  type: complete
+  message: ""
+```
+
+### condition — branch on values
+
+Evaluates a `when` expression and jumps to `then` or `else` steps.
+
+```yaml
+- id: check_status
+  type: condition
+  when: "status == confirmed"
+  then: send_confirmation
+  else: send_pending
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes | Unique step identifier. |
+| `type` | `condition` | Yes | Step type. |
+| `when` | string | Yes | Expression to evaluate. |
+| `then` | string | Yes | Step id to jump to if true. |
+| `else` | string | No | Step id to jump to if false. |
+
+### delay — wait a duration
+
+Pauses the flow for a specified duration before continuing.
+
+```yaml
+- id: wait_before_reminder
+  type: delay
+  duration_seconds: 3600         # wait 1 hour
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes | Unique step identifier. |
+| `type` | `delay` | Yes | Step type. |
+| `duration_seconds` | integer | No | Wait duration in seconds. |
+| `seconds` | integer | No | Alternative to `duration_seconds`. |
+| `until` | string | No | ISO 8601 datetime to wait until. |
+
+### approval — require portal approval
+
+Pauses the flow until an authorized user approves or rejects in the
+portal. Only Owner/Admin roles can approve.
+
+```yaml
+- id: request_approval
+  type: approval
+  message: "Refund of ${{amount}} requires manager approval."
+```
+
+### challenge — identity verification
+
+Requires the user to verify their identity before continuing. Used for
+sensitive operations.
+
+```yaml
+- id: verify_identity
+  type: challenge
+  message: "Please verify your email to continue."
+```
+
 ## Triggers
 
 ```mermaid

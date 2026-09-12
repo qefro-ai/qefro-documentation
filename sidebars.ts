@@ -124,6 +124,7 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         'solutions/manifest',
+        'solutions/entity-schema',
         'solutions/themes',
         'solutions/navigation',
         'solutions/pages',
@@ -144,6 +145,8 @@ const sidebars: SidebarsConfig = {
         'solutions/sources',
         'solutions/events',
         'solutions/workflows',
+        'solutions/flow-parameters',
+        'solutions/runtime-execution',
         'solutions/http-tools',
         'solutions/assets',
         'solutions/connectors',

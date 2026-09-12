@@ -230,6 +230,115 @@ from trigger `required_slots` and chat-tool parameter names (labels = id
 with underscores turned into spaces). Extra labels (`Name:` → `guest_name`)
 need an explicit declaration.
 
+## Triggers
+
+Triggers map user intents to workflows. When a user sends a message
+that matches a trigger's intent utterances, the runtime starts the
+associated workflow.
+
+```yaml
+triggers:
+  - id: request_viewing
+    workflow: request-viewing
+    input_variable: viewing_input
+    match:
+      intents:
+        - schedule a viewing
+        - book a viewing
+        - arrange a viewing
+        - view the property
+      confirmation:
+        reply_signals:
+          - viewing
+          - scheduled
+          - booked
+        required_slots:
+          - property_title
+          - date
+    confirmation_message: Viewing scheduled for {{property_title}} on {{date}}.
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | Yes | Trigger identifier. Unique within the app. |
+| `workflow` | string | Yes | Workflow id to start. Must match an entry in `flows:`. |
+| `input_variable` | string | No | Variable name for the trigger's input context. |
+| `match` | object | Yes | Matching configuration. |
+| `match.intents` | string[] | Yes | Example utterances for semantic matching. The runtime embeds these and compares against user messages using cosine similarity. |
+| `match.confirmation` | object | No | Confirmation behavior after the workflow completes. |
+| `match.confirmation.reply_signals` | string[] | No | Keywords that indicate the workflow succeeded. Used for confirmation messaging. |
+| `match.confirmation.required_slots` | string[] | No | Slots that must be collected before the workflow can complete. |
+| `confirmation_message` | string | No | Template message sent after successful completion. Supports `{{ variable }}` interpolation. |
+
+### How matching works
+
+1. The user sends a message (e.g., "I want to schedule a viewing")
+2. The runtime embeds the message using an embedding model
+3. Each trigger's `intents` are also embedded
+4. Cosine similarity is computed between the user message and each intent
+5. The trigger with the highest score wins (if ≥ 0.8 threshold)
+6. The associated workflow starts
+
+### Writing effective intents
+
+Good triggers have diverse, natural-language utterances:
+
+```yaml
+# GOOD — diverse phrasings
+intents:
+  - schedule a viewing
+  - book a viewing
+  - arrange a viewing
+  - view the property
+  - I want to see this property
+  - can I visit the property
+
+# BAD — too similar, poor coverage
+intents:
+  - schedule viewing
+  - book viewing
+```
+
+### Complete example (Real Estate Pro)
+
+```yaml
+triggers:
+  - id: request_viewing
+    workflow: request-viewing
+    match:
+      intents:
+        - schedule a viewing
+        - book a viewing
+        - arrange a viewing
+      confirmation:
+        reply_signals: [viewing, scheduled, booked]
+        required_slots: [property_title, date]
+    confirmation_message: Viewing scheduled for {{property_title}} on {{date}}.
+
+  - id: cancel_viewing
+    workflow: cancel-viewing
+    match:
+      intents:
+        - cancel my viewing
+        - cancel the viewing
+      confirmation:
+        reply_signals: [cancelled]
+        required_slots: [id]
+    confirmation_message: Viewing {{id}} cancelled.
+
+  - id: search_properties
+    workflow: search-properties
+    match:
+      intents:
+        - search properties
+        - show listings
+        - browse properties
+      confirmation:
+        reply_signals: [properties, listings]
+        required_slots: [property_type, city]
+    confirmation_message: Here are matching properties.
+```
+
 ## Versioning guidance
 
 - **Patch** (`1.0.x`) — copy fixes, theme tweaks, widget option changes.
