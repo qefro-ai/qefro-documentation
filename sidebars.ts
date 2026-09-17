@@ -249,6 +249,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'solutions/marketplace',
         'solutions/installation',
+        'user/how-to/billing-pro',
         'user/how-to/track-orders',
         'user/how-to/add-approval-workflow',
       ],

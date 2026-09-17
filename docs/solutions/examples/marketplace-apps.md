@@ -22,6 +22,7 @@ qefro-marketplace-apps/apps/<app-id>
 | --- | --- | --- |
 | [`shopify-runtime`](/docs/solutions/examples/shopify-runtime) | Commerce | Generic HTTP → workspace Shopify connection |
 | [`restaurant-pro-runtime`](/docs/solutions/examples/restaurant-pro-runtime) | Hospitality | `entity.*` managed storage |
+| [Billing Pro](/docs/user/how-to/billing-pro) | Invoicing / follow-up | `entity.*` managed storage |
 | [`real-estate-runtime`](/docs/solutions/examples/real-estate-runtime) | Real estate | `entity.*` managed storage |
 | `http-catalog-runtime` | HTTP fixture | Generic HTTP (proves the executor is not Shopify-specific) |
 

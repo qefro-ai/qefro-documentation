@@ -1,0 +1,179 @@
+---
+title: "How to use Billing Pro"
+description: "Create invoices, record payments, and follow up on unpaid bills — including WhatsApp reminders."
+sidebar_label: "Billing Pro"
+---
+
+import { InfoBox, WorkflowCard, RelatedTopics } from '@site/src/components';
+
+# How to use Billing Pro
+
+**Goal:** You have unpaid invoices. Billing Pro tracks who owes what and follows up — including WhatsApp if you connect it.
+
+This is not accounting software and not a payment gateway. You record payments you already received (cash, UPI, bank transfer, and so on).
+
+The same guide ships with the app: [Billing Pro user guide](https://github.com/qefro-ai/qefro-marketplace-apps/blob/main/apps/billing-pro/docs/user-guide.md) (also **How this works** in the app sidebar).
+
+## Getting started
+
+Install **Billing Pro** from Applications → Marketplace. Choose your workspace, then set:
+
+| Setting | What to put |
+| --- | --- |
+| Currency | What you bill in (for example INR) |
+| Invoice prefix | Letters on invoice numbers (INV → INV-1001) |
+| Payment terms (days) | Days after issue until due |
+| Default tax rate | Usual tax on products and invoices (0 if you add tax yourself) |
+| Follow-up interval (days) | Typical days between reminders |
+
+WhatsApp is not an install setting. Connect it under **Channels**, then set reminders on **Automations**.
+
+### First-run checklist
+
+1. Configure business currency
+2. Configure invoice settings
+3. Add or import products
+4. Connect WhatsApp
+5. Configure follow-up automation
+6. Create your first invoice
+7. Record a payment
+
+You're ready. Billing Pro will track outstanding payments and automatically follow up with customers.
+
+### Daily workflow
+
+1. Morning: Dashboard — unpaid and overdue
+2. Work **Follow-ups**
+3. Record payments as they arrive
+4. Overdue invoices get a follow-up automatically
+5. Qefro sends WhatsApp if Automations is on
+
+<WorkflowCard
+  title="Unpaid invoice to paid"
+  steps={[
+    {title: 'Create the invoice', description: 'Pick the contact, add items, set a due date.'},
+    {title: 'Follow up if unpaid', description: 'Overdue bills get a follow-up. WhatsApp if you set Automations.'},
+    {title: 'Record the payment', description: 'Apply the amount to the invoice. Partial stays outstanding.'},
+    {title: 'Reminders stop', description: 'When the invoice is paid, pending follow-ups complete.'},
+  ]}
+/>
+
+## Products
+
+Open **Products** → New. Enter **name**, **SKU** (unique), and **price**. Optional: description, product vs service, unit, tax.
+
+Currency and tax default from settings. Edit anytime. To stop using a product, set **Active** to no — do not delete ones already on invoices.
+
+**Import:** Products → Import Data. Map name, SKU / product code, price.
+
+## Invoices
+
+**Example:** 2 × Product A at ₹500 = ₹1,000.
+
+1. **Invoices** → New. Pick the **customer (contact)** — add them under **Contacts** first if they are new.
+2. Set issue date and **due date**. Optional invoice number (or INV-1001 is assigned).
+3. **Invoice items** → New. Product A, quantity 2, unit price 500.
+4. Line total is ₹1,000. The invoice total updates.
+
+If you only know the total (imported old bills), you can enter it on the invoice. When you add items later, item totals take over.
+
+| Status | Meaning |
+| --- | --- |
+| Draft | Working copy |
+| Issued | Waiting for payment |
+| Partially paid | Some money in |
+| Paid | Nothing outstanding |
+| Overdue | Due date passed, still unpaid |
+| Cancelled | Voided, not deleted |
+
+Paid / outstanding update when you record payments. You do not type “paid” to collect.
+
+## Payments
+
+A **payment** is money received. An **allocation** is how much of it applies to one invoice. They are separate so one UPI can cover two invoices, or one invoice can be paid in instalments.
+
+| What happened | Invoice shows |
+| --- | --- |
+| Full amount recorded and applied | Paid |
+| Part recorded and applied | Partially paid |
+| Nothing received | Issued or Overdue |
+
+Use **Record payment**. To split a receipt, record it once, then **Allocations** for each invoice.
+
+## Follow-ups
+
+This is the key loop.
+
+**INV-1005 is unpaid on the due date.** It becomes overdue. A follow-up is created. If WhatsApp and Automations are set up, the customer is reminded. You record the payment. The invoice shows paid. Follow-ups stop.
+
+You can also create a follow-up when the customer says they will pay later (**Follow-ups** → New).
+
+## WhatsApp reminders
+
+Billing Pro does not send WhatsApp by itself. Automations send the message on your connected number.
+
+1. Connect **WhatsApp** for the workspace (Channels).
+2. Open **Automations** in Billing Pro.
+3. When: **Follow-up due**.
+4. Then: **Send WhatsApp**.
+5. Write a **Message** or **Template** (customer name, invoice, amount due).
+6. **Test**, then enable.
+
+After the invoice is paid, pending follow-ups complete, so reminders stop for that bill.
+
+<InfoBox>
+You can add a second automation on Follow-up created if you want a message as soon as a bill becomes overdue, not only on the follow-up date.
+</InfoBox>
+
+## Import data
+
+On Invoices, **Import Data**. Example headers for unpaid bills:
+
+```text
+invoice_number,name,phone,due_amount,due_date
+```
+
+| CSV column | Map to |
+| --- | --- |
+| invoice_number | Invoice number |
+| name | Contact name |
+| phone | Contact phone |
+| due_amount | Total |
+| due_date | Due date |
+
+Identity uses **name / phone / email** — never a person id. Import finds or creates a Contact.
+
+Sample file in the app package: `apps/billing-pro/docs/examples/unpaid-invoices.sample.csv`.
+
+## Command Chat
+
+The same screens stay available. You can also type:
+
+- Create a product called Design hours, SKU DES-01, price 2000
+- Raise an invoice for 10000 due next Friday
+- Customer paid 5000 UPI for INV-1005
+- Follow up later — they’ll pay on Friday
+
+Add new customers in **Contacts** first, then create the invoice.
+
+## Troubleshooting
+
+| Problem | What to do |
+| --- | --- |
+| Invoice shows paid too early | Too much was applied. Check Payments and Allocations. Allocate only what you received. |
+| Contact not saving | Pick an existing Contacts person, or add them first. Import needs name, phone, or email. |
+| Reminder not sending | WhatsApp connected? Automation enabled? Trigger Follow-up due? Follow-up still pending? Use Test. |
+| Import mapping wrong | `due_amount` → Total (not Paid). Name/phone/email → contact. |
+| Totals do not match lines | Fix **Invoice items**. When items exist, they become the total. |
+| Undo an invoice | **Cancel invoice** — it is voided, not deleted. |
+
+## Related topics
+
+<RelatedTopics
+  topics={[
+    {label: 'Marketplace', to: '/docs/solutions/marketplace'},
+    {label: 'Configure WhatsApp', to: '/docs/user/how-to/configure-whatsapp'},
+    {label: 'People (Contacts)', to: '/docs/user/people/overview'},
+    {label: 'Install an app', to: '/docs/solutions/installation'},
+  ]}
+/>
