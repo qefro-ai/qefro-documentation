@@ -188,8 +188,16 @@ This distinction matters for `ask` step auto-skip:
 - If a variable was explicitly collected with a usable value, the
   `ask` step is skipped.
 - If a variable was inferred from memory but not explicitly confirmed,
-  the `ask` step may still prompt for confirmation depending on the
-  flow's design.
+  the `ask` step prompts again. Only values the customer supplied for
+  this execution count as collected — a value carried over from an
+  earlier turn or from the previously focused record never answers an
+  `ask` step silently, so a later mutation cannot bind to the wrong
+  record.
+
+When an `ask` step reads its choices from a tool output
+(`choices_from`) and that list comes back empty, the flow ends with
+the step's `empty_message` if it declares one; otherwise the step
+fails and the team is notified of a handoff.
 
 ## Template interpolation
 

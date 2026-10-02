@@ -110,6 +110,7 @@ auto-skipped.
 | `message` | string | Yes | Prompt shown to the user. |
 | `choices` | string[] | No | Static choice list rendered as buttons. |
 | `choices_from` | string | No | Dynamic choices from a previous tool step's `output`. |
+| `empty_message` | string | No | What to say when `choices_from` resolves to an empty list. The flow completes gracefully instead of failing. |
 | `title_field` | string | No | Field name for display text in dynamic choices. |
 | `value_field` | string | No | Field name for the stored value in dynamic choices. |
 | `chip_prefix` | string | No | Prefix for chip UI elements (e.g., `time:10:00`). |
@@ -145,11 +146,18 @@ auto-skipped.
   type: ask
   field: practitioner_name
   message: Which doctor would you like?
+  empty_message: There are no doctors available right now.   # reply if the list is empty
   choices_from: practitioners      # reference to tool output
   title_field: name                # display field
   value_field: name                # stored value
   chip_prefix: doctor
 ```
+
+Always declare `empty_message` on an ask step that uses `choices_from`. When
+the list comes back empty the flow ends with that reply instead of failing —
+an empty list (nothing to cancel, no open slots) is a normal customer state,
+and without `empty_message` the step fails and notifies the team of a
+handoff.
 
 ### tool — execute an operation
 
