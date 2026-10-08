@@ -19,10 +19,10 @@ Customer/user authentication inside tools (OTP, CRM login) is separate — see `
 - Must match `Qefro({ signingSecret })` / `QEFRO_SIGNING_SECRET` in your process.
 - Returned once on create/update when plaintext is available (`SdkConnectionWithSecret`). List APIs expose `has_secret` only.
 
-### Managed app
+### Connectors & Bridge Webhooks
 
-- Runtime receives a signing secret via environment / platform injection (`QEFRO_SIGNING_SECRET` is the conventional name used by examples).
-- Connector-manager may use service default `QEFRO_SIGNING_SECRET` or per-invoke `signing_secret`.
+- Connector-manager uses configured signing secrets (`QEFRO_SIGNING_SECRET`) or per-connection secrets to authenticate calls to backend integration bridges.
+- Metadata Marketplace Apps (`hosting: runtime`) do not run servers and do not use signing secrets.
 
 ## Signature format
 

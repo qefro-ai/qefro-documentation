@@ -76,9 +76,7 @@ Canonical references:
 Collection repo: [qefro-marketplace-apps](https://github.com/qefro-ai/qefro-marketplace-apps)
 ([index](/docs/solutions/examples/marketplace-apps)).
 
-SDK-hosted Marketplace examples (`restaurant-pro`, `clinic-pro`,
-`salon-pro`) were **removed**. Build those products as metadata, or
-connect a real external system with the SDK.
+All Marketplace applications are built natively as metadata packages (`hosting: runtime`). To integrate an existing enterprise backend or external database, use an [External SDK Connection](/docs/developer/external-sdk-connection).
 
 ## Core principles
 
@@ -196,7 +194,7 @@ see [Packaging](/docs/solutions/packaging).
 | Canonical metadata app | [restaurant-pro-runtime](/docs/solutions/examples/restaurant-pro-runtime) |
 | Second vertical | [real-estate-runtime](/docs/solutions/examples/real-estate-runtime) |
 | Commerce metadata app | [shopify-runtime](/docs/solutions/examples/shopify-runtime) |
-| SDK-hosted packages (not default) | [Managed apps](/docs/solutions/managed-apps) |
+| Marketplace Apps execution model | [Marketplace Apps](/docs/solutions/managed-apps) |
 
 ## How this differs from playbooks
 

@@ -93,4 +93,4 @@ Emit events / expose actions; let Organization workflows connect Restaurant Pro 
 
 ABM demo optionally posts org events using env such as `QEFRO_ORG_EVENT_URL`, `QEFRO_ORG_EVENT_TOKEN`, `QEFRO_ORG_TENANT_ID`, `QEFRO_ORG_WORKSPACE_ID`. Confirm current platform routes before wiring production emitters.
 
-Managed installs sync organization capabilities after install/upgrade (solution-service best-effort `capabilities.list` pull).
+Marketplace app installs sync organization capabilities after install or upgrade based on declared manifest capabilities.

@@ -78,4 +78,4 @@ synced metadata — not to debug tenant business data.
 
 - [Build your first app](/docs/solutions/build-your-first-app)
 - [Publishing](/docs/solutions/publishing)
-- [Managed apps](/docs/solutions/managed-apps)
+- [Marketplace apps execution model](/docs/solutions/managed-apps)

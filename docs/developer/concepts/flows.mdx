@@ -1,35 +1,170 @@
 ---
-title: "Flows"
-description: "Business Flows are declarative step graphs executed by FlowRunner."
-sidebar_label: "Flows"
+title: "FlowRunner Architecture"
+description: "FlowRunner is Qefro's deterministic business workflow state machine — triggers, lifecycle, step types, variables, idempotency, and concurrency."
+sidebar_label: "FlowRunner"
 ---
 
-import { RelatedTopics } from '@site/src/components';
+import { InfoBox, RelatedTopics } from '@site/src/components';
 
-# Flows
+# FlowRunner Architecture
 
-A **Business Flow** is `{ metadata, steps }` executed by FlowRunner.
+**FlowRunner** (`ai-customer-support/crates/api/src/flow_engine/executor.rs`) is Qefro's deterministic business workflow execution engine. It coordinates multi-step operational logic across conversations, events, schedules, and webhooks.
 
-Marketplace Apps declare flows as YAML under `workflows/` — they compile
-into this **same** model (`ask` → `tool` → `condition` → `approval` /
-`challenge` → `complete`). See [Solution workflows](/docs/solutions/workflows).
+There is **one canonical orchestration model** across the entire platform. Connectors, channels, and apps never maintain separate workflow engines; they all submit executions to FlowRunner.
 
-External systems may also advertise flows from the SDK (`app.flow`). The
-Runtime still executes them; tools run through an **SDKAdapter**.
+---
 
-| Topic | Doc |
-| --- | --- |
-| Marketplace App YAML | [Solution workflows](/docs/solutions/workflows) |
-| Declare in SDK | [Define Business Flows](/docs/guides/define-business-flows) |
-| Execution semantics | [Run Business Flows](/docs/guides/run-business-flows) |
-| Event / schedule entry | [Event-Driven Triggers](/docs/guides/event-driven-triggers) |
+## 1. Flow Triggers
 
-## Related topics
+Flows can be initiated through five distinct trigger sources:
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│                          FLOWRUNNER TRIGGERS                           │
+├──────────────────────────┬─────────────────────────────────────────────┤
+│ Trigger Source           │ Mechanism                                   │
+├──────────────────────────┼─────────────────────────────────────────────┤
+│ 1. Conversational Intent │ Fast Router or Semantic Catalog matching    │
+│                          │ user utterance (cosine similarity >= 0.82)  │
+│ 2. Business Event        │ Event bus matches `metadata.trigger` on an  │
+│                          │ emitted event (e.g., `order.created`)       │
+│ 3. Schedule              │ Cron scheduler emits an event at configured │
+│                          │ intervals (e.g. `0 9 * * 1`)                │
+│ 4. Inbound Webhook       │ Verified webhook payload mapped directly to │
+│                          │ a workflow initiation envelope              │
+│ 5. Resume (Wait/Wake)    │ User response, webhook callback, human      │
+│                          │ approval, or verified identity challenge    │
+└──────────────────────────┴─────────────────────────────────────────────┘
+```
+
+---
+
+## 2. Flow Lifecycle
+
+Every Flow execution progresses through a strictly monitored state machine:
+
+```mermaid
+stateDiagram-v2
+  [*] --> Created: Trigger Fired
+  Created --> Queued: Persisted in DB
+  Queued --> Running: Picked by Executor
+  Running --> Waiting: WaitInput / WaitApproval / WaitChallenge / Pause
+  Waiting --> Resumed: User Message / Approval / Challenge Token
+  Resumed --> Running: Advance Step Loop
+  Running --> Completed: StepOutcome::Complete
+  Running --> Failed: Max Retries / Unrecoverable Error
+  Completed --> [*]
+  Failed --> [*]
+```
+
+### State Definitions
+
+- **Created:** Flow execution record instantiated with initial payload, context variables, and correlation ID.
+- **Queued:** Persisted in PostgreSQL (`flow_executions` table).
+- **Running:** Active in the FlowRunner step loop. Bounded by `MAX_STEPS_PER_TURN = 50` to prevent infinite loops.
+- **Waiting:** Non-blocking pause. The worker releases the execution thread while awaiting:
+  - `WaitInput`: User response to an `ask` step.
+  - `WaitUpload`: Inbound media or file upload.
+  - `WaitApproval`: Human-in-the-loop review by a supervisor in the Admin Console.
+  - `WaitChallenge`: Identity verification (e.g., OTP code or SSO challenge).
+  - `Pause(DateTime)`: Time delay until scheduled resume.
+- **Resumed:** Reactivated via `Trigger::Message`, `Trigger::Approval`, or `Trigger::ChallengeOutput`.
+- **Completed:** Terminal state. Outputs captured in `WorkingContext` for post-flow conversation follow-up.
+- **Failed:** Terminal failure recorded with error code, stack context, and audit log.
+
+---
+
+## 3. Step Execution Primitives
+
+FlowRunner executes declarative steps defined in metadata (`workflows/*.yaml`):
+
+| Step Type | Description | Runtime Behavior |
+|---|---|---|
+| `ask` | Collect parameter from user | Prompts user, waits for reply, extracts slots, validates types, and sets variable. |
+| `tool` | Execute operational action | Calls `RuntimeAdapter` (for `entity.*` CRUD) or `SDKAdapter` (for external HTTP). |
+| `message` | Send informational response | Delivers message with template variable interpolation (`{{var}}`). |
+| `complete` | Terminal success | Concludes the flow, summarizes results, and commits durable state. |
+| `condition` | Dynamic branching | Evaluates comparison expressions (`==`, `!=`, `>`, `<`, `>=`, `<=`, `exists`). |
+| `branch` | Multi-way path selector | Jumps to target step ID based on variable evaluation. |
+| `upload` | File/media ingestion | Pauses execution awaiting user document or image upload. |
+| `approval` | Human-in-the-loop gate | Pauses flow until an admin approves or rejects the action in the Console. |
+| `challenge` | Identity challenge | Prompts for high-risk auth (e.g., OTP or phone verification) before proceeding. |
+| `delay` | Scheduled sleep | Pauses execution until a specified timestamp or duration elapses. |
+| `tag` | CRM categorization | Adds or removes tags on the associated Customer Hub Person. |
+| `assign` | Variable assignment | Sets or transforms flow variables from expressions or previous outputs. |
+| `activity` | Audit logging | Emits a business activity record into the Customer Hub timeline. |
+| `notify` | Staff notification | Sends internal alert (WhatsApp, email, or Console notification) to staff. |
+| `handoff` | Human agent transfer | Pauses AI interaction and routes conversation to a live agent queue. |
+
+---
+
+## 4. Context, Variables & Parameter Resolution
+
+FlowRunner maintains isolated variable scopes during execution:
+
+### Variable Sources & `input_map`
+Values passed into `tool` steps use explicit dotted paths or literal prefixes:
+
+```yaml
+steps:
+  - id: create_reservation
+    type: tool
+    tool: entity.reservation.create
+    execution: runtime
+    input_map:
+      guest_name: customer_name          # Resolves from flow variable
+      covers: party_size                 # Resolves from flow variable
+      date: booking_date                 # Resolves from flow variable
+      status: "$literal:confirmed"       # JSON typed literal
+      source: "$literal:whatsapp"        # Literal string
+```
+
+### Dynamic Choices (`choices_from`)
+When prompting users in an `ask` step, options can be dynamically queried from runtime storage:
+
+```yaml
+steps:
+  - id: select_table
+    type: ask
+    prompt: "Which table would you prefer?"
+    choices_from:
+      entity: table
+      filter:
+        status: available
+      label_field: name
+      value_field: id
+```
+
+---
+
+## 5. Idempotency, Concurrency & Audit
+
+### One-Active-Flow Rule
+FlowRunner enforces that a single conversation session can only have **one running flow execution** at any given moment. This is backed by a PostgreSQL partial unique index:
+
+```sql
+CREATE UNIQUE INDEX idx_flow_executions_one_active
+ON flow_executions (conversation_id)
+WHERE status = 'running';
+```
+
+If a user sends a message while a flow is running, the message is routed to the active flow step as an input or clarification, rather than spawning a competing flow.
+
+### Retries & Error Handling
+- Step-level retries are configurable (`retry: { max_attempts: 3, backoff_ms: 1000 }`).
+- Failures record detailed error envelopes without exposing internal database errors to end users.
+- Every state transition produces an immutable audit record in `flow_execution_steps`.
+
+---
+
+## Related Documentation
 
 <RelatedTopics
   topics={[
-    {label: 'Tools', to: '/docs/developer/concepts/tools'},
-    {label: 'Approvals', to: '/docs/developer/concepts/approvals'},
-    {label: 'Challenges', to: '/docs/developer/concepts/challenges'},
+    {label: 'Runtime Architecture', to: '/docs/developer/concepts/runtime'},
+    {label: 'Define Business Flows', to: '/docs/guides/define-business-flows'},
+    {label: 'Run Business Flows', to: '/docs/guides/run-business-flows'},
+    {label: 'Event-Driven Triggers', to: '/docs/guides/event-driven-triggers'},
+    {label: 'Entity Schemas', to: '/docs/solutions/entity-schema'},
   ]}
 />

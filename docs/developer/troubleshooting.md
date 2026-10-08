@@ -8,15 +8,14 @@ sidebar_label: "Troubleshooting"
 
 ## Comparison table
 
-| Problem | External SDK | Managed App |
+| Problem | External SDK | Metadata Marketplace App |
 | --- | --- | --- |
-| `/qefro` unreachable | Check customer endpoint, TLS, firewall, path | Check managed runtime / installation binding |
-| Signature invalid | Secret mismatch, body mutated, clock skew | Platform secret / env mismatch |
-| Tool missing | Re-register tools in process; Sync Tools | Package/version; install active; capabilities sync |
-| Wrong workspace | Connection tools enabled on wrong workspace | Installation binding / workspace headers |
-| Storage unavailable | Expected without install scope — use own DB | Check `platform.storage`, permissions, storage-service |
-| App unavailable | Customer infrastructure | Qefro runtime / connector lifecycle |
-| Upgrade issue | Redeploy webhook | Solution upgrade / republish |
+| Endpoint unreachable | Check customer endpoint, TLS, firewall, path | N/A (interpreted natively by Qefro Runtime) |
+| Signature invalid | Secret mismatch, body mutated, clock skew | N/A (no webhook or signing secret needed) |
+| Tool missing | Re-register tools in process; Sync Tools | Check `manifest.json` flows & entity schemas |
+| Wrong workspace | Connection tools enabled on wrong workspace | Check workspace installation state |
+| Storage unavailable | Expected without install scope — use own DB | Check entity schema declarations & installation scope |
+| Upgrade issue | Redeploy webhook | Run `qefro app install` with newer package |
 
 ## Protocol error codes
 

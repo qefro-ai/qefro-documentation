@@ -32,7 +32,7 @@ import { FaqAccordion, RelatedTopics } from '@site/src/components';
   {question: 'REST or SDK?', answer: <>REST for existing HTTPS APIs and OpenAPI specs. Backend SDK for OTP, login, and multi-step workflows. See <Link to="/docs/business-tools/rest-vs-sdk">REST vs SDK</Link>.</>},
   {question: 'Why does the assistant only answer from docs?', answer: 'Usually missing workspace on the widget, no tools enabled, or tools filtered by auth level. Bind workspaceId and verify tools in Test Tool.'},
   {question: 'Does identity forwarding work with SDK?', answer: 'Raw JWT/session forward is REST only (END_USER_IDENTITY). Backend SDK receives identity attributes and uses lookup + authorize.'},
-  {question: 'Can Internal Portal run Business Tools?', answer: 'V1 Portal is knowledge-only for live tool execution. END_USER_IDENTITY is Widget/WhatsApp. Playground supports most tools for testing.'},
+  {question: 'Can Internal Portal run Business Tools?', answer: 'Yes. Internal Portal (Employee AI) executes tools and Business Flows gated by Organization and App RBAC permissions with full audit logging.'},
   {question: 'Sync Tools did nothing?', answer: 'Pass workspace_id and auto_register:true. Sync without workspace only updates connection metadata.'},
 ]} />
 

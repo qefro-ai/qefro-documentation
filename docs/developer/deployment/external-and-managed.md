@@ -1,58 +1,81 @@
 ---
-title: "Deploy external and managed apps"
-description: "Deploy external /qefro endpoints or managed Docker packages."
-sidebar_label: "External & managed deploy"
+title: "Deploying External SDK Connections"
+description: "How to deploy and configure external backend SDK services connecting ERP, POS, and CRM systems to Qefro via signed webhooks."
+sidebar_label: "Deploy external SDK connections"
 ---
 
-# Deploy external and managed apps
+# Deploying External SDK Connections
 
-## External SDK Connection
+When integrating external enterprise systems (such as Focus ERP, ERPNext, Odoo, custom CRM backends, or on-premise inventory databases), the **Qefro Backend SDK** (`@qefro-ai/backend`, `qefro-backend`, `qefro-backend-sdk`) runs in the customer's or partner's infrastructure and communicates with Qefro over an HMAC-signed HTTPS webhook (`POST /qefro`).
 
-Compatible patterns (any environment that can serve HTTPS to Qefro):
+:::note Marketplace Apps require no deployment
+Metadata Marketplace Apps (`hosting: runtime`) do **not** run external servers or Docker containers. They are executed directly by Qefro Runtime. See **[Marketplace Apps Execution Model](/docs/solutions/managed-apps)**.
+:::
 
-- Docker container
-- VM / bare metal
-- Kubernetes Service + Ingress
-- Cloud runtimes (Cloud Run, ECS, App Service, …)
-- On-premise (with network path to Qefro or reverse tunnel)
+---
 
-### Requirements
+## 1. Hosting Architectures for External SDK Connections
 
-| Requirement | Notes |
-| --- | --- |
-| HTTPS endpoint | ACS validates URL safety; prefer public HTTPS |
-| Path | Default `/qefro` (`endpointPath`) |
-| Secret | Match Org Portal SDK Connection signing secret |
-| Health | **Test Connection** sends `ping` (SDK has no `GET /health`) |
-| Timeout | ~30s invoke budget (ACS / CM defaults) |
+An external SDK service can run on any infrastructure capable of receiving inbound HTTPS POST requests from Qefro:
 
-Example:
+- **Containerized Workloads:** Docker, Kubernetes, AWS ECS, Google Cloud Run, Azure Container Apps.
+- **Serverless / PaaS:** Vercel, Fly.io, Railway, Heroku.
+- **Virtual Machines / On-Premise:** Linux VMs with Nginx reverse proxy and TLS termination.
+- **Private VPC / Tunnel:** Cloudflare Tunnels, AWS PrivateLink, or reverse proxies connecting private ERP servers to public HTTPS endpoints.
 
-```bash
-docker run -e QEFRO_SIGNING_SECRET=… -e PORT=8080 -p 8080:8080 your/connector:tag
-# Webhook URL: https://connector.example.com/qefro
+---
+
+## 2. Production Deployment Checklist
+
+| Requirement | Specification | Notes |
+|---|---|---|
+| **HTTPS Endpoint** | Valid public TLS certificate (Let's Encrypt, Cloudflare, etc.) | Qefro requires valid HTTPS; plaintext HTTP is rejected in production. |
+| **Endpoint Path** | Standard `/qefro` (configurable) | Default webhook route handling signed RPC payloads. |
+| **Shared Secret** | `QEFRO_SIGNING_SECRET` | 32+ character high-entropy secret matching the Workspace SDK Connection secret. |
+| **Timeout Budget** | $\le 30$ seconds | Connector Manager times out operations exceeding 30s. Long jobs should use asynchronous patterns. |
+| **Health Check** | Test Connection sends signed `ping` | The SDK framework responds to signed `ping` actions out of the box. |
+
+---
+
+## 3. Example: Container Deployment with Docker
+
+```dockerfile title="Dockerfile"
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+ENV NODE_ENV=production
+EXPOSE 8080
+USER node
+CMD ["node", "server.js"]
 ```
 
-Local Docker + ACS in Docker often uses `http://host.docker.internal:8090/qefro`.
-
-## Marketplace App
-
-Metadata Marketplace Apps (`hosting: runtime`) are **not** deployed as
-containers — Qefro Runtime executes the installed package. See
-[Managed Marketplace App](/docs/developer/managed-marketplace-app).
-
-`hosting: managed` (platform-hosted `/qefro` Marketplace App) is not
-supported.
-
-To connect an external system, register an SDK Connection:
-
 ```bash
-qefro create-app my-erp --hosting external --endpoint https://api.example.com/qefro
-qefro register --endpoint https://api.example.com/qefro --solution my-erp
+docker run -d \
+  --name my-erp-connector \
+  -p 8080:8080 \
+  -e PORT=8080 \
+  -e QEFRO_SIGNING_SECRET="your-256-bit-hex-secret" \
+  -e ERP_API_KEY="your-internal-erp-key" \
+  your-org/erp-connector:v1.0.0
 ```
 
-## Shared runtime concerns
+---
 
-- Pin `@qefro-ai/backend` version
-- Do not log signing secrets
-- Keep tool contracts backward compatible across deploys/upgrades
+## 4. Connecting the External Service in Qefro
+
+1. Deploy the service and note its public HTTPS URL (e.g. `https://erp-connector.example.com/qefro`).
+2. In the Admin Console, navigate to **AI Workspace ➔ Integrations ➔ External Connections ➔ Add SDK Connection**.
+3. Enter the Webhook URL and the shared signing secret.
+4. Click **Test Connection** — Qefro sends a signed `ping` request to verify cryptographic authenticity.
+5. Click **Sync Tools** — Qefro discovers advertised business tools and registers them as workspace capabilities.
+
+---
+
+## Related Documentation
+
+- [External SDK Connection Guide](/docs/developer/external-sdk-connection)
+- [Backend SDK Reference](/docs/business-tools/backend-sdk)
+- [Application Security & HMAC Verification](/docs/security/application-security)
+- [Secrets & Credential Management](/docs/security/secrets)

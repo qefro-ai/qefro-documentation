@@ -42,7 +42,7 @@ Prefer this path when tools need **customer authentication**, stateful workflows
 | Sync Tools | Runtime calls `tools.list`, then optionally auto-registers Business Tools |
 | Challenge / resume | Your `customer.authorize` returns a challenge; Qefro forwards the customer reply via `tool.resume` |
 
-Qefro is an **orchestration runtime**, not an identity provider. It never sends or verifies OTP. Authentication lives in your Customer Provider and tool handlers. See [Customer Provider](/docs/v1/customer-provider) and [SDK Framework](/docs/v1/sdk-framework).
+Qefro is an **orchestration runtime**, not an identity provider. It never sends or verifies OTP. Authentication lives in your Customer Provider and tool handlers. See [Customer Hub & Identity](/docs/solutions/customer-hub) and [External SDK Connection](/docs/developer/external-sdk-connection).
 
 ## Architecture
 
@@ -406,13 +406,13 @@ You can mix REST/OpenAPI and SDK tools in the same workspace.
 
 <RelatedTopics
   topics={[
-    {label: 'SDK Framework', to: '/docs/v1/sdk-framework'},
-    {label: 'Business Tools (V1)', to: '/docs/v1/business-tools'},
-    {label: 'Customer Provider', to: '/docs/v1/customer-provider'},
+    {label: 'External SDK Connection', to: '/docs/developer/external-sdk-connection'},
+    {label: 'Backend SDK Reference', to: '/docs/business-tools/backend-sdk'},
+    {label: 'Customer Hub & Identity', to: '/docs/solutions/customer-hub'},
     {label: 'Business Tools (platform)', to: '/docs/platform/business-tools'},
     {label: 'Connect REST APIs', to: '/docs/guides/connect-rest-apis'},
     {label: 'Import OpenAPI', to: '/docs/guides/import-openapi'},
     {label: 'Secure Business Actions', to: '/docs/guides/secure-business-actions'},
-    {label: 'Examples', to: '/docs/v1/examples'},
+    {label: 'API Examples', to: '/docs/api/examples'},
   ]}
 />

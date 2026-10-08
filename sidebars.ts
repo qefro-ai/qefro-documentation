@@ -1,7 +1,7 @@
 import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
 /**
- * Documentation hubs (2026-08):
+ * Documentation hubs (2026-10 Canonical Architecture):
  *   Start · Build apps · Operate · Reference
  *
  * Stable doc IDs keep existing URLs. Playbooks live under Operate.
@@ -18,6 +18,19 @@ const sidebars: SidebarsConfig = {
         'architecture/overview',
         'introduction/concepts',
         'glossary',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Core concepts',
+      collapsed: false,
+      items: [
+        'concepts/what-is-an-ai-workspace',
+        'concepts/customer-ai-vs-employee-ai',
+        'concepts/ai-workspace-vs-ai-chatbot',
+        'concepts/ai-knowledge-platform',
+        'concepts/business-actions',
+        'concepts/ai-agent-security',
       ],
     },
     {
@@ -115,6 +128,8 @@ const sidebars: SidebarsConfig = {
         'solutions/marketing',
         'solutions/organization-workflows',
         'solutions/managed-storage',
+        'solutions/concurrency-and-booking',
+        'solutions/tax-engine',
         'solutions/capabilities',
       ],
     },
@@ -162,10 +177,6 @@ const sidebars: SidebarsConfig = {
         'solutions/examples/restaurant-pro-runtime',
         'solutions/examples/real-estate-runtime',
         'solutions/examples/shopify-runtime',
-        'solutions/examples/restaurant-pro',
-        'solutions/examples/clinic-pro',
-        'solutions/examples/salon-pro',
-        'solutions/examples/marketing-lab',
       ],
     },
     {
@@ -178,6 +189,12 @@ const sidebars: SidebarsConfig = {
         'business-tools/rest-vs-sdk',
         'business-tools/rest-openapi',
         'business-tools/backend-sdk',
+        'business-tools/authentication',
+        'business-tools/challenge-resume',
+        'business-tools/identity-forwarding',
+        'business-tools/identity-resolution',
+        'business-tools/mixed-integrations',
+        'business-tools/examples',
         'guides/register-sdk-business-tools',
         'developer/external-sdk-connection',
         'developer/application-integration-guide',
@@ -213,6 +230,7 @@ const sidebars: SidebarsConfig = {
         'user/agents/overview',
         'platform/customer-ai',
         'platform/employee-ai',
+        'platform/internal-portal',
         'guides/create-employee-ai',
       ],
     },
@@ -234,6 +252,9 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         'user/channels/overview',
+        'platform/website-widget',
+        'platform/whatsapp',
+        'platform/instagram',
         'user/channels/website-widget',
         'user/channels/whatsapp',
         'user/channels/api',
@@ -261,6 +282,9 @@ const sidebars: SidebarsConfig = {
       items: [
         'user/approvals/overview',
         'guides/run-business-flows',
+        'guides/define-business-flows',
+        'guides/event-driven-triggers',
+        'guides/secure-business-actions',
         'user/analytics/overview',
         'platform/analytics',
         'user/billing/overview',
@@ -276,7 +300,12 @@ const sidebars: SidebarsConfig = {
         'platform/teams',
         'platform/rbac',
         'guides/configure-rbac',
+        'platform/authentication',
+        'platform/identity-and-authentication',
+        'platform/identity-verification',
+        'platform/identity-forwarding',
         'platform/custom-domains',
+        'platform/workspace-subdomains',
         'platform/branding',
         'guides/enable-custom-domains',
       ],
@@ -384,8 +413,27 @@ const sidebars: SidebarsConfig = {
         'developer/concepts/flows',
         'developer/concepts/tools',
         'developer/concepts/connectors',
+        'developer/concepts/approvals',
+        'developer/concepts/challenges',
+        'developer/concepts/memory',
+        'developer/concepts/middleware',
+        'developer/concepts/sessions',
         'business-tools/runtime',
         'developer/quick-start',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Developer systems',
+      collapsed: true,
+      items: [
+        'developer/channels/overview',
+        'developer/events/overview',
+        'developer/observability/overview',
+        'developer/schedules/overview',
+        'developer/webhooks/overview',
+        'platform/business-actions',
+        'platform/business-tools',
       ],
     },
     {
@@ -441,8 +489,6 @@ const sidebars: SidebarsConfig = {
         'developer/self-hosting/overview',
         'platform/deployment',
         'guides/production-deployment',
-        'v1-docker',
-        'v1-kubernetes',
       ],
     },
     'glossary',

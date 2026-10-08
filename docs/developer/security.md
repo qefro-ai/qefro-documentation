@@ -51,7 +51,7 @@ Never commit real secrets. Docs and demos use placeholders like `dev-secret`. Ro
 
 Managed manifests declare `permissions` / `capabilities` (storage, organization, marketing, workflow). Runtime enforces platform-side authorization for gated APIs.
 
-Tool `permissions: string[]` is advertised metadata (default `[]`). Do not confuse it with solution-service install permission grants.
+Tool `permissions: string[]` is advertised metadata (default `[]`). Do not confuse it with workspace installation permission grants.
 
 ## Customer Hub isolation
 

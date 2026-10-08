@@ -118,11 +118,10 @@ published version satisfies a constraint, installation fails cleanly —
 nothing is activated. See [Connectors](/docs/solutions/connectors).
 
 :::tip
-Metadata Marketplace Apps (`hosting: runtime`) set `entities:` and omit
-`endpoint`. SDK-hosted apps set `connectors: []` (when self-contained),
-ship `src/` + `hosting`/`endpoint`, and use [managed storage](/docs/solutions/managed-storage)
-from inside the SDK (`ctx.storage`). Do **not** declare a connector named
-`storage` (or other reserved SDK namespaces) — publish rejects those names.
+Marketplace Apps (`hosting: runtime`) define their domain models under `entities:`
+and omit `endpoint`. There is no `src/` directory, and no custom application
+server is run. Tools targeting declared entities (`entity.<id>.*`) execute
+natively in Qefro Runtime against managed storage.
 :::
 
 ## Permissions
@@ -135,15 +134,14 @@ UI capability negotiation at install time:
 | `workflow.execute` | `workflow.trigger` — UI can trigger this solution's workflows |
 | `customer.read` | `customer.query` — UI can query customer-hub data |
 | `runtime.read` | `runtime.query` — UI can read runtime metrics/executions/workflows |
-| `storage.read` | `storage.read` — SDK may find/get documents via `ctx.storage` |
-| `storage.write` | `storage.write` — SDK may insert documents |
-| `storage.update` | `storage.update` — SDK may patch documents |
-| `storage.delete` | `storage.delete` — SDK may soft-delete documents |
+| `storage.read` | `storage.read` — Runtime may find/get documents in managed storage |
+| `storage.write` | `storage.write` — Runtime may insert documents |
+| `storage.update` | `storage.update` — Runtime may patch documents |
+| `storage.delete` | `storage.delete` — Runtime may soft-delete documents |
 
-`restaurant-pro-runtime` declares `workflow.execute` plus `storage.*` so
-Runtime entity tools can persist; UI sources use `type: entity`.
-SDK-hosted `restaurant-pro` instead calls `restaurant-pro/restaurant.*`
-tools. Reference: [Capabilities](/docs/solutions/capabilities).
+Canonical packages (such as `restaurant-pro-runtime`) declare `workflow.execute`
+plus `storage.*` so Runtime entity tools can persist records; UI sources use
+`type: entity`. Reference: [Capabilities](/docs/solutions/capabilities).
 
 ## Settings
 

@@ -1,6 +1,6 @@
 ---
 title: "Architecture"
-description: "Short pointer to the full Qefro architecture overview — Admin Console, Runtime, solutions plane, channels, and tools."
+description: "Canonical architecture of Qefro — AI Workspaces, metadata Marketplace Apps executed by Qefro Runtime, and External System Integrations."
 sidebar_label: "Architecture"
 ---
 
@@ -8,61 +8,77 @@ import { InfoBox, RelatedTopics } from '@site/src/components';
 
 # Architecture
 
-This page is a short entry point. The canonical deep dive is
-**[Qefro architecture](/docs/architecture/overview)** (including the
-**solutions plane**: solution-service, managed apps, Marketplace, portal
-renderer, and capability registries).
+Qefro unifies AI Workspaces, declarative Marketplace Apps, and external systems into a single multi-tenant execution platform.
 
 ```mermaid
-flowchart TB
-  subgraph Config[Admin Console]
-    WS[AI Workspaces]
-    Mkt[Marketplace installs]
-    KB[Knowledge]
-    Tools[Business Tools]
-  end
+flowchart TD
+  QEFRO["QEFRO"] --> WS["AI Workspaces"]
+  QEFRO --> MKT["Marketplace"]
+  QEFRO --> EXT["External Systems"]
 
-  subgraph Runtime[Qefro Runtime]
-    RAG[Hybrid RAG]
-    FR[FlowRunner]
-    Inv[Tool invoker]
-  end
+  MKT --> META["Metadata Apps\n(manifest, entities, flows, ui)"]
+  META --> RT["Qefro Runtime"]
+  WS --> RT
 
-  subgraph Apps[Solutions plane]
-    SS[solution-service]
-    App["/qefro SDK apps"]
-  end
+  RT --> RAG["RAG / Knowledge"]
+  RT --> FR["FlowRunner"]
+  RT --> EVT["Events / Bus"]
+  RT --> ACT["Runtime Actions"]
 
-  subgraph Channels[Channels]
-    Widget[Website widget]
-    WA[WhatsApp]
-    Portal[Internal Portal]
-  end
-
-  WS --> Runtime
-  Mkt --> SS
-  SS --> App
-  KB --> RAG
-  Tools --> Inv
-  Channels --> Runtime
-  FR --> Inv
-  Inv --> App
-  Inv -->|REST / OpenAPI / SDK Connection| Ext[Your APIs]
+  EXT --> CONN["SDK / REST Connections"]
+  CONN --> EXT_SYS["Customer ERP / CRM / POS\n& External Backends"]
 ```
 
+## Two Fundamentally Distinct Application & Integration Models
+
+The platform cleanly separates domain application development from external system integration:
+
+### A. Metadata Marketplace App
+
+```text
+Metadata (YAML) ──▶ Marketplace Registry ──▶ Workspace Install ──▶ Qefro Runtime
+```
+
+- **Definition:** Pure declarative metadata (`manifest.yaml`, `entities/`, `workflows/`, `ui/`, `events/`, `capabilities/`).
+- **Execution:** Interpreted directly by **Qefro Runtime**.
+- **Application Server:** **None required.** No Docker containers, no SDK backends, no `/qefro` processes.
+- **Storage:** Managed by Qefro runtime storage with strict tenant/workspace/installation isolation.
+- **Use Case:** Domain applications that Qefro owns (e.g. hospitality, clinics, real estate, appointment booking, commerce).
+
+### B. External System Integration
+
+```text
+Qefro FlowRunner / Action Engine ──▶ REST / OpenAPI / SDK Connection ──▶ Customer ERP / POS / CRM
+```
+
+- **Definition:** External HTTP API or signed webhook connection via the Qefro Backend SDK.
+- **Execution:** Runs in the customer's or third-party infrastructure.
+- **Application Server:** Maintained by the customer / external provider.
+- **Storage:** Persisted in the external system of record (e.g., Focus ERP, ERPNext, Odoo, SAP, custom DB).
+- **Use Case:** Existing systems of record where Qefro serves as the AI and execution layer.
+
 <InfoBox>
-**Two tool paths:** Business Tools (REST/OpenAPI or Backend SDK **webhook**) vs
-installable **SDK apps** (managed `/qefro`). See [Core concepts](/docs/introduction/concepts).
+<strong>Architectural Rule:</strong> Marketplace Apps and External Integrations are not two hosting variants of the same application model. Marketplace Apps are declarative metadata packages executed natively by Qefro Runtime. External Integrations are connections to external software systems.
 </InfoBox>
+
+## Architectural Deep Dive
+
+For the complete technical breakdown including FlowRunner state machines, runtime action authority, storage schemas, and trust boundaries:
+
+- **[Full Platform Architecture Overview](/docs/architecture/overview)**
+- **[Qefro Runtime Execution Architecture](/docs/developer/concepts/runtime)**
+- **[Marketplace Architecture & Development](/docs/solutions/architecture)**
+- **[Integration Decision Guide](/docs/developer/integration-models)**
 
 ## Related topics
 
 <RelatedTopics
   topics={[
     {label: 'Full architecture overview', to: '/docs/architecture/overview'},
-    {label: 'Solutions architecture', to: '/docs/solutions/architecture'},
+    {label: 'Runtime concept', to: '/docs/developer/concepts/runtime'},
+    {label: 'Marketplace architecture', to: '/docs/solutions/architecture'},
+    {label: 'Integration models', to: '/docs/developer/integration-models'},
     {label: 'vs n8n', to: '/docs/compare/n8n-vs-qefro'},
     {label: 'vs LangGraph', to: '/docs/compare/langgraph-vs-qefro'},
-    {label: 'Core concepts', to: '/docs/introduction/concepts'},
   ]}
 />

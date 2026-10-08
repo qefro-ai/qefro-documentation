@@ -162,5 +162,5 @@ depended on `restaurant-pos` or called `storage/*` from YAML are superseded.
 - [Capabilities](/docs/solutions/capabilities)
 - [Workflows](/docs/solutions/workflows) — connector / storage tool steps
 - [Installation](/docs/solutions/installation) — resolution + credentials
-- [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
+- [restaurant-pro-runtime example](/docs/solutions/examples/restaurant-pro-runtime)
 - [Connectors concept](/docs/developer/concepts/connectors)

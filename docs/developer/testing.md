@@ -46,23 +46,21 @@ Checklist:
 4. Invoke an authenticated tool with identity
 5. Confirm org-only tools blocked on customer channels
 
-## Managed app test
+## Marketplace app validation & test
 
 ```text
-qefro dev
+qefro app validate <dir>
  ↓
-publish
+qefro app package <dir>
  ↓
-install
+qefro app install <name>
  ↓
-health / ping
- ↓
-tool invocation
+runtime execution test (FlowRunner & entity ops)
  ↓
 upgrade + re-test
 ```
 
-Restaurant Pro ships `scripts/smoke-tools.mjs` for tool smoke coverage when available in the package.
+Run schema validation with `qefro app validate` to assert that all entity schemas, workflow steps, and UI views adhere to platform constraints.
 
 ## What to assert
 

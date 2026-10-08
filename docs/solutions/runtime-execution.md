@@ -396,16 +396,65 @@ authority-bearing fields from caller-supplied parameters:
 Identity comes from the authenticated context only. Even if the LLM
 generates a `person_id` value, it is discarded.
 
-## Marketplace Apps vs SDK connectors
+## Concurrency, Booking & Availability Primitives
 
-| Aspect | Marketplace App | SDK Connector |
+For business operations sensitive to race conditions (appointments, table bookings, room reservations, inventory allocation), Qefro Runtime enforces integrity at the storage layer rather than relying on UI or model-level validation:
+
+### 1. Availability Declarations
+
+Entities declare booking capabilities via the structural `availability:` block:
+
+```yaml
+# entities/reservation.yaml
+id: reservation
+availability:
+  booking:
+    datetime_field: scheduled_at
+    duration_minutes: 60
+    capacity:
+      mode: exclusive             # "exclusive" (one at a time) or "unlimited"
+      resource:
+        field: table_id           # Resource key to lock against
+```
+
+The runtime exposes the native capability `entity.<id>.availability` (`execution: runtime`), dispatched by `kind`:
+- `kind: dates`: Returns available bookable dates within the configured lookahead window.
+- `kind: slots`: Returns available time slots for a specified date and resource, automatically subtracting existing active bookings.
+- `kind: validate`: Atomically verifies whether a proposed `(resource, datetime)` window is free.
+
+### 2. Optimistic Concurrency Control
+
+Entities can opt into optimistic concurrency control to prevent lost updates:
+
+```yaml
+# entities/order.yaml
+concurrency: optimistic          # Tracks an internal integer version column
+```
+
+When an update or status mutation occurs, the storage query asserts:
+
+```sql
+UPDATE entity_records
+SET data = $new_data, version = version + 1
+WHERE id = $id AND version = $expected_version;
+```
+
+If another worker modified the record concurrently, the mutation fails with a concurrency conflict (`CONCURRENCY_CONFLICT`), allowing FlowRunner to retry or fail gracefully.
+
+### 3. Server-Enforced Integrity Boundaries
+
+Validation at the client, widget, or LLM prompt layer is **never** considered a safety boundary. Two concurrent requests arriving simultaneously at the WhatsApp channel or Website Widget are serialized at the database transaction layer. Double-bookings are blocked by the storage engine even if both users were shown the same open slot.
+
+## Marketplace Apps vs SDK Connections
+
+| Aspect | Marketplace App | External SDK Connection |
 | --- | --- | --- |
 | Hosting | `runtime` | `external` |
-| Execution | RuntimeAdapter (EntityService) | SDKAdapter (/qefro tools) |
-| Storage | Platform-managed | App-managed (ctx.storage) |
-| Tools | `entity.<name>.<op>` | HTTP tool names |
-| Code | YAML only | Node.js / Python / Rust |
-| Deployment | No server required | Self-hosted by developer |
+| Execution | RuntimeAdapter (EntityService) | SDKAdapter (signed `/qefro` tools) |
+| Storage | Platform-managed runtime storage | External system database (ERP/POS/CRM) |
+| Tools | `entity.<name>.<op>` or generic HTTP | SDK-advertised tools |
+| Code | YAML metadata only | Node.js / Python / Rust |
+| Deployment | No application server required | Self-hosted by customer / partner |
 
 Both use the same FlowRunner engine. The difference is the adapter that
 executes tool steps.

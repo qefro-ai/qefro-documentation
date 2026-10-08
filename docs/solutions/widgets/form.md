@@ -104,7 +104,7 @@ The Reservations page pairs the form with the reservation calendar:
 
 Submitting starts the `reservation-reminder` workflow, which delays, then
 sends the confirmation through the POS connector — the full chain is in
-the [restaurant-pro example](/docs/solutions/examples/restaurant-pro).
+the [restaurant-pro-runtime example](/docs/solutions/examples/restaurant-pro-runtime).
 
 ## Guidelines
 

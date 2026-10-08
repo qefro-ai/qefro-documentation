@@ -95,7 +95,7 @@ Colors must be hex (`#RGB` / `#RRGGBB`). Empty values keep the package
 theme. The overlay is applied when the UI bundle is assembled for that
 workspace install.
 
-See [Managed apps — Brand customization](/docs/solutions/managed-apps#brand-customization-per-install).
+See [Marketplace apps — Execution model](/docs/solutions/managed-apps).
 
 ## Tips
 
@@ -107,7 +107,7 @@ See [Managed apps — Brand customization](/docs/solutions/managed-apps#brand-cu
 
 ## Related topics
 
-- [Managed apps](/docs/solutions/managed-apps) — brand settings + managed app guide
+- [Marketplace apps](/docs/solutions/managed-apps) — brand settings + execution model
 - [Assets](/docs/solutions/assets) — logo and icon files referenced by the manifest
 - [Navigation](/docs/solutions/navigation) — the sidebar that inherits the theme
 - [Capabilities](/docs/solutions/capabilities) — `theme.get`

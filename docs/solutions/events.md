@@ -33,8 +33,7 @@ Marketplace Apps declare events on the **manifest** (`events:`). There is
 no `events/` package directory. Automations are not YAML in the app;
 they are configured on the portal Automations host after install.
 
-SDK-hosted apps may also advertise events on `capabilities.list` — that is
-the [external integration](/docs/solutions/runtime-vs-sdk) path.
+External SDK backends may also emit events onto the platform bus via `ctx.emit` — see the [External SDK Connection](/docs/developer/external-sdk-connection) path.
 
 ## The `ui.*` lifecycle events
 

@@ -92,23 +92,16 @@ app.tool(
 ## Exposure path
 
 ```text
-app.tool registration
-    ↓
-capabilities.list (preferred) / tools.list (legacy)
-    ↓
-Admin Sync Tools → Business Tools (external)
-  or
-manifest tools + install (managed)
-    ↓
-tool.invoke → handler
+External SDK: app.tool registration → capabilities.list → Admin Sync Tools → tool.invoke
+Metadata App: entities/ schema → compiled entity.* capabilities → FlowRunner tool steps
 ```
 
 ## Naming conventions
 
 | Model | Common pattern |
 | --- | --- |
-| Managed apps | Prefixed ids: `restaurant.createReservation` |
+| Metadata apps | Entity capabilities: `entity.<name>.<action>` (e.g., `entity.reservation.create`) |
 | Organization actions | Opaque ids **without** dots: `approve_purchase` |
-| External connectors | Prefixed (`abm.searchProducts`) or simple names |
+| External SDK tools | Prefixed (`erp.searchProducts`) or domain names |
 
 Org capability ids must not contain `.` (SDK validation).

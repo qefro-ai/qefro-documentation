@@ -1,79 +1,85 @@
 ---
 title: "Core Concepts"
-description: "Map of Qefro concepts — workspaces, Marketplace Apps vs SDK Connections, Customer Hub, Marketing, Organization, tools, and channels."
+description: "Core architectural concepts of Qefro — AI Workspaces, Metadata Marketplace Apps, Qefro Runtime, FlowRunner, External SDK Connections, and Customer Hub."
 sidebar_label: "Concepts"
 ---
 
-import { RelatedTopics } from '@site/src/components';
+import { InfoBox, RelatedTopics } from '@site/src/components';
 
 # Core Concepts
 
-Start with the conceptual pillars, then jump into **Operate** or **Build apps**
-for how-to steps.
+Understanding Qefro begins with five fundamental architectural concepts:
 
-## Assistants & tenancy
+---
 
-| Concept | Summary | Read more |
-| --- | --- | --- |
-| AI Workspace | Isolation unit for knowledge, tools, conversations | [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
-| Customer AI vs Employee AI | External channels vs Internal Portal | [Customer vs Employee](/docs/concepts/customer-ai-vs-employee-ai) |
-| Knowledge / Hybrid RAG | Grounded answers with citations | [Hybrid RAG](/docs/concepts/hybrid-rag) |
-| RBAC | Owner / Admin / Member + teams | [RBAC](/docs/platform/rbac) |
-
-## Marketplace Apps vs SDK Connections
-
-Do not confuse these:
-
-| Concept | What it is | Read more |
-| --- | --- | --- |
-| **Marketplace App** | Metadata package (`hosting: runtime`) executed by Qefro Runtime | [Runtime vs SDK](/docs/solutions/runtime-vs-sdk) · [Build your first app](/docs/solutions/build-your-first-app) |
-| **SDK Connection** (Business Tools) | Signed webhook to **your** ERP/POS/CRM backend | [Backend SDK](/docs/business-tools/backend-sdk) |
-| **SDK-hosted package** (legacy) | Managed `/qefro` process published as a solution | [Managed apps](/docs/solutions/managed-apps) |
-
-Canonical entry for shipping apps: [Build your first app](/docs/solutions/build-your-first-app)
-(`qefro app init …`; reference
-[`restaurant-pro-runtime`](/docs/solutions/examples/restaurant-pro-runtime)).
-
-## Platform capabilities used by apps
+## 1. AI Workspaces & Tenancy
 
 | Concept | Summary | Read more |
 | --- | --- | --- |
-| Customer Hub / People | Shared people identity; portal nav **People**; `ctx.customer` | [People](/docs/user/people/overview) · [Customer Hub](/docs/solutions/customer-hub) |
-| Marketing | Apps register audiences/variables; platform owns send | [Marketing](/docs/solutions/marketing) |
-| Organization workflows | Opaque capabilities + Internal Inbox tasks | [Organization workflows](/docs/solutions/organization-workflows) |
-| Managed storage | `ctx.storage` → storage-service / Mongo | [Managed storage](/docs/solutions/managed-storage) |
-| Marketplace | Publish signed packages; tenants install/upgrade | [Marketplace](/docs/solutions/marketplace) |
+| **Organization (Tenant)** | Top-level customer boundary. Encapsulates teams, billing, and global Customer Hub People. | [Organizations](/docs/platform/organizations) |
+| **AI Workspace** | Isolated operational context. Owns dedicated knowledge collections, channel connections, tools, and Marketplace app installations. | [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
+| **Customer AI vs Employee AI** | Customer-facing channels (Website Widget, WhatsApp, Instagram) vs Employee-facing Internal Portal. | [Customer vs Employee](/docs/concepts/customer-ai-vs-employee-ai) |
+| **Hybrid RAG** | Document grounding combining dense semantic vectors (Zvec) and BM25 sparse keyword ranking with strict citations. | [Hybrid RAG](/docs/concepts/hybrid-rag) |
+| **RBAC** | Organization-level roles (Owner, Admin, Member) and installation-level app RBAC. | [RBAC](/docs/platform/rbac) |
 
-## Actions & runtime
+---
+
+## 2. Marketplace Apps vs External System Integrations
+
+Qefro enforces two distinct execution paradigms:
+
+| Dimension | Metadata Marketplace App | External System Integration |
+|---|---|---|
+| **Primary Role** | Domain applications owned and executed by Qefro (Hospitality, Clinic, Real Estate, Appointments). | Connecting existing systems of record (Focus ERP, ERPNext, Odoo, custom backends). |
+| **Format** | Declarative metadata package (`manifest.yaml`, `entities/`, `workflows/`, `ui/`, `events/`). | Signed HTTPS webhook bridge or REST/OpenAPI tool definitions. |
+| **Hosting & Execution** | **`hosting: runtime`** — executed natively by **Qefro Runtime**. No app server or Docker container. | Customer/third-party infrastructure running the Qefro Backend SDK (`POST /qefro`) or REST API. |
+| **Data Plane** | Managed runtime storage triple-keyed to `(tenant_id, workspace_id, installation_id)`. | External database managed by the customer's ERP or backend. |
+| **Developer Journey** | `qefro app init` ➔ metadata authoring ➔ `validate` ➔ `package` ➔ `publish`. | Implement SDK handlers ➔ run service ➔ register SDK Connection in Workspace. |
+
+Learn more: **[Runtime vs SDK](/docs/solutions/runtime-vs-sdk)** · **[Integration Decision Guide](/docs/developer/integration-models)**.
+
+---
+
+## 3. Qefro Runtime & FlowRunner
 
 | Concept | Summary | Read more |
-| --- | --- | --- |
-| Business Tool / Action | Secure call into your systems | [Business Actions](/docs/concepts/business-actions) |
-| Business Flow | Declarative multi-step orchestration | [Define flows](/docs/guides/define-business-flows) |
-| Runtime / FlowRunner | Single execution engine | [Runtime](/docs/developer/concepts/runtime) |
-| Orchestration event | Namespaced bus envelope | [Events](/docs/developer/concepts/events) |
-| Session | Channel + conversation context | [Sessions](/docs/developer/concepts/sessions) |
-| vs n8n / LangGraph | Product boundaries | [n8n](/docs/compare/n8n-vs-qefro) · [LangGraph](/docs/compare/langgraph-vs-qefro) |
+|---|---|---|
+| **Qefro Runtime** | The unified engine executing chat turns, RAG retrieval, FlowRunner state transitions, entity CRUD, and event dispatch. | [Runtime Architecture](/docs/developer/concepts/runtime) |
+| **FlowRunner** | Deterministic multi-step business workflow engine. Orchestrates steps (ask, tool, message, condition, approval, challenge). | [FlowRunner](/docs/developer/concepts/flows) |
+| **Runtime Actions** | Secure execution capabilities (`entity.<id>.create`, `execution: runtime` or HTTP calls). Governed by runtime authority checks. | [Business Actions](/docs/concepts/business-actions) |
+| **Action Authority** | Independent security boundary. Unconditionally strips caller authority parameters and verifies permissions before execution. | [AI Agent Security](/docs/concepts/ai-agent-security) |
+| **Business Events** | Standardized JSON envelopes emitted onto the PostgreSQL event bus triggering automations and flows. | [Events](/docs/developer/concepts/events) |
 
-## Security
+---
 
-| Concept | Summary | Read more |
-| --- | --- | --- |
-| Tenant / workspace isolation | Customers cannot read each other’s data; workspaces split audiences | [Tenant isolation](/docs/security/tenant-isolation) |
-| HMAC `/qefro` | Signed platform → app invokes | [Application security](/docs/security/application-security) |
-| Secrets & encryption | AES-256-GCM credentials; bcrypt org passwords | [Encryption](/docs/security/encryption) |
-| Agent threat model | Tools + RAG blast radius | [AI Agent Security](/docs/concepts/ai-agent-security) |
+## 4. Platform Hubs & Capabilities
 
-Full term list: [Glossary](/docs/glossary).
+| Capability | Summary | Read more |
+|---|---|---|
+| **Customer Hub (People)** | Tenant-wide customer identity repository. Cross-channel person identity (`whatsapp:{phone}`, `instagram:{id}`, email). | [People Overview](/docs/user/people/overview) · [Customer Hub](/docs/solutions/customer-hub) |
+| **Automation** | Event-driven rules (`event ➔ condition ➔ action`) for tag assignment, follow-ups, and notifications. | [Event-Driven Triggers](/docs/guides/event-driven-triggers) |
+| **Global Tax Engine** | Configurable tax determination and calculation rules for orders, invoices, and bookings across jurisdictions. | [Tax Engine](/docs/solutions/tax-engine) |
+| **Marketplace Registry** | Cryptographically signed catalog where verified apps are published and installed into workspaces. | [Marketplace](/docs/solutions/marketplace) |
 
-## Related topics
+---
+
+## 5. Security & Trust Principles
+
+1. **The model is not the authority boundary:** LLMs propose candidate parameters; the runtime strictly validates, strips forbidden authority keys, and authorizes actions.
+2. **Triple-keyed storage isolation:** Every Marketplace record requires `(tenant_id, workspace_id, installation_id)`.
+3. **Encrypted secrets at rest:** All API tokens and integration credentials are encrypted with AES-256-GCM.
+4. **HMAC Webhook Signatures:** Platform-to-SDK calls and Meta webhooks require cryptographic signature verification.
+
+---
+
+## Related Documentation
 
 <RelatedTopics
   topics={[
     {label: 'Overview', to: '/docs/introduction/overview'},
-    {label: 'Architecture', to: '/docs/architecture/overview'},
+    {label: 'Architecture Overview', to: '/docs/architecture/overview'},
     {label: 'Glossary', to: '/docs/glossary'},
-    {label: 'Security overview', to: '/docs/security/overview'},
-    {label: 'AI Agent Security', to: '/docs/concepts/ai-agent-security'},
+    {label: 'Runtime Architecture', to: '/docs/developer/concepts/runtime'},
+    {label: 'Security Overview', to: '/docs/security/overview'},
   ]}
 />

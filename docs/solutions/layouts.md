@@ -97,4 +97,4 @@ breakpoints.
 
 - [Pages](/docs/solutions/pages) — placements that use layouts
 - [Widgets](/docs/solutions/widgets/table) — content rendered inside spans
-- [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
+- [restaurant-pro-runtime example](/docs/solutions/examples/restaurant-pro-runtime)

@@ -106,4 +106,4 @@ host-side navigation is validated against the bundle on every call
 
 - [Pages](/docs/solutions/pages) — what each entry renders
 - [Events](/docs/solutions/events) — `ui.navigate`
-- [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
+- [restaurant-pro-runtime example](/docs/solutions/examples/restaurant-pro-runtime)

@@ -1,6 +1,6 @@
 ---
-title: "WhatsApp"
-description: "Customer AI over Meta Cloud API — webhook verify/incoming on api.qefro.com, Growth+ entitlement, and Support workspace binding."
+title: "WhatsApp Channel"
+description: "Direct integration with Meta's WhatsApp Cloud API — connection, webhooks, conversation mapping, WhatsApp Flows, Catalog, media, and security."
 sidebar_label: "WhatsApp"
 ---
 
@@ -12,117 +12,97 @@ import {
   WorkflowCard,
 } from '@site/src/components';
 
-# WhatsApp
+# WhatsApp Channel
 
-**WhatsApp** connects Meta Cloud API messaging to a Qefro Customer AI workspace. Availability: **Growth+**.
+Qefro integrates directly with Meta's **WhatsApp Cloud API** (`graph.facebook.com/v22.0`), enabling Customer AI assistants to converse, execute Business Flows, display product catalogs, and automate customer service over WhatsApp.
 
-## Short definition (citation-ready)
+---
 
-> Qefro WhatsApp Customer AI receives Meta Cloud API webhooks at `api.qefro.com`, runs the bound workspace’s RAG/tools, and sends replies back through Meta.
+## 1. Architecture & Message Routing
 
-## API routes
-
-| Method | Path | Purpose |
-| --- | --- | --- |
-| GET | `/api/v1/whatsapp/webhook` | Meta verification challenge |
-| POST | `/api/v1/whatsapp/webhook` | Inbound messages |
-
-Tenant credentials and workspace mapping are configured in Admin Console (encrypted). Confirm exact field names in the console UI.
-
-## Architecture
+Incoming customer messages arrive via Meta Cloud API webhooks at Qefro Runtime, where they are authenticated, routed to the owning workspace, and processed through the runtime pipeline:
 
 ```mermaid
 sequenceDiagram
-  participant U as WhatsApp user
+  participant U as WhatsApp User
   participant M as Meta Cloud API
-  participant Q as api.qefro.com
-  participant W as Support workspace
-  U->>M: Message
-  M->>Q: Webhook POST
-  Q->>W: RAG / tools
-  W-->>Q: Reply
-  Q->>M: Send message
-  M-->>U: Delivery
+  participant RT as Qefro Runtime
+  participant DB as Customer Hub & Storage
+
+  U->>M: Sends text / audio / button tap
+  M->>RT: Webhook POST (X-Hub-Signature-256)
+  RT->>RT: Verify HMAC signature using decrypted app_secret
+  RT->>DB: Resolve or create Person (whatsapp:{phone})
+  RT->>RT: Route to Workspace via phone_number_id
+  RT->>RT: Execute RAG / FlowRunner / Tool
+  RT-->>M: Outbound message (Text / Interactive / Flow / Media)
+  M-->>U: Delivered to WhatsApp
 ```
 
-## Workflow
+---
 
-Follow the full playbook: [Deploy WhatsApp AI](/docs/guides/deploy-whatsapp-ai).
+## 2. Workspace Configuration
 
-<WorkflowCard
-  title="WhatsApp readiness"
-  steps={[
-    {title: 'Website quality first', description: 'Same Support workspace preferred.'},
-    {title: 'Confirm Growth+', description: 'Plan entitlement.'},
-    {title: 'Meta app + tokens', description: 'Store secrets in Qefro.'},
-    {title: 'Verify webhook', description: 'GET challenge must succeed.'},
-    {title: 'Pilot users', description: 'Compare answers to widget.'},
-  ]}
-/>
+Each AI Workspace configures its own WhatsApp channel credentials in **Workspace Settings ➔ Channels ➔ WhatsApp**:
 
-<Warning>
-WhatsApp threads often contain PII. Align retention, tools, and human escalation with your privacy policy before broad rollout.
-</Warning>
+| Setting | Field Name | Description |
+|---|---|---|
+| **Phone Number ID** | `phone_number_id` | Meta WhatsApp Business phone number identifier. |
+| **Permanent Access Token** | `access_token` | Meta system user token (encrypted at rest with AES-256-GCM). |
+| **Verify Token** | `verify_token` | Webhook verification token for GET challenge. |
+| **Meta App Secret** | `app_secret` | Used to verify `X-Hub-Signature-256` HMAC on inbound webhooks. |
+| **Phone Number** | `phone_number` | International E.164 formatted number (e.g. `+14155552671`). |
+| **WABA ID** | `waba_id` | WhatsApp Business Account ID (for template discovery & Embedded Signup). |
 
-## Conversation commands
+---
 
-WhatsApp has no native **New conversation** button like the Website Widget or Admin Playground. Users can manage threads with slash commands (case-insensitive):
+## 3. Webhook Security & Verification
 
-| Command | Description |
-| --- | --- |
-| `/new` | Start a new conversation (previous thread is archived, not deleted) |
-| `/clear` | Same as `/new` — start over with a fresh conversation |
-| `/help` | Show available commands |
+- **Challenge Verification:** `GET /api/v1/whatsapp/webhook` verifies `hub.verify_token` against decrypted workspace tokens and returns `hub.challenge`.
+- **HMAC Signatures:** Every incoming `POST /api/v1/whatsapp/webhook` payload is verified using `X-Hub-Signature-256`. Requests with missing, expired, or invalid signatures are rejected with `401 Unauthorized` before processing.
+- **Message Status Webhooks:** Inbound status updates (`sent`, `delivered`, `read`, `failed`) are processed by the runtime to update conversation message statuses.
 
-Example replies:
+---
 
-- `/new` → “Started a new conversation…”
-- `/clear` → “Conversation cleared…”
-- `/help` → command list
+## 4. Conversation & Identity Mapping
 
-These are **system commands**: they never call the AI Runtime, RAG, Business Tools, or consume LLM tokens. Verified identity and authentication context for the WhatsApp contact are preserved.
+- **Session Format:** Inbound conversations are mapped to `session_id = "whatsapp:{phone}"` where `{phone}` is the normalized E.164 phone number.
+- **Customer Hub Person:** The sender's phone number is looked up in Customer Hub. If found, the existing `Person` record is attached; otherwise, a new Person is created with `channel: Whatsapp`.
+- **Identity Injection:** When FlowRunner executes `entity.*` actions, the verified `person_id` is automatically injected into customer fields.
 
-## Interactive Reply Buttons
+---
 
-WhatsApp replies can include **platform-owned** quick-action buttons (Meta Interactive Reply Buttons):
+## 5. Rich Outbound Message Capabilities
 
-| Button | Action |
-| --- | --- |
-| 🆕 New Chat | Same as `/new` |
-| ❓ Help | Same as `/help` |
+Qefro Runtime formats responses to take full advantage of WhatsApp's native interactive UI surfaces:
 
-Only Qefro platform actions are supported today. Business-specific buttons (track order, book service, my account, …) are **not** implemented yet — those will come later through Business Tool capabilities.
+### A. WhatsApp Flows (Structured Native Forms)
+Flows defined in Marketplace Apps (`whatsapp_flow:` on workflow YAML) are compiled into native Meta WhatsApp Flows with end-to-end encryption. Users complete multi-field forms (date pickers, dropdowns, booking details) directly inside WhatsApp. When submitted, the flow resumes FlowRunner with the collected data.
 
-**Fallback:** If Meta rejects an interactive message (unsupported client, API error, etc.), Qefro sends plain text and lists `/new` and `/help` so users never lose the actions.
+### B. WhatsApp Catalog & Commerce
+Entities marked with `catalog:` (e.g., menu items, properties, retail products) automatically sync to Meta Commerce Catalogs. The AI assistant can send native Product and Multi-Product Messages (MPM) that users can browse and add to cart.
 
-Slash commands continue to work alongside buttons. Widget and Playground UI are unchanged.
+### C. Interactive Buttons & Lists {#interactive-reply-buttons}
+- **Reply Buttons:** Quick response buttons (up to 3) for immediate choices.
+- **List Messages:** Menu lists (up to 10 items grouped in sections) for selecting services, categories, or available tables.
+- **Text Chunking:** Long text responses are automatically converted from Markdown to WhatsApp format and chunked safely within WhatsApp's character boundaries (up to 4,096 characters, chunked at 1,500 bytes for optimal mobile readability).
 
-## FAQ
+### D. Outbound Media & Audio (STT)
+- **Voice Messages (STT):** Inbound voice notes are automatically transcribed using Whisper / speech-to-text models and processed as conversational turns.
+- **Media Delivery:** Outbound images, documents (PDF receipts, quotes, booking confirmations), audio, and video are dispatched via the Cloud API media endpoints.
 
-<FaqAccordion
-  items={[
-    {
-      question: 'Can WhatsApp use a different workspace than the website?',
-      answer:
-        'Yes, but answer consistency usually suffers. Prefer one Support workspace.',
-    },
-    {
-      question: 'Where do failed sends appear?',
-      answer:
-        'Check Meta delivery errors and Qefro conversation/tool logs for the tenant.',
-    },
-  ]}
-/>
+---
 
-## Related topics
+## 6. System Commands & Human Escalation
 
-<RelatedTopics
-  topics={[
-    {label: 'Deploy WhatsApp AI', to: '/docs/guides/deploy-whatsapp-ai'},
-    {label: 'Identity Verification', to: '/docs/platform/identity-verification'},
-    {label: 'Customer AI', to: '/docs/platform/customer-ai'},
-    {label: 'Webhooks', to: '/docs/api/webhooks'},
-    {label: 'Website Widget', to: '/docs/platform/website-widget'},
-    {label: 'Production Deployment', to: '/docs/guides/production-deployment'},
-  ]}
-/>
+- **Slash Commands:** Users can send `/new` or `/clear` to start a fresh conversation session, or `/help` to view commands.
+- **Human Handoff:** Workflows can execute the `handoff` step, which marks the conversation state as transferred to a human agent, pauses AI responses, and alerts staff in the Inbox.
+
+---
+
+## Related Documentation
+
+- [Deploy WhatsApp AI Guide](/docs/guides/deploy-whatsapp-ai)
+- [WhatsApp Commerce Playbook](/docs/solutions/whatsapp-commerce)
+- [Customer Hub & Person Identity](/docs/solutions/customer-hub)
+- [FlowRunner Architecture](/docs/developer/concepts/flows)

@@ -22,7 +22,7 @@ App-builder contract: [Developer security](/docs/developer/security). Package ru
 
 ## HMAC `/qefro` protocol
 
-Platform → application calls (external SDK Connection and managed apps) use a shared signing secret:
+Platform → external SDK Connection calls use a shared signing secret:
 
 ```text
 payload   = "v1:" + unix_timestamp + ":" + raw_request_body
@@ -55,13 +55,13 @@ flowchart LR
   Call --> Render[Portal renderer + error boundaries]
 ```
 
-## Business Tools vs SDK apps
+## Integration trust boundaries
 
 | Path | Trust | Your job |
 | --- | --- | --- |
-| REST / OpenAPI tool | Qefro holds the service credential; model supplies arguments | Validate arguments on your API; least privilege; `identify()` |
-| External `/qefro` app | Privileged peer — tool outputs are trusted by the assistant | Protect the webhook URL; rotate HMAC secret; no SSRF from *your* outbound calls |
-| Managed Marketplace app | Same protocol; platform injects secrets and storage scope | Least capabilities; no cross-tenant in-memory state |
+| REST / OpenAPI tool | Qefro holds encrypted credential; model supplies arguments | Validate arguments on your API; enforce least privilege; `identify()` |
+| External SDK Connection (`/qefro`) | Privileged peer — HMAC-verified webhook | Protect webhook URL; rotate HMAC secret; protect internal systems |
+| Metadata Marketplace App | Declarative metadata executed by Qefro Runtime | Declare least capabilities; design schema bounds |
 
 Treat the model as **untrusted input** to the tool layer in all three cases.
 

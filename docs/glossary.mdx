@@ -1,43 +1,58 @@
 ---
 title: Glossary
-description: Canonical Qefro terminology aligned with the product, with links to detailed documentation.
+description: Canonical Qefro terminology aligned with the current architecture, with links to detailed documentation.
 ---
 
 import { RelatedTopics } from '@site/src/components';
 
 # Glossary
 
-| Term | Definition |
-| --- | --- |
-| Organization / Tenant | Top-level account boundary for billing and isolation — [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture), [Organizations](/docs/platform/organizations) |
-| AI Workspace | Isolated knowledge + tools + conversations — [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
-| Customer AI | Website widget and/or WhatsApp assistants — [Customer AI vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai), [Customer AI](/docs/platform/customer-ai) |
-| Employee AI | Internal Portal assistants for org members — [Employee AI](/docs/platform/employee-ai) |
-| Internal Portal | `your-company.qefro.com` employee experience — [Internal Portal](/docs/platform/internal-portal) |
-| Knowledge Platform | Ingest + hybrid retrieval + citations — [AI Knowledge Platform](/docs/concepts/ai-knowledge-platform) |
-| Hybrid RAG | Lexical + vector retrieval for grounded answers — [Hybrid RAG](/docs/concepts/hybrid-rag) |
-| Business Tool | Workspace connector (`rest` / OpenAPI or `sdk`) the AI can invoke — [Business Tools](/docs/platform/business-tools), [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) |
-| Business Action | Runtime invocation of a Business Tool — [What are Business Actions?](/docs/concepts/business-actions) |
-| Business Flow | Declarative orchestration of tools/steps executed by FlowRunner — [Define Business Flows](/docs/guides/define-business-flows), [Run Business Flows](/docs/guides/run-business-flows) |
-| Flow trigger | Entry path for a flow: conversation (intent), event, schedule, or webhook — [Event-Driven Triggers](/docs/guides/event-driven-triggers) |
-| Orchestration event | Namespaced bus envelope that can start event-triggered flows; connectors only emit — [Event-Driven Triggers](/docs/guides/event-driven-triggers) |
-| Marketplace App | Metadata package (`hosting: runtime`) executed by Qefro Runtime — [Build your first app](/docs/solutions/build-your-first-app), [Runtime vs SDK](/docs/solutions/runtime-vs-sdk) |
-| SDK Connection | Signed org webhook for `@qefro-ai/backend` / `qefro-backend-sdk` connecting **external** systems — [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) |
-| Identity Forwarding | `identify()` end-user JWT/session into tool calls — [Identity Forwarding](/docs/platform/identity-forwarding) |
-| Widget token | Publishable embed key for `cdn.qefro.com/widget.js` — [Website Widget](/docs/platform/website-widget) |
-| Owner / Admin / Member | Organization RBAC roles — [RBAC](/docs/platform/rbac) |
-| Team | Grants Members access to workspaces — [Teams](/docs/platform/teams) |
-| Custom domain | Your hostname for the Internal Portal — [Custom Domains](/docs/platform/custom-domains) |
-| AI Agent Security | Controls for retrieval + tool calling — [AI Agent Security](/docs/concepts/ai-agent-security) |
-| HMAC `/qefro` | Platform → app invoke authentication (`X-Qefro-Signature`) — [Authentication](/docs/developer/authentication), [Application security](/docs/security/application-security) |
-| AES-256-GCM secrets | Application-level encryption for tool/SDK/channel credentials — [Encryption](/docs/security/encryption) |
-| Customer Access Service | Organization-owned evaluate/challenge API; Qefro is not a customer IdP — [Identity & Authentication](/docs/platform/identity-and-authentication) |
+This glossary defines canonical Qefro terminology as of October 2026.
+
+| Term | Canonical Definition | Reference |
+| --- | --- | --- |
+| **Organization (Tenant)** | Top-level customer account boundary for data isolation, billing, and global settings. | [Multi-Tenant Architecture](/docs/concepts/multi-tenant-ai-architecture), [Organizations](/docs/platform/organizations) |
+| **AI Workspace** | Isolated operational boundary within an organization. Owns dedicated knowledge collections, channels, tools, and app installations. | [What is an AI Workspace?](/docs/concepts/what-is-an-ai-workspace) |
+| **Customer AI** | Customer-facing assistants on Website Widget, WhatsApp Cloud API, and Instagram Messaging API. | [Customer vs Employee AI](/docs/concepts/customer-ai-vs-employee-ai), [Customer AI](/docs/platform/customer-ai) |
+| **Employee AI** | Employee-facing AI on the branded Internal Portal for operational workflows. | [Employee AI](/docs/platform/employee-ai), [Internal Portal](/docs/platform/internal-portal) |
+| **Qefro Runtime** | The unified engine executing conversational chat, Hybrid RAG, FlowRunner, Runtime Actions, and event dispatch. | [Runtime Architecture](/docs/developer/concepts/runtime) |
+| **FlowRunner** | The deterministic multi-step state machine orchestrating Business Flows across chat, events, schedules, and webhooks. | [FlowRunner Concepts](/docs/developer/concepts/flows), [Run Business Flows](/docs/guides/run-business-flows) |
+| **Runtime Action** | An authorized, auditable operational task executed by Qefro Runtime (e.g. `entity.order.create` or generic HTTP tool). | [Business Actions](/docs/concepts/business-actions) |
+| **Action Authority** | The independent runtime security boundary ensuring the model cannot bypass authorization or inject authority parameters. | [AI Agent Security](/docs/concepts/ai-agent-security) |
+| **Runtime Adapter** | Internal execution dispatcher routing tool invocations to either native runtime storage (`entity.*`) or external SDK connections. | [Runtime Architecture](/docs/developer/concepts/runtime) |
+| **Marketplace App** | A declarative metadata package (`hosting: runtime`) executed natively by Qefro Runtime without an app server. | [Build Your First App](/docs/solutions/build-your-first-app), [Runtime vs SDK](/docs/solutions/runtime-vs-sdk) |
+| **Metadata Package** | The bundle of YAML declarations defining a Marketplace App (`manifest.yaml`, `entities/`, `workflows/`, `ui/`, `events/`). | [Marketplace Architecture](/docs/solutions/architecture) |
+| **Entity** | A declared business data model (e.g., `reservation.yaml`, `property.yaml`) managed in triple-isolated runtime storage. | [Entity Schema](/docs/solutions/entity-schema) |
+| **Installation** | A workspace-specific deployment of a published Marketplace App, keyed by `(tenant_id, workspace_id, installation_id)`. | [Marketplace Installation](/docs/solutions/installation) |
+| **SDK Connection** | An HMAC-signed HTTPS webhook connection (`POST /qefro`) connecting external systems of record (ERP/POS/CRM). | [External SDK Connection](/docs/developer/external-sdk-connection), [Backend SDK](/docs/business-tools/backend-sdk) |
+| **Customer Hub** | Tenant-wide customer identity and profile platform linking people across channels and apps. | [Customer Hub](/docs/solutions/customer-hub), [People Overview](/docs/user/people/overview) |
+| **Person** | A human identity record in the Customer Hub with verified identifiers (`phone`, `email`, `instagram_id`). | [Customer Hub](/docs/solutions/customer-hub) |
+| **Customer** | A Person who has an active relationship, account, or transactions with the tenant organization. | [Customer Hub](/docs/solutions/customer-hub) |
+| **Business Flow** | A multi-step declarative workflow defined in YAML and executed by FlowRunner. | [Define Business Flows](/docs/guides/define-business-flows) |
+| **Business Event** | A standardized event envelope emitted onto the PostgreSQL event bus triggering automations and flows. | [Event-Driven Triggers](/docs/guides/event-driven-triggers), [Event Reference](/docs/reference/event-reference) |
+| **Hybrid RAG** | Retrieval system combining dense neural embeddings (Zvec) and sparse lexical search (BM25) with citations. | [Hybrid RAG](/docs/concepts/hybrid-rag) |
+| **Website Widget** | Embeddable Customer AI chat interface loaded from CDN and connected to an AI Workspace via WebSocket/HTTP. | [Website Widget](/docs/platform/website-widget) |
+| **WhatsApp Channel** | Direct integration with Meta's WhatsApp Cloud API supporting text, audio (STT), flows, and catalog discovery. | [WhatsApp Channel](/docs/platform/whatsapp) |
+| **Instagram Channel** | Direct integration with Meta's Instagram Messaging API supporting DMs, quick replies, and private comment replies. | [Instagram Channel](/docs/platform/instagram) |
+| **Global Tax Engine** | Platform service calculating transaction, order, and invoice taxes based on configurable country and regional tax rules. | [Tax Engine](/docs/solutions/tax-engine) |
+
+## Terms to Avoid (Deprecated Historical Concepts)
+
+| Deprecated Term | Current Canonical Term | Reason |
+|---|---|---|
+| `hosting: managed` | `hosting: runtime` | Marketplace Apps are declarative metadata packages; no container or server is hosted. |
+| Managed Marketplace App | Metadata Marketplace App | Emphasizes that apps are metadata executed by Qefro Runtime. |
+| SDK-hosted Marketplace App | External SDK Connection | The SDK is exclusively for connecting external systems of record, not building marketplace apps. |
+| Qefro Studio | Marketplace App Generator (`qefro app init`) | Modern metadata generator replaces legacy studio scaffolding. |
+| `/qefro process` for apps | Metadata Runtime Execution | Only external SDK backends expose a `/qefro` webhook; marketplace apps have no `/qefro` process. |
+
+---
 
 ## Related topics
 
 <RelatedTopics topics={[
+  {label: 'Architecture Overview', to: '/docs/architecture/overview'},
+  {label: 'Runtime Architecture', to: '/docs/developer/concepts/runtime'},
   {label: 'What is an AI Workspace?', to: '/docs/concepts/what-is-an-ai-workspace'},
-  {label: 'AI Workspace vs AI Chatbot', to: '/docs/concepts/ai-workspace-vs-ai-chatbot'},
-  {label: 'FAQ', to: '/docs/faq'},
   {label: 'Security Overview', to: '/docs/security/overview'},
 ]} />

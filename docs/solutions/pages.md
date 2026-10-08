@@ -146,8 +146,6 @@ These are not package folders. See [Events](/docs/solutions/events).
 
 The full definitions are in the
 [restaurant-pro-runtime example](/docs/solutions/examples/restaurant-pro-runtime).
-SDK takeaway pages remain in
-[restaurant-pro](/docs/solutions/examples/restaurant-pro).
 
 ## Related topics
 

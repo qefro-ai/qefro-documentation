@@ -1,202 +1,198 @@
 ---
-title: "Qefro architecture"
-description: "Product architecture: Admin Console, Runtime, solutions plane (Marketplace apps), FlowRunner, channels, Backend SDK, and connectors."
+title: "Qefro Architecture"
+description: "Platform architecture: Admin Console, Qefro Runtime, FlowRunner, Metadata Marketplace Apps, Channels, External Integrations, and Security Boundaries."
 sidebar_label: "Qefro architecture"
 ---
 
 import { InfoBox, RelatedTopics, WorkflowCard } from '@site/src/components';
 
-# Qefro architecture
+# Qefro Architecture
 
-This page answers: **what are the moving parts, who owns what, and where does work run?**
+This document defines the canonical architecture of Qefro as of October 2026: **the system topology, execution planes, trust boundaries, and component ownership.**
 
-Use it when evaluating Qefro, onboarding engineers, or explaining the product to stakeholders. For a shorter intro, see [Introduction → Architecture](/docs/introduction/architecture). For multi-tenant isolation details, see [Multi-tenant AI Architecture](/docs/concepts/multi-tenant-ai-architecture).
+---
 
-## One-sentence model
+## 1. High-Level Canonical Architecture
 
-> **Configure** knowledge, tools, and Marketplace apps in the Admin Console; **execute** chat and flows in a single Runtime (RAG + FlowRunner + event bus); **reach customers and employees** through channels; **run Marketplace Apps as metadata** on Qefro Runtime. Connect **external** ERP / POS / CRM systems with the Backend SDK (`/qefro`) or REST/OpenAPI. Connectors only **emit events** — they never run a second orchestrator.
-
-## System map
+Qefro coordinates AI Workspaces, declarative Marketplace Apps, and external enterprise systems through a single multi-tenant runtime:
 
 ```mermaid
-flowchart LR
-  subgraph People[People]
-    Ops[Operators / admins]
-    Eng[Your backend engineers]
-    End[Customers and employees]
+flowchart TD
+  subgraph PLATFORM["QEFRO PLATFORM"]
+    direction TB
+    WS["AI Workspaces\n(Teams, Knowledge, Context)"]
+    MKT["Marketplace\n(Catalog Registry & Signing)"]
+    EXT["External Systems\n(Integration Layer)"]
   end
 
-  subgraph Qefro[Qefro cloud or self-host]
-    Admin[Admin Console]
-    Runtime[Runtime]
-    RAG[Hybrid RAG]
-    FR[FlowRunner]
-    Bus[Event bus]
-    API[Public API]
+  MKT -->|"Packages\n(manifest, entities, flows, ui)"| META["Metadata Apps"]
+  META -->|"Installed Package"| RT["Qefro Runtime"]
+  WS -->|"Conversation & Config"| RT
+
+  subgraph RUNTIME["Qefro Runtime Engine"]
+    direction TB
+    RAG["Hybrid RAG\n(Zvec Vector + BM25)"]
+    FR["FlowRunner\n(State Machine Orchestrator)"]
+    BUS["Event Bus\n(PostgreSQL + Idempotency)"]
+    ACT["Runtime Actions\n(Entity CRUD + HTTP Executor)"]
   end
 
-  subgraph Channels[Channels]
-    W[Website widget]
-    WA[WhatsApp]
-    IP[Internal Portal]
-  end
+  RT --> RAG
+  RT --> FR
+  RT --> BUS
+  RT --> ACT
 
-  subgraph YourStack[Your stack]
-    SDK[Backend SDK handlers]
-    REST[REST / OpenAPI APIs]
-    Conn[Connectors]
-    ERP[Commerce / ERP / CRM]
-  end
-
-  Ops --> Admin
-  Eng --> SDK
-  Eng --> Conn
-  End --> Channels
-  Admin --> Runtime
-  Channels --> Runtime
-  Runtime --> RAG
-  Runtime --> FR
-  Bus --> FR
-  Conn -->|emit namespaced events| Bus
-  FR -->|tool.invoke signed webhook| SDK
-  FR --> REST
-  SDK --> ERP
-  REST --> ERP
-  Conn --> ERP
-  API --> Runtime
+  EXT -->|"REST / OpenAPI / SDK Connection"| CONN["External Connectors"]
+  CONN --> EXT_SYS["Customer ERP / CRM / POS / Backends\n(Focus ERP, ERPNext, Odoo, SAP, Custom)"]
 ```
 
-## Layers
+---
 
-| Layer | Responsibility | Not responsible for |
-| --- | --- | --- |
-| **Admin Console** (`app.qefro.com`) | Workspaces, knowledge, Marketplace install, People, Marketing, RBAC, billing UX | Running app / ERP business logic |
-| **Runtime** | Chat orchestration, RAG retrieval, FlowRunner, event ingest/dispatch, tool invoke, approvals | Hosting your ERP |
-| **Solutions plane** | Catalog, install/upgrade, managed app lifecycle, capability sync, portal UI render | Per-tenant forks of packages |
-| **Channels** | Widget, WhatsApp, Internal Portal, chat API | Defining flow graphs |
-| **SDK apps** (`/qefro`) | Domain tools, `ctx.storage`, Hub/marketing/org registrations | Platform campaign delivery / RBAC |
-| **Backend SDK Connection** | Your tools over signed webhooks (Business Tools path) | Emitting platform-wide events without the bus |
-| **Connectors** | Normalize external webhooks → Qefro event envelopes (+ optional tool packs) | Owning FlowRunner or long-running workflows |
-| **REST / OpenAPI tools** | Call APIs with credentials stored encrypted in Qefro | Arbitrary code execution in Qefro |
+## 2. Two Distinct Application & Integration Models
 
-## Solutions plane
-
-Installable apps are a first-class plane next to assistants and Business Tools:
-
-```mermaid
-flowchart LR
-  Dev[App builder] -->|qefro create-app / publish| Cat[Catalog]
-  Cat --> SS[solution-service]
-  Ops[Admin] -->|Marketplace install| SS
-  SS -->|managed image or endpoint| App["/qefro process"]
-  Portal[Portal renderer] -->|manifest UI| SS
-  Runtime[Runtime tool invoker] -->|appId/tool| App
-  App -->|capabilities.list| Reg[Marketing / org / Hub registries]
-```
-
-| Piece | Role |
-| --- | --- |
-| **solution-service** | Package catalog, installations, settings, capability sync, onboarding |
-| **Managed app** | Docker (or external) process exposing signed `/qefro`; ADR-003: the process **is** the app |
-| **Marketplace** | Tenant-facing install / upgrade UX over the shared catalog |
-| **Portal renderer** | Declarative `ui/*` from the package → staff pages under `/app/solutions/…` |
-| **Capability registries** | Apps declare marketing audiences, org workflow caps, etc.; platform owns execution |
-
-Deep dive: [Solutions architecture](/docs/solutions/architecture), [Managed apps](/docs/solutions/managed-apps), [Build your first app](/docs/solutions/build-your-first-app).
-
-**SDK Connection vs SDK app:** a Backend SDK **webhook** is a Business Tool connection to your backend. An **SDK app** is an installable Marketplace package with its own `/qefro`. See [Core concepts](/docs/introduction/concepts).
-
-## Execution paths (same engine)
-
-All of these eventually use **FlowRunner** (and/or the chat pipeline) inside one Runtime:
-
-1. **Chat intent** — user message → model may select a Business Flow or tool.
-2. **Event** — connector or API emits `namespace.event` → matching flow `metadata.trigger`.
-3. **Schedule** — cron-style trigger materializes an event → FlowRunner.
-4. **Webhook** — inbound HTTP mapped to an event or flow start.
-5. **Resume** — approval granted or challenge verified continues a waiting run.
-
-There is **no parallel workflow engine inside connectors**. See [Event-driven triggers](/docs/guides/event-driven-triggers).
-
-## Data and tenancy
+The platform enforces a strict architectural boundary between native business applications and external integrations. They are **not** hosting variants of the same application model:
 
 ```text
-Organization (tenant)
-  └── Teams + RBAC (Owner / Admin / Member)
-        └── AI Workspaces
-              ├── Knowledge (indexed documents)
-              ├── Marketplace app installations (/qefro)
-              ├── Business Tools (REST / OpenAPI / SDK Connection)
-              ├── Business Flows (versioned)
-              ├── Customer Hub bindings (People)
-              ├── Conversations + messages
-              └── Channel bindings (widget, WhatsApp, …)
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ MODEL A: METADATA MARKETPLACE APP                                                │
+│                                                                                  │
+│   Developer ──▶ App Generator ──▶ Metadata Package ──▶ Marketplace Registry      │
+│                                                              │                   │
+│                                                       Workspace Install          │
+│                                                              ▼                   │
+│                                                        Qefro Runtime             │
+│                                              (Entities · Flows · UI · Events)    │
+│                                                                                  │
+│   • No application server or Docker container required                           │
+│   • Executed natively by Qefro Runtime                                           │
+│   • Managed storage triple-isolated (tenant_id / workspace_id / installation_id) │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ MODEL B: EXTERNAL SYSTEM INTEGRATION                                             │
+│                                                                                  │
+│   Qefro Runtime (FlowRunner) ──▶ REST / OpenAPI / SDK Connection ──▶ Ext Backend │
+│                                                                      (ERP / POS) │
+│                                                                                  │
+│   • Connects to existing external systems of record                              │
+│   • Runs on customer or third-party infrastructure                               │
+│   • Backend SDK communicates over HMAC-signed webhooks (`/qefro`)                │
+└──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-- Knowledge and conversations are **workspace-scoped**.
-- Installable apps are **catalog packages** installed per workspace (settings overlay).
-- Secrets for REST tools are **encrypted at rest**; SDK secrets sign webhooks to **your** origin or the managed app.
-- Audit and tool invocation logs support support and compliance workflows.
+---
 
-## Control vs data plane
+## 3. Platform Layers and Responsibilities
 
-| Plane | Examples |
-| --- | --- |
-| **Control** | Create workspace, upload docs, Accept flow version, manage members, configure WhatsApp |
-| **Data / runtime** | Chat messages, RAG chunks, flow runs, event records, tool.invoke payloads |
+| Layer | Primary Responsibilities | What It Does NOT Do |
+|---|---|---|
+| **Admin Console** (`app.qefro.com`) | Tenant onboarding, AI Workspace configuration, team RBAC, knowledge document ingestion, Marketplace browsing and installation. | Never executes live chat turns or business workflows directly. |
+| **Qefro Runtime** (`ai-customer-support`) | Chat orchestration, RAG context construction, candidate tool selection, action authority validation, FlowRunner step execution, entity mutations, and event emission. | Does not run arbitrary customer code or host third-party application servers. |
+| **Marketplace Registry & Installer** | Package validation, Ed25519 cryptographic signing, catalog discovery, workspace installation, version management, and UI bundle storage. | Never runs application logic; it manages package distributions. |
+| **FlowRunner** | Deterministic multi-step business flow state machine. Handles step advancement, parameter resolution, conditions, delays, external waits, and resumes. | Does not allow unauthenticated or unauthorized action execution. |
+| **Channels** | Inbound and outbound message processing for Website Widget, WhatsApp Cloud API, Instagram Messaging API, and authenticated REST Chat APIs. | Never bypasses workspace tenancy or runtime action authorization. |
+| **External SDK Connections** | Signed HTTPS webhook bridge (`/qefro`) allowing Qefro to invoke actions in customer-hosted backends (e.g. Focus ERP, Yaaz, custom ERPs). | Cannot invoke Marketplace entity operations or access Qefro runtime storage. |
+| **Connectors (Shared Pool)** | Shared, stateless webhook receivers normalizing upstream events (e.g., Stripe, Shopify, Razorpay) into standard Qefro event envelopes. | Connectors never run workflow logic; they only emit events onto the bus. |
 
-Operators mostly use the control plane. Developers extend the data plane with tools, events, and Customer Provider.
+---
 
-## Identity and trust boundaries
+## 4. Execution Pipeline & Action Authority
 
-1. **Org users** — JWT to Admin Console and org APIs.
-2. **Widget / channel sessions** — channel-specific tokens; optional `identify()` for known customers.
-3. **Customer Provider** — your backend authorizes high-risk tools and challenges (OTP, etc.).
-4. **SDK webhook** — HMAC (or equivalent) over body + timestamp; tools never run unauthenticated against Qefro’s trust of your origin.
+Qefro enforces the principle that **the model is never the authority boundary**.
 
-Deep links: [Identity & authentication](/docs/platform/identity-and-authentication), [Challenges](/docs/developer/concepts/challenges), [Business Tool runtime](/docs/business-tools/runtime).
+When an end user interacts with Qefro via chat or when an event triggers an automation, the runtime executes a four-tier pipeline:
 
-## What Qefro deliberately is not
+```mermaid
+flowchart TD
+  UserMsg["User Message / Inbound Event"] --> Tier1["1. Deterministic Pattern Match\n(Exact string match, bypasses LLM)"]
+  Tier1 -->|Miss| Tier2["2. Fast Router\n(Semantic embedding similarity)"]
+  Tier2 -->|Miss| Tier3["3. FlowRunner\n(Active or candidate Business Flow)"]
+  Tier3 -->|Miss| Tier4["4. Agent LLM Reasoning\n(Model proposes candidate actions)"]
 
-| Not this | Why it matters |
-| --- | --- |
-| A general visual automation canvas (n8n-class) | Flows are **AI + business process** graphs with RAG, channels, and approvals — not arbitrary ETL |
-| A low-level agent graph library (LangGraph-class) | You get a **productized Runtime** and Admin Console, not a framework you host and invent UX for |
-| A full human contact-center inbox | Human handoff exists; deep agent desktop is not the core product |
-| A replacement CRM / ERP | Qefro **calls** systems of record via tools and hosts **domain apps** that use Customer Hub + managed storage — not a full CRM replacement |
+  Tier3 --> AuthCheck["Runtime Action Authority Check"]
+  Tier4 --> AuthCheck
 
-Comparisons: [Qefro vs n8n](/docs/compare/n8n-vs-qefro), [Qefro vs LangGraph](/docs/compare/langgraph-vs-qefro).
+  subgraph SECURITY_ENFORCEMENT["Authority Enforcement"]
+    direction TB
+    Strip["Strip Forbidden Authority Keys\n(tenant_id, workspace_id, person_id, created_by)"]
+    RBAC["App & Org RBAC Check\n(Role & Capability verification)"]
+    Inject["Identity Injection\n(Inject authenticated Person from Customer Hub)"]
+  end
 
-## Deployment shapes
+  AuthCheck --> Strip --> RBAC --> Inject --> Exec["Actual Execution\n(RuntimeAdapter: entity.* CRUD | HTTP Executor | SDK)"]
+```
 
-- **Qefro Cloud** — multi-tenant SaaS (typical).
-- **Self-host / Docker** — compose stack (`api`, `llm-service`, `retrieval`, portals, nginx). See [Self-hosting](/docs/developer/self-hosting/overview) and [Production deployment](/docs/guides/production-deployment).
+1. **Model Proposes, Runtime Authorizes:** The LLM produces candidate actions and parameter values.
+2. **Authority Stripping:** The runtime unconditionally strips protected parameters (`tenant_id`, `workspace_id`, `installation_id`, `person_id`, etc.) from untrusted inputs.
+3. **RBAC & Capability Verification:** The runtime validates that the workspace and caller have the required capability and role before execution.
+4. **Identity Injection:** Identity fields (such as `person_id`) are injected server-side from the authenticated session, never from model text.
+5. **Execution:** Only validated actions reach the `RuntimeAdapter` (for Marketplace entity operations) or `SDKAdapter` (for external systems).
 
-## Mental model for new engineers
+---
 
-<WorkflowCard
-  title="First week architecture checklist"
-  steps={[
-    {title: 'Draw the tenant tree', description: 'Org → workspace → knowledge/tools/apps/channels.'},
-    {title: 'Trace one chat tool call', description: 'Widget → API → model → tool.invoke → SDK app or Connection → response.'},
-    {title: 'Trace one Marketplace install', description: 'Publish → catalog → install → /qefro healthy → staff UI.'},
-    {title: 'Trace one event flow', description: 'Connector emit → bus → FlowRunner → steps → complete.'},
-    {title: 'Read security boundaries', description: 'What never leaves your VPC (SDK Connection handlers) vs managed apps.'},
-  ]}
-/>
+## 5. FlowRunner: Single Canonical Workflow Engine
 
-## Related topics
+All workflows in Qefro execute through **FlowRunner**, whether triggered by conversational intent, business events, cron schedules, or incoming webhooks.
+
+There is **no secondary workflow engine**:
+
+- Connectors do **not** run workflows; they emit events.
+- Marketplace Apps define flows as metadata (`workflows/*.yaml`), which compile into FlowRunner definitions.
+- FlowRunner manages step execution, state transitions, variables, retries, and waiting states (user input, file uploads, human approvals, or identity challenges).
+
+See **[FlowRunner Architecture](/docs/developer/concepts/flows)** and **[Define Business Flows](/docs/guides/define-business-flows)** for details.
+
+---
+
+## 6. Tenancy & Isolation Hierarchy
+
+Qefro guarantees strict multi-tenant isolation at every layer:
+
+```text
+Organization (Tenant)
+  └── Teams & Org RBAC (Owner / Admin / Member)
+        └── AI Workspaces
+              ├── Knowledge Base & RAG Index (Isolated Vector Collection)
+              ├── Channel Connections (Widget, WhatsApp, Instagram)
+              ├── Customer Hub (People records scoped to tenant)
+              └── Marketplace App Installations
+                    ├── Metadata Bundle (manifest, entities, flows, ui)
+                    ├── Installation Settings (operating configs)
+                    └── Runtime Managed Storage (triple-keyed)
+```
+
+### Triple-Keyed Data Isolation
+
+Every record stored by Marketplace Apps is triple-keyed in runtime storage:
+
+```text
+Key = (tenant_id, workspace_id, installation_id)
+```
+
+No query can execute without all three keys present in the authenticated `StorageContext`. Data from one installation or workspace can never bleed into another.
+
+---
+
+## 7. What Qefro Deliberately Is Not
+
+To maintain architectural clarity, Qefro explicitly avoids these legacy or mismatched patterns:
+
+- **Not an Application Container Host:** Qefro does not run customer Docker containers or deploy customer application code in the cloud. Marketplace Apps are pure declarative metadata.
+- **Not a Replacement for Enterprise ERPs:** Qefro does not replace SAP, NetSuite, or Focus ERP. It connects to them as the intelligent reasoning and action layer via SDK Connections and REST APIs.
+- **Not a Generic Graph Framework:** Qefro does not require developers to hand-code Python LangGraph loops or maintain ad-hoc agent states. Business flows are declarative, auditable, and state-machine backed.
+
+---
+
+## Related Documentation
 
 <RelatedTopics
   topics={[
-    {label: 'Introduction architecture', to: '/docs/introduction/architecture'},
-    {label: 'Solutions architecture', to: '/docs/solutions/architecture'},
-    {label: 'Build your first app', to: '/docs/solutions/build-your-first-app'},
-    {label: 'Runtime', to: '/docs/developer/concepts/runtime'},
-    {label: 'Events', to: '/docs/developer/concepts/events'},
-    {label: 'vs n8n', to: '/docs/compare/n8n-vs-qefro'},
-    {label: 'vs LangGraph', to: '/docs/compare/langgraph-vs-qefro'},
-    {label: 'Multi-tenant architecture', to: '/docs/concepts/multi-tenant-ai-architecture'},
-    {label: 'Security overview', to: '/docs/security/overview'},
+    {label: 'Runtime Architecture', to: '/docs/developer/concepts/runtime'},
+    {label: 'Marketplace Architecture', to: '/docs/solutions/architecture'},
+    {label: 'Integration Models', to: '/docs/developer/integration-models'},
+    {label: 'FlowRunner Concepts', to: '/docs/developer/concepts/flows'},
+    {label: 'Multi-Tenant Security', to: '/docs/concepts/multi-tenant-ai-architecture'},
+    {label: 'Compare with n8n', to: '/docs/compare/n8n-vs-qefro'},
+    {label: 'Compare with LangGraph', to: '/docs/compare/langgraph-vs-qefro'},
   ]}
 />

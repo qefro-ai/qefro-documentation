@@ -68,7 +68,7 @@ getRegistration(): Promise<Record<string, unknown> | null>
 
 ## Sync
 
-Managed installs: solution-service refreshes marketing registration after install/upgrade via `capabilities.list` (best-effort).
+Marketplace app installs: The platform refreshes marketing registration after install or upgrade via declared manifest capabilities.
 
 ## Ownership boundary
 

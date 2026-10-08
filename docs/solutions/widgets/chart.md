@@ -84,4 +84,4 @@ keeps the headline visible.
 
 - [Table](/docs/solutions/widgets/table) — the rows behind the trend
 - [Sources](/docs/solutions/sources)
-- [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
+- [restaurant-pro-runtime example](/docs/solutions/examples/restaurant-pro-runtime)

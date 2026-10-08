@@ -74,7 +74,7 @@ Qefro **resolves** who is on the channel; the **organization** decides whether t
 
 Qefro does **not** send, store, or verify customer OTP codes. It relays challenge messages and forwards replies to your Access API. See [Identity & Authentication](/docs/platform/identity-and-authentication).
 
-Internal Portal Business Tool execution is **disabled in V1** (`BUSINESS_TOOLS_NOT_SUPPORTED`) until employee delegated authentication ships.
+Internal Portal actions are gated by **Organization and App RBAC** (`require_entity_permission()`), ensuring employee actions execute only with verified team permissions and audit logging.
 
 ## Super Admin vs tenant Admin
 

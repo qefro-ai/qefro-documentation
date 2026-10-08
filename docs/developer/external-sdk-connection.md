@@ -10,7 +10,7 @@ sidebar_label: "External SDK Connection"
 This tutorial connects an **existing** product catalog / ERP / quotation
 system to Qefro. To ship Restaurant, Clinic, or Real Estate on Marketplace
 without a backend, use
-[Managed Marketplace App](./managed-marketplace-app.md) instead.
+[Marketplace App Development](./managed-marketplace-app.md) instead.
 :::
 
 ## Goal
@@ -320,7 +320,7 @@ You control infrastructure, source, deployment, database, secrets, APIs, availab
 
 Qefro controls connection routing, HMAC, tenant/workspace routing, AI, workflows, platform capabilities.
 
-**Do not** (ABM guidance): publish as Marketplace managed app, create solution-service installation bindings, or put ERP domain tables into ACS.
+**Do not**: attempt to wrap an external ERP system as a Marketplace App; keep it cleanly as an SDK Connection.
 
 ## Production considerations
 

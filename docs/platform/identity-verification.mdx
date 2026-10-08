@@ -127,7 +127,7 @@ Qefro never stores customer OTP codes. Organization-issued Authentication Contex
 </Warning>
 
 <InfoBox>
-Authentication ≠ authorization. After the auth gate, tool preconditions and workspace RBAC still apply. Internal Portal Business Tool execution remains blocked in V1.
+Authentication ≠ authorization. After the auth gate, tool preconditions, workspace RBAC, and channel policy still apply.
 </InfoBox>
 
 ## Related
@@ -145,5 +145,5 @@ Authentication ≠ authorization. After the auth gate, tool preconditions and wo
   {question: 'Does WhatsApp trigger OTP for order status?', answer: 'Not if the tool is verified_channel. Meta-verified phone is enough. Organization challenges are owned by your Customer Access Service.'},
   {question: 'Who sends the OTP?', answer: 'Your organization. Qefro only relays messages and forwards replies to your Access API.'},
   {question: 'Does verified_channel unlock organization_challenge tools?', answer: 'No. Those tools need a successful response from your Customer Access Service.'},
-  {question: 'Can the Internal Portal execute Business Tools?', answer: 'Not in V1. The channel gate blocks Portal before auth and HTTPS.'},
+  {question: 'Can the Internal Portal execute Business Tools?', answer: 'Yes, when authenticated with appropriate workspace roles and permissions for internal tools.'},
 ]} />

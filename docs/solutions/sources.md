@@ -1,26 +1,26 @@
 ---
 title: "Sources"
-description: "sources.yaml — capability-gated data sources that feed widgets from entities, runtime, own-app /qefro tools, or the connector bridge."
+description: "ui/sources.yaml — capability-gated data sources that feed widgets from runtime entities, platform telemetry, or the connector bridge."
 sidebar_label: "Sources"
 ---
 
 # Sources
 
-`ui/sources.yaml` declares where widget data comes from. Solutions have
-**no direct network access** — a source is the only data path for the
-declarative UI.
+`ui/sources.yaml` declares where widget data comes from. Marketplace Apps have **no direct network access** in the browser — a source is the only declarative data path for the staff UI.
 
-In YAML there are three `type` values:
+In YAML there are three supported `type` values:
 
 | `type` | Meaning |
 | --- | --- |
 | `entity` | Declared Marketplace App entity (`target` is an entity id). **Default for `hosting: runtime`.** |
-| `runtime` | Tenant runtime plane (`metrics`, `executions`, `workflows`) |
-| `connector` | Tool target — **own-app** `{solution}/{tool}` (SDK-hosted), a **pool connector** op, or (deprecated) platform `storage/*` |
+| `runtime` | Tenant runtime plane (`metrics`, `executions`, `workflows`). |
+| `connector` | Shared pool connector op (e.g. `shopify/orders.list`) or workspace integration. |
 
-## Entity sources (Marketplace Apps)
+---
 
-From `restaurant-pro-runtime`:
+## 1. Entity Sources (Marketplace Apps)
+
+For native domain applications, widgets query declared entities in runtime storage:
 
 ```yaml title="ui/sources.yaml"
 - id: reservations
@@ -34,115 +34,86 @@ From `restaurant-pro-runtime`:
   target: menu_item
 ```
 
-`target` is the entity id from `entities/`. Runtime serves documents from
-managed storage. No `/qefro` process is involved.
+`target` matches the entity id from `entities/<id>.yaml`. Qefro Runtime serves documents from managed storage with triple-scoped isolation `(tenant_id, workspace_id, installation_id)`. No external application server is involved.
+
+### Field Specification
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | Yes | Source id referenced by widget `source:` fields. |
+| `id` | string | Yes | Unique source id referenced by widget `source:` fields. |
 | `type` | string | Yes | `entity`, `runtime`, or `connector`. |
-| `target` | string | Yes | Entity id, runtime name, `{solution}/{tool}`, or pool `{connector}/{op}`. |
-| `params` | map | No | Static parameters sent with every query. |
+| `target` | string | Yes | Entity id, runtime target name, or connector op. |
+| `params` | map | No | Static filter or pagination parameters sent with queries. |
 
-## Runtime sources
+Example with default filter parameters:
 
-`type: runtime` sources are served from the runtime plane:
-
-| Target | Returns |
-| --- | --- |
-| `metrics` | Aggregate runtime metrics (e.g. `executions.active`) |
-| `executions` | Workflow execution list for the tenant |
-| `workflows` | Registered workflow definitions |
-
-Runtime sources require the `runtime.query` capability (always granted).
-
-## Own-app sources (SDK-hosted packages)
-
-When `target` is `{solution}/{tool}` and `solution` is **this install**
-(e.g. `restaurant-pro/restaurant.listOrders`), the host:
-
-1. Gates on **`runtime.query`** (not `connector.invoke`).
-2. Resolves the installation binding and calls the app’s signed `/qefro`.
-3. Passes workspace-scoped `platform.storage` context so the tool’s
-   `ctx.storage` hits the correct partition.
-
-```yaml title="own-app source"
-- id: takeaway
-  type: connector
-  target: restaurant-pro/restaurant.listOrders
+```yaml
+- id: active_reservations
+  type: entity
+  target: reservation
   params:
     filter:
-      channel: takeaway
+      status: confirmed
+    sort:
+      scheduled_at: asc
     limit: 50
 ```
 
-This is the path for **SDK-hosted** solution-owned lists. Metadata
-Marketplace Apps use `type: entity` instead (see above). The app tool
-implements filters, validation, and `ctx.storage.find`.
+---
 
-## External connector sources
+## 2. Runtime Sources
 
-For **declared pool** connectors (POS, Shopify, …), `type: connector`
-sources are forwarded through the **connector bridge** and gated on
-`connector.invoke`:
+`type: runtime` sources query platform operational telemetry:
+
+| Target | Description |
+| --- | --- |
+| `metrics` | Aggregate workspace metrics (e.g. active conversations, tool executions). |
+| `executions` | Workflow execution history and active flow state runs for the workspace. |
+| `workflows` | Registered workflow definitions and status. |
+
+Runtime sources require the `runtime.query` capability (granted automatically).
+
+```yaml title="ui/sources.yaml (runtime metrics)"
+- id: flow_metrics
+  type: runtime
+  target: metrics
+  params:
+    window: 24h
+```
+
+---
+
+## 3. External Connector Sources
+
+For integrations with external SaaS systems (Shopify, Stripe, Razorpay), `type: connector` sources are forwarded through the platform's **connector bridge** and gated on `connector.invoke`:
 
 ```mermaid
 flowchart LR
-    W[widget] --> DS[Data source layer]
-    DS -->|capability check| CAP{connector.invoke<br/>granted?}
-    CAP -->|yes| B[Connector bridge]
-    CAP -->|no| X[no request fired]
-    B -->|orders.list + params| POOL[shared connector pool]
+    W[Widget] --> DS[Data Source Layer]
+    DS -->|Capability check| CAP{connector.invoke<br/>granted?}
+    CAP -->|Yes| B[Connector Bridge]
+    CAP -->|No| X[Denied / Error Card]
+    B -->|orders.list + params| POOL[Shared Connector Pool]
     POOL --> B --> DS
 ```
 
-1. `connector.invoke` must be granted.
-2. The connector must be listed in `manifest.connectors`.
-3. Calls carry tenant context; connectors stay in the shared pool.
+1. The package must declare `connector.invoke` in its permissions.
+2. The target connector must be declared in `manifest.connectors`.
+3. The bridge attaches tenant credentials and forwards requests to the shared connector pool.
 
-## Deprecated: `storage/*` UI sources
-
-```yaml
-# FORBIDDEN — do not ship
-- id: orders
+```yaml title="ui/sources.yaml (connector source)"
+- id: shopify_orders
   type: connector
-  target: storage/find
+  target: shopify/orders.list
   params:
-    collection: orders
+    limit: 25
 ```
 
-Replace with an app list tool. Direct `storage/find` from the UI put
-business shape on the platform path and skipped the SDK process.
+---
 
-## Restaurant Pro source map (1.10.7)
+## Related Documentation
 
-| Source | Target | Gate | Feeds |
-| --- | --- | --- | --- |
-| `runtime_metrics` | `metrics` | `runtime.query` | Dashboard metrics |
-| `orders` | `restaurant-pro/restaurant.listOrders` | `runtime.query` | Orders / kitchen |
-| `takeaway` | `restaurant-pro/restaurant.listOrders` + filter | `runtime.query` | Takeaway list |
-| `takeaway_demand` | `restaurant-pro/restaurant.listTakeawayDemand` | `runtime.query` | Tomorrow’s cook list |
-| `menu` | `restaurant-pro/restaurant.listMenu` | `runtime.query` | Menu |
-| `payments` | `restaurant-pro/restaurant.listPayments` | `runtime.query` | Payments |
-| `customers` | `restaurant-pro/restaurant.listCustomers` | `runtime.query` | CRM |
-
-## Guidelines
-
-- One source per **query shape**, not per widget — multiple widgets can
-  share a source.
-- Prefer **own-app tools** for solution-owned documents; use pool
-  connectors for external systems of record.
-- Use `params.limit` everywhere a list is unbounded.
-- Match the capability gate to the target (`runtime.query` for own-app,
-  `connector.invoke` for pool, `runtime.query` for runtime metrics).
-- Always pass install `workspace_id` on UI data queries (portal host does
-  this for workspace-scoped installs).
-
-## Related topics
-
-- [Managed apps](/docs/solutions/managed-apps)
-- [Managed storage](/docs/solutions/managed-storage)
-- [Capabilities](/docs/solutions/capabilities)
-- [Connectors](/docs/solutions/connectors)
-- [Widgets](/docs/solutions/widgets/metric)
-- [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
+- [Widgets Specification](/docs/solutions/widgets/table)
+- [Pages and Views](/docs/solutions/pages)
+- [Entity Schema Guide](/docs/solutions/entity-schema)
+- [Connectors Overview](/docs/solutions/connectors)

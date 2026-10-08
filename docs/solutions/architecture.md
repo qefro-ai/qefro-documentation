@@ -53,8 +53,8 @@ External ERP / POS / CRM:
 ```
 
 SDK Connections (`hosting: external`) are how Focus ERP / Yaaz attach —
-not Marketplace Apps. See [Managed apps](/docs/solutions/managed-apps)
-only as a pointer to the removed `/qefro` Marketplace model.
+not Marketplace Apps. See [Marketplace Apps Execution Model](/docs/solutions/managed-apps)
+for the canonical metadata runtime architecture.
 
 ## The pipeline
 
@@ -218,8 +218,8 @@ entity.reservation.create (Runtime capability)
 Isolation, reserved metadata, soft delete, and audit are enforced by
 storage-service. See [Managed storage](/docs/solutions/managed-storage).
 
-SDK Connections persist only via `ctx.storage` inside `/qefro` — never
-from workflow/UI YAML targeting `storage/*`.
+External SDK Connections manage their own persistence in the external system
+of record (ERP/POS/CRM); they do not write to Qefro entity storage.
 
 ## Connector bridge
 
@@ -234,9 +234,8 @@ bridge, which:
 - enforces that the calling solution holds `connector.invoke` and declared
   the connector in its manifest.
 
-Sources whose `target` is `{solution}/{tool}` for an **SDK-hosted**
-install skip the pool bridge and call that installation `/qefro` (gated
-on `runtime.query`). Metadata apps use `type: entity` sources instead —
+Metadata Marketplace Apps use `type: entity` sources to query declared runtime
+storage collections, or generic HTTP sources for connected services —
 see [Sources](/docs/solutions/sources).
 
 See [Connectors](/docs/solutions/connectors) and the
@@ -254,7 +253,7 @@ The portal renders solution UIs **natively** at
 | Navigation engine | Bundle navigation under **Managed solution** in the portal sidebar |
 | Widget registry | Closed widget-kind list rendered with platform UI primitives |
 | Layout engine | Responsive grid (1 column on mobile, `columns` at ≥ 1024 px) |
-| Data sources | Capability-gated fetches from runtime, own-app `/qefro`, or pool bridge |
+| Data sources | Capability-gated fetches from runtime entities or pool bridge |
 | Capabilities | The `ui.*` host API, implemented in-process |
 | UI boundary | Error boundary + schema coercion — broken definitions degrade to a scoped error card |
 

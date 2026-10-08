@@ -13,15 +13,13 @@ sidebar_label: "Storage"
 Marketplace Apps persist declared entities through **Runtime** tools
 (`entity.reservation.create`) into storage-service. No SDK process.
 
-SDK-hosted / external apps use:
+External SDK connections that use platform storage interact with:
 
 ```text
 ctx.storage  →  storage-service  →  documents
 ```
 
-Examples (Restaurant Pro Runtime): `reservation`, `table`, `menu_item`.
-SDK takeaway `restaurant-pro` still uses `ctx.storage` collections
-(`orders`, `menu_items`, …).
+When an external SDK tool is invoked with storage binding, handlers can access durable tenant-scoped collections through `ctx.storage`.
 
 ### Platform-owned data
 

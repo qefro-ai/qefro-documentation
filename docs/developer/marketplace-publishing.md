@@ -9,8 +9,7 @@ sidebar_label: "Marketplace publishing"
 Applies to **Marketplace Apps**. External SDK Connections do not use this
 path — they register a webhook under Business Tools.
 
-Default packages are **metadata** (`hosting: runtime`). `hosting: managed`
-is not supported.
+All Marketplace App packages are declarative **metadata** (`hosting: runtime`).
 
 ## Lifecycle
 
@@ -53,12 +52,11 @@ On upgrade, solution-service re-registers with the runtime plane and best-effort
 
 ## Manifest essentials
 
-`id`, `name`, `version`, `hosting` (`runtime` for metadata apps),
-`entities` / `flows` / `events`, `permissions`, `capabilities`, optional
-`ui`, `triggers`, `conversation_slots`. SDK-hosted packages also set
-`endpoint`, `tools`, `Dockerfile`.
+`id`, `name`, `version`, `hosting: runtime`,
+`entities`, `flows`, `events`, `permissions`, `capabilities`,
+`ui`, `triggers`, `conversation_slots`, and `connectors`.
 
-See [managed-marketplace-app.md](./managed-marketplace-app.md) and [Solution packaging](/docs/solutions/packaging).
+See [Marketplace App Development](./managed-marketplace-app.md) and [Solution Packaging](/docs/solutions/packaging).
 
 ## Secrets & settings
 

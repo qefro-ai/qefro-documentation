@@ -69,7 +69,7 @@ Step types map onto the runtime's flow engine — the same model as
 | Step | Purpose |
 | --- | --- |
 | `ask` | Collect input from a user on a channel |
-| `tool` | Call a Runtime entity capability (`entity.<id>.create`, `execution: runtime`) or, for SDK-hosted / pool apps, a connector / `/qefro` tool |
+| `tool` | Call a Runtime entity capability (`entity.<id>.create`, `execution: runtime`) or an authorized connector / business tool |
 | `condition` | Branch on payload values |
 | `delay` | Wait a declared duration |
 | `approval` | Pause for an explicit portal approval |

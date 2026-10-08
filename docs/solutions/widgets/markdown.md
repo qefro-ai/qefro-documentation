@@ -78,4 +78,4 @@ Companion pane beside the revenue trend on the Reports page:
 
 - [Pages](/docs/solutions/pages)
 - [Events](/docs/solutions/events) — the `ui.action` audit events mentioned above
-- [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
+- [restaurant-pro-runtime example](/docs/solutions/examples/restaurant-pro-runtime)

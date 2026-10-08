@@ -381,7 +381,7 @@ Product Search → Pricing → Quotation
 Organization Approval (opaque actions)
 ```
 
-ABM should keep the connector on its own infrastructure because the connector accesses ABM’s existing systems. Do not publish ABM as a Marketplace managed app unless you intentionally re-host that integration.
+ABM should keep the connector on its own infrastructure because the connector accesses ABM's existing systems. Do not build ABM as a Marketplace app unless you intentionally migrate that domain data into native runtime entities.
 
 ---
 

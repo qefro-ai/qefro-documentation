@@ -187,4 +187,4 @@ with different entities (property / lead / viewing).
 - [Manifest](/docs/solutions/manifest)
 - [Workflows](/docs/solutions/workflows)
 - [Events](/docs/solutions/events)
-- [SDK restaurant-pro (historical)](/docs/solutions/examples/restaurant-pro)
+- [Marketplace Apps Examples](/docs/solutions/examples/marketplace-apps)

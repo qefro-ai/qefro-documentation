@@ -90,4 +90,4 @@ Dashboard placement — a compact span-3 card beside the revenue chart:
 
 - [Sources](/docs/solutions/sources)
 - [Pages](/docs/solutions/pages)
-- [restaurant-pro example](/docs/solutions/examples/restaurant-pro)
+- [restaurant-pro-runtime example](/docs/solutions/examples/restaurant-pro-runtime)

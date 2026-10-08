@@ -1,81 +1,79 @@
 ---
 title: "Application Integration Manual"
-description: "Developer index: metadata Marketplace Apps (default) vs Qefro SDK for connecting external ERP / POS / CRM systems."
+description: "Developer index: metadata Marketplace Apps executed by Qefro Runtime vs external integrations via Backend SDK and REST/OpenAPI."
 sidebar_label: "Integration manual"
 ---
 
 # Application Integration Manual
 
-Two different stories:
+This manual provides developers and system architects with the definitive guide to building and integrating on Qefro.
 
-| Path | One-line summary |
-| --- | --- |
-| **Marketplace App** | Metadata package executed by **Qefro Runtime**. No backend required. |
-| **External SDK Connection** | Connect an existing ERP / POS / CRM with the **Qefro SDK** over `/qefro`. |
+---
+
+## 1. Two Application & Integration Paradigms
 
 ```text
-Developer → Create App Metadata → Validate → Package → Publish
-  → Install into Workspace → Qefro Runtime
+A. METADATA MARKETPLACE APP (DOMAIN APPLICATION)
+   Developer ──▶ Metadata Package ──▶ Validate ──▶ Publish ──▶ Workspace Install ──▶ Qefro Runtime
+   (Pure declarative YAML: entities, workflows, UI, events. Zero application servers.)
 
-External ERP / POS / CRM → Qefro SDK → /qefro → Qefro Runtime
+B. EXTERNAL SYSTEM INTEGRATION (ERP / POS / CRM)
+   External Backend ──▶ Qefro Backend SDK ──▶ POST /qefro ──▶ SDKAdapter ──▶ Qefro Runtime
+   (Connect existing systems of record over signed webhooks or REST/OpenAPI.)
 ```
 
-Do **not** start from “write a `/qefro` server to publish a Marketplace
-App.” That is the external-integration path.
+Full comparison: **[Runtime vs SDK](/docs/solutions/runtime-vs-sdk)** · **[Integration Decision Guide](./integration-models.md)**.
 
-Full comparison: [Runtime vs SDK](/docs/solutions/runtime-vs-sdk).
+---
 
-## Start here
+## 2. Core Guides
 
-1. [Build your first app](/docs/solutions/build-your-first-app) — metadata Marketplace App
-2. [Runtime vs SDK](/docs/solutions/runtime-vs-sdk) — which path you are on
-3. [Building Applications for Qefro](./application-integration-guide.md) — both paths in one manual
-4. [Integration models](./integration-models.md)
+1. **[Build Your First App](/docs/solutions/build-your-first-app)** — Step-by-step metadata Marketplace App walkthrough.
+2. **[Marketplace App Development Tutorial](./managed-marketplace-app.md)** — In-depth tutorial covering manifest, entities, workflows, and UI.
+3. **[External SDK Connection Guide](./external-sdk-connection.md)** — Connecting external ERP, POS, and CRM backends over signed webhooks.
+4. **[Integration Models & Decision Guide](./integration-models.md)** — Architectural decision matrix (Marketplace vs SDK vs REST).
+5. **[Migrating to Metadata Apps](./migration-external-to-managed.md)** — Transitioning bespoke code to native metadata apps.
 
-## Tutorials
+---
 
-| Tutorial | Path | Reference implementation |
-| --- | --- | --- |
-| [Managed Marketplace App](./managed-marketplace-app.md) | Metadata → Runtime | `restaurant-pro-runtime`, `real-estate-runtime`, `shopify-runtime` ([collection](/docs/solutions/examples/marketplace-apps)) |
-| [External SDK Connection](./external-sdk-connection.md) | SDK → `/qefro` | `abm-demo`, `mock-order-status-sdk` (Focus / Yaaz / ABM style) |
-| [Migration: External → Managed](./migration-external-to-managed.md) | SDK packaging | Same SDK app, different plumbing |
+## 3. Protocol & SDK Reference (External Systems)
 
-## Protocol & SDK (external systems)
+For connecting existing external systems of record:
 
-| Topic | Doc |
-| --- | --- |
-| SDK application development | [sdk-application-development.md](./sdk-application-development.md) |
-| `/qefro` protocol | [qefro-protocol.md](./qefro-protocol.md) |
-| Tools | [tools.md](./tools.md) |
-| Authentication (HMAC) | [authentication.md](./authentication.md) |
-| Tenancy & workspaces | [tenancy-and-workspaces.md](./tenancy-and-workspaces.md) |
+| Topic | Description | Documentation |
+|---|---|---|
+| **Backend SDK Development** | Building signed RPC handlers in Node.js, Python, or Rust | [SDK Application Development](./sdk-application-development.md) |
+| **The `/qefro` Protocol** | JSON-RPC wire format, headers, and payload schemas | [Qefro Protocol Reference](./qefro-protocol.md) |
+| **Tool Definitions** | Exposing business tools with parameter schemas | [Tools](./tools.md) |
+| **HMAC Authentication** | Cryptographic verification via `X-Qefro-Signature` | [Authentication](./authentication.md) |
+| **Tenancy & Workspaces** | Handling tenant and workspace context in external tools | [Tenancy & Workspaces](./tenancy-and-workspaces.md) |
+| **Deployment** | Deploying SDK webhook processes in Docker, Kubernetes, or VMs | [Deploying External SDK Connections](./deployment/external-and-managed.md) |
 
-## Platform capabilities
+---
 
-| Capability | Doc |
-| --- | --- |
-| Managed storage | [storage.md](./storage.md) · [solutions/managed-storage](/docs/solutions/managed-storage) |
-| Customer Hub (`ctx.customer`) | [customer-hub.md](./customer-hub.md) |
-| Organization | [organization.md](./organization.md) |
-| Marketing | [marketing.md](./marketing.md) |
-| Workflows / FlowRunner | [workflows.md](./workflows.md) · [solutions/workflows](/docs/solutions/workflows) |
+## 4. Platform Capabilities
 
-## Ship & operate
+| Capability | Overview | Documentation |
+|---|---|---|
+| **Managed Runtime Storage** | Declarative persistence with triple-keyed isolation | [Storage](./storage.md) · [Managed Storage](/docs/solutions/managed-storage) |
+| **Customer Hub** | Universal customer identity linking people across channels | [Customer Hub](./customer-hub.md) · [People](/docs/user/people/overview) |
+| **Organization & Teams** | Tenant RBAC, permissions, and workspace scoping | [Organization](./organization.md) · [RBAC](/docs/platform/rbac) |
+| **FlowRunner** | Multi-step deterministic state machine execution | [FlowRunner Concepts](/docs/developer/concepts/flows) · [Workflows](/docs/solutions/workflows) |
+| **Global Tax Engine** | Jurisdiction-based calculation rules for transactions | [Tax Engine](/docs/solutions/tax-engine) |
 
-| Topic | Doc |
-| --- | --- |
-| Deployment (SDK processes) | [deployment/external-and-managed.md](./deployment/external-and-managed.md) |
-| Marketplace publishing | [marketplace-publishing.md](./marketplace-publishing.md) |
-| Testing | [testing.md](./testing.md) |
-| Security | [security.md](./security.md) |
-| Troubleshooting | [troubleshooting.md](./troubleshooting.md) |
+---
 
-## Related docs (existing hubs)
+## 5. Publishing & Marketplace
 
-- [Solution Development](/docs/solutions/overview) — metadata packaging, UI, marketplace
-- [Register SDK Business Tools](/docs/guides/register-sdk-business-tools) — Org Portal sync walkthrough
-- [JavaScript SDK](/docs/developer/sdk/javascript) — language-specific API notes
+- **[Validation](/docs/solutions/validation)** — Validating metadata with `qefro app validate`.
+- **[Packaging](/docs/solutions/packaging)** — Generating signed distribution artifacts with `qefro app package`.
+- **[Marketplace Publishing](/docs/solutions/publishing)** — Publishing packages to the global catalog.
+- **[Installation](/docs/solutions/installation)** — Installing apps into tenant workspaces.
 
-**Verified against:** Marketplace `hosting: runtime` packages
-(`restaurant-pro-runtime`), `@qefro-ai/backend` **1.7.0** for the SDK
-path, protocol version **1**.
+---
+
+## Related Documentation
+
+- [Runtime Architecture Overview](/docs/developer/concepts/runtime)
+- [Security & Trust Boundaries](/docs/security/overview)
+- [Connect REST APIs](/docs/guides/connect-rest-apis)

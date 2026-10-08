@@ -20,23 +20,21 @@ A **Business Action** is the runtime execution of a **Business Tool** during a c
 
 Flow in production:
 
-1. User message arrives (Website Widget or WhatsApp; Internal Portal is knowledge-only in V1)
-2. Assistant retrieves workspace knowledge (hybrid RAG)
-3. When appropriate, the model selects an allowed tool in that workspace (customer channels only)
-4. Qefro authorizes the call, performs SSRF-safe HTTPS egress, and records an execution log
-5. Result is folded into the assistant reply
+1. User message arrives across supported channels (Website Widget, WhatsApp, Instagram, or Internal Portal)
+2. Assistant retrieves workspace knowledge (Hybrid RAG)
+3. When appropriate, the model proposes an allowed tool attached to that workspace
+4. Qefro strictly authorizes the call, verifies action authority, performs SSRF-safe execution, and records an immutable execution log
+5. The result is folded into the assistant reply or advances the active flow
 
-### Channel support (V1)
+### Channel Support
 
-| Channel | Business Tool execution |
-| --- | --- |
-| Website Widget | ✓ Supported |
-| WhatsApp | ✓ Supported |
-| Internal Portal | ✗ Not supported |
-
-Internal Portal requests that would require a Business Tool receive a structured `BUSINESS_TOOLS_NOT_SUPPORTED` response. Knowledge search and RAG continue to work normally.
-
-Future Portal support may use enterprise SSO, OAuth On-Behalf-Of, identity federation, employee identity delegation, and JWT forwarding — without removing the existing channel gate.
+| Channel | Business Action Execution | Audience |
+| --- | --- | --- |
+| Website Widget | ✓ Supported | End-user / Customer |
+| WhatsApp | ✓ Supported | End-user / Customer |
+| Instagram | ✓ Supported | End-user / Customer |
+| Internal Portal | ✓ Supported | Staff / Employee (Role-gated) |
+| REST Chat API | ✓ Supported | Authenticated applications |
 
 ## Why it exists
 

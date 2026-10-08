@@ -4,99 +4,137 @@ Official documentation website for **[Qefro](https://qefro.com)** — the AI Wor
 
 Built with [Docusaurus 3](https://docusaurus.io/), React, TypeScript, and MDX.
 
-## V1 Documentation Track
+---
 
-This repository now includes a full V1 adoption track focused on:
-- onboarding speed
-- production deployment
-- security and reliability defaults
-- copy-paste examples
+## Canonical Architecture
 
-Start at:
-- /docs/v1
-- /docs/v1/getting-started
-- /docs/v1/quick-start
-- /docs/v1/deployment
+Qefro unifies AI workspaces, metadata-driven marketplace apps, and external enterprise systems under a single runtime execution model:
 
-Runnable `@qefro-ai/backend` examples: [SDK repo examples](https://github.com/qefro-ai/qefro-js-backend-sdk/tree/main/examples) (mirrored under [examples](examples/README.md)).
+```text
+                         QEFRO
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+        ▼                  ▼                  ▼
+   AI Workspaces      Marketplace         External Systems
+        │                  │                  │
+        │                  ▼                  │
+        │          Metadata Apps             │
+        │                  │                  │
+        │                  ▼                  │
+        │            Qefro Runtime            │
+        │                  │                  │
+        ├──────────────┬───┼──────────────┐   │
+        │              │   │              │   │
+        ▼              ▼   ▼              ▼   ▼
+      RAG         FlowRunner Events    Actions  SDK/REST
+        │              │   │              │     │
+        └──────────────┴───┴──────────────┘     │
+                                               │
+                                      ERP / CRM / POS /
+                                      external services
+```
 
-## Quick start
+### Application & Integration Models
+
+The platform cleanly separates two integration models:
+
+1. **Metadata Marketplace Apps (`hosting: runtime`)**:
+   - Declarative packages consisting of `manifest.json`, `entities/`, `workflows/`, and `ui/`.
+   - Executed and rendered directly by the Qefro Runtime.
+   - Requires **zero application servers or custom containers** from the developer.
+   - Governed by triple-keyed tenant isolation (`tenant_id`, `workspace_id`, `installation_id`), optimistic concurrency, and managed entity storage.
+
+2. **External System Integrations**:
+   - Connects external customer systems of record (ERP, CRM, POS, internal microservices).
+   - Integrated via REST/OpenAPI tools or Backend SDK connections (`@qefro-ai/backend`, `qefro-backend`, `qefro-backend-sdk`) receiving signed HMAC webhooks on `POST /qefro`.
+   - Ideal for bespoke business logic and legacy database systems.
+
+---
+
+## Documentation Hubs
+
+The documentation is organized across four core hubs:
+
+- **Start**: Overview, core architecture, conceptual foundations, and platform comparisons.
+- **Build Apps**: Marketplace App development, App Generator, entity schemas, FlowRunner workflows, UI views, and SDK integrations.
+- **Operate**: AI Workspaces, omnichannel conversation management (Website Widget, WhatsApp, Instagram), Customer Hub, approvals, and administration.
+- **Reference**: REST APIs, SDK references, connector specifications, event catalogs, CLI tooling, and security models.
+
+---
+
+## Quick Start
 
 ```bash
+# Install dependencies
 npm install
+
+# Start local development server
 npm run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) to view the documentation locally.
 
-## Scripts
+---
+
+## Scripts & Validation
 
 | Command | Description |
 | --- | --- |
 | `npm run start` | Local dev server with hot reload |
-| `npm run build` | Production static build → `build/` (runs `generate:llms` first) |
-| `npm run generate:llms` | Refresh `static/llms.txt` + `static/llms-full.txt` |
+| `npm run build` | Production static build → `build/` (triggers `generate:llms` automatically) |
+| `npm run generate:llms` | Refresh `static/llms.txt` and `static/llms-full.txt` |
 | `npm run serve` | Serve the production build locally |
-| `npm run typecheck` | TypeScript check |
-| `npm run lint:md` | Markdown lint |
-| `npm run check:links` | Internal link check (after `build`) |
-| `node scripts/generate-docs.mjs` | Regenerate structured doc stubs |
+| `npm run typecheck` | TypeScript verification |
+| `npm run lint:md` | Markdown linting |
+| `npm run check:links` | Internal broken link checker (post-build) |
 
-## Stack
+---
 
-- Docusaurus 3 + classic preset
-- `@docusaurus/theme-mermaid` for architecture diagrams
-- `@easyops-cn/docusaurus-search-local` (docs + blog, `Ctrl/⌘ + K`)
-- Prism syntax highlighting (Rust, TypeScript, Python, Bash, JSON, …)
-- Qefro brand theme (Plus Jakarta Sans, violet `#7c3aed`, cyan accent `#0891b2`)
-
-## Repository layout
+## Repository Layout
 
 ```text
-docs/           Documentation (getting-started, platform, guides, api, security, compare)
-blog/           Product & engineering blog
-src/components  Reusable MDX components
-src/css         Brand theme
-src/pages       Homepage
-static/         Logos, robots.txt, assets
-scripts/        Doc generator + link checker
-.github/        CI, Cloudflare Pages, GitHub Pages
+docs/
+  ├── architecture/       System architecture, execution planes, tenant isolation
+  ├── business-tools/     REST & SDK business tool integrations
+  ├── compare/            Architectural comparisons with ecosystem tools
+  ├── developer/          Runtime concepts, FlowRunner, SDK references, deployment
+  ├── guides/             Task-oriented implementation runbooks
+  ├── introduction/       Foundational concepts and platform overview
+  ├── platform/           Channels (WhatsApp, Instagram, Widget), RBAC, workspaces
+  ├── reference/          API specifications, schemas, events, configuration
+  ├── security/           Action authority, encryption, tenancy, compliance
+  ├── solutions/          Marketplace apps, App Generator, entities, storage, tax engine
+  └── user/               Operator guide for Admin Console and workflows
+blog/                     Product and engineering architectural updates
+src/components/           Reusable MDX components
+src/css/                  Brand styling and typography
+static/                   Logos, robots.txt, llms.txt, llms-full.txt
+scripts/                  LLM export generator and link verification
 ```
 
-## Deployment
+---
 
-`npm run build` emits a fully static site suitable for:
+## Deployment & AI Discovery (GEO)
 
-- Cloudflare Pages (default CI deploy job)
-- GitHub Pages (`pages.yml`)
-- Netlify / Vercel / any static host
+Static assets are built via `npm run build` for Cloudflare Pages (`https://docs.qefro.com`).
 
-Set secrets for Cloudflare:
+### AI Discovery Endpoints
 
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
+- **Curated Index**: [`https://docs.qefro.com/llms.txt`](https://docs.qefro.com/llms.txt) (llmstxt.org standard)
+- **Full Markdown Export**: [`https://docs.qefro.com/llms-full.txt`](https://docs.qefro.com/llms-full.txt)
 
-Production URL (canonical): `https://docs.qefro.com`
-
-Cloudflare Pages is the production deploy path (`.github/workflows/ci.yml`). The GitHub Pages workflow is **manual-only** fallback and is not required for launch.
-
-### AI discovery (GEO)
-
-| Endpoint | Purpose |
-| --- | --- |
-| https://docs.qefro.com/llms.txt | Curated doc map ([llmstxt.org](https://llmstxt.org)) |
-| https://docs.qefro.com/llms-full.txt | Full Markdown dump of all docs |
-
-Regenerated automatically on `npm run build` / `start`.
+---
 
 ## Contributing
 
-1. Prefer clear definitions first (GEO-friendly).
-2. Link related concepts (no orphan pages).
-3. Include Mermaid for architecture-heavy topics.
-4. Keep compare pages factual — no misleading claims.
-5. Run `npm run build` before opening a PR.
+1. **Architecture Alignment**: Ensure new pages adhere to the canonical Qefro Runtime and FlowRunner architecture. Never introduce obsolete V1 or legacy managed-app hosting concepts.
+2. **Implementation Wins**: Align all specifications with working runtime implementations in Qefro repositories.
+3. **Internal Links**: Use root-relative markdown links (`/docs/...`). Run `npm run check:links` before committing.
+4. **Validation**: Ensure `npm run typecheck`, `npm run lint:md`, and `npm run build` pass cleanly with zero warnings or errors.
+
+---
 
 ## License
 
-Documentation © Qefro. Source code for this site is available under the repository license terms.
+Documentation © Qefro. All rights reserved.
