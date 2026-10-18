@@ -1,12 +1,11 @@
 ---
-id: solutions-ui-evidence
 title: UI evidence matrix
 sidebar_label: UI evidence
 ---
 
 # UI evidence matrix
 
-[Marketplace handbook](./handbook.md) · [Attribute reference](./ui-reference.md)
+[Marketplace handbook](./handbook.md) · [Attribute inventory](./attribute-inventory.md)
 
 This matrix was written after reading the wire schema, publish validator, workspace overlay, asset validator, and portal renderer, before revising the UI guides. References are workspace-relative `path:line` locations, not deployed-version guarantees. **Tests listed here were read, not executed.** No browser or UI server was run.
 

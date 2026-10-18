@@ -41,7 +41,7 @@ Natural / Business Requirements
 1. **Natural / Business Requirements:** You specify domain requirements (e.g. "We need a clinic management app with patients, appointments, doctors, and WhatsApp booking with Doctor availability checks").
 2. **App Planning:** Identify domain nouns, entity schemas, required fields, foreign key relations, availability rules, and staff navigation pages.
 3. **Metadata Generation:** Scaffold or generate the YAML metadata package structure.
-4. **Validation:** Run `qefro app validate .` to ensure field types, flow steps, and capabilities meet the platform contract.
+4. **Validation:** Run `qefro app validate .` to confirm the package shape (manifest present and parseable, `id` set, `hosting` not `managed`, `workflows/` present, `entities/` or `src/` present). It does **not** check field types, flow steps, capabilities or permissions — those are enforced at publish. See [Validation](/docs/solutions/validation).
 5. **Tests:** Validate conversational turns against FlowRunner and staff UI layouts against portal rendering schemas.
 6. **Package:** Run `qefro app package .` to build the immutable distribution bundle with cryptographic checksums.
 7. **Publish:** Platform administrators publish the package to the global Marketplace Registry.

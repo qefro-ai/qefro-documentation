@@ -181,6 +181,10 @@ See [Validation](/docs/solutions/validation),
 [Publishing](/docs/solutions/publishing),
 [Installation](/docs/solutions/installation).
 
+`qefro app validate` only confirms the package shape. The first time your
+metadata meets the full contract is the publish call, which returns
+`invalid manifest: {section}: {detail}`.
+
 ## Step 7 — Open the UI
 
 ```text

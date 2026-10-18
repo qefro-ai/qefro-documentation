@@ -14,31 +14,49 @@ fixes.
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `solution id must be kebab-case` | `id` has capitals, `_` or starts with a digit | Rename to lowercase kebab-case, e.g. `restaurant-pro` |
-| `workflow file missing` | `flows:` lists an id with no `workflows/<id>` definition | Add the definition or remove the entry |
-| `no signing key` | Neither `QEFRO_SIGNING_KEY_HEX` nor `QEFRO_KEYS_FILE` resolves | Provide a key — see [Packaging](/docs/solutions/packaging) |
-| `manifest.yaml not found` | Build run outside the solution root | Run `qefro solution build .` from the package directory |
+| `solution id must be kebab-case: {id}` | `id` has capitals, `_` or starts with a digit | Rename to lowercase kebab-case, e.g. `restaurant-pro` |
+| `missing definition: {dir}/workflows/{id}.yaml` | `flows:` lists an id with no `workflows/<id>` definition | Add the definition or remove the entry |
+| `no signing key: set QEFRO_SIGNING_KEY_HEX or provide {path}` | Neither `QEFRO_SIGNING_KEY_HEX` nor `QEFRO_KEYS_FILE` resolves | Provide a key — see [Packaging](/docs/solutions/packaging) |
+| `manifest.yaml not found in {dir}` | Build run outside the solution root | Run `qefro solution build .` from the package directory |
+| `dev ok` then `error: missing definition: …` | `qefro app validate` prints its success line before assembling the package | Treat `dev ok` as a directory-shape result only — see [Validation](/docs/solutions/validation) |
 
 ## Publish failures
 
+Publish failures arrive as HTTP 400 with code `invalid_manifest` and the
+message `invalid manifest: {section}: {detail}`.
+
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| Signature rejected | Package rebuilt after signing, or wrong key | Rebuild and republish in one flow; verify `signature_kid` |
-| `unknown widget type` | Widget `type` outside the closed catalogue | Use a supported kind — see [Metric](/docs/solutions/widgets/metric) for the catalogue |
-| `unknown capability` | Misspelled or invented capability | Use names from [Capabilities](/docs/solutions/capabilities) |
-| Icon rejected | Icon outside the closed host set | Pick from the set in [Navigation](/docs/solutions/navigation) |
-| `bad grid columns` | Layout `columns` outside 1–12 | Correct the layout preset |
-| Executable asset rejected | Non-image file under `assets/` | Remove it — [images only](/docs/solutions/assets) |
-| Version exists | Republishing an immutable version | Bump the version and publish again |
+| `invalid signature for {name}@{version}` (422) | Package rebuilt after signing, or wrong key | Rebuild and republish in one flow; verify `signature_kid` |
+| `ui: widget '{id}' has unsupported type '{kind}'` | Widget `type` outside the closed catalogue | Use a supported kind — see [Metric](/docs/solutions/widgets/metric) for the catalogue |
+| `manifest.yaml: unknown capability '{capability}'` | Misspelled or invented capability | Use names from [Capabilities](/docs/solutions/capabilities) |
+| ``invalid permission '{permission}': expected `resource.action` `` | Permission string outside the grammar | Use `resource.action`, lowercase, `_` or `-` in the resource, `*` allowed as the action |
+| `ui: navigation '{id}' uses icon '{icon}' outside the host icon set` | Icon outside the closed host set | Pick from the set in [Navigation](/docs/solutions/navigation) |
+| `ui: grid columns must be 1-12` | Layout `columns` outside 1–12 | Correct the layout preset |
+| `assets: executable content is not allowed in solution UIs: '{path}'` | Forbidden extension on a path under `ui/` | Remove it — [images only](/docs/solutions/assets) |
+| `manifest.yaml: hosting: runtime requires at least one entity in entities/` | Runtime app with no entity schemas | Ship at least one `entities/{id}.yaml` and list it under `entities:` |
+| `{section}: manifest references {label} '{item}' which is missing from the package` | Manifest declares an id the package does not ship | Add the file, or drop the manifest entry |
+| `{section}: {label} '{item}' is not referenced by the manifest` | Package ships a component the manifest never declares | Declare it, or delete the file |
+| `solution already published: {name}@{version}` (409) | Republishing an immutable version | Bump the version and publish again |
 
 ## Install failures
 
+Tenant-facing install failures surface as HTTP 400 `validation error: {…}`
+(code `validation_error`) or as the registry errors below.
+
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| Connector dependency unresolved | No published connector satisfies the constraint | Publish the connector, or relax the semver constraint |
-| Capability missing from granted set | Requested capability has no grant precondition (`workflow.trigger` without `workflow.execute`) | Add the manifest permission and publish a new version |
-| Missing credential | Connector declares `auth` but the tenant skipped it | Complete credentials in the install wizard / settings |
-| Signature verification failed | Registry copy differs from stored checksum | Republish; if persistent, contact platform support |
+| `solution already installed: {name}` (409) | An `active`, `installing` or `upgrading` row already exists for this workspace | Upgrade the existing installation instead of reinstalling |
+| `validation error: required setting '{key}' is missing` | Install payload omits a setting the schema declares required | Supply the value, or give the schema a `default` and republish |
+| `validation error: setting '{key}' must be of type {type}` | Value type does not match the declared `setting_type` | Send the JSON type the schema declares |
+| `validation error: unknown setting '{key}' is not declared by the solution` | Setting not present in the installed version's schema | Remove it, or declare it in `settings/` and publish a new version |
+| `connector not enabled for tenant: {name}` (404) | Declared connector has no tenant enablement | Enable the connector for the tenant first |
+| `no installation binding for solution '{name}'` (404) | Application descriptor was never bound, or the row was pruned | Reinstall so the binding is created |
+| `invalid signature for {connector}@{version}` (422) | Connector package signature does not verify against the registry | Republish the connector, or pin a version that verifies |
+| `ENCRYPTION_KEY is unset; connector credentials cannot be stored unencrypted` | Server configuration, not the package | Set `ENCRYPTION_KEY` on the solution-service |
+| `SOLUTION_PUBLIC_KEYS is not configured, so package signatures cannot be verified; installing is refused in production (set SOLUTION_PUBLIC_KEYS=kid:<hex>,… to enable install)` | Fail-closed signature policy with no keys | Configure `SOLUTION_PUBLIC_KEYS` |
+| ``state must be `active` or `paused`, got '{other}'`` | Tenant state update with an unsupported target | Use `active` or `paused` |
+| `unknown onboarding step '{step_id}' for solution '{name}'` | Completion call names a step outside the installed version | Use an id from the installed package's `onboarding` component |
 
 ## Render issues (installed, but wrong)
 
@@ -66,8 +84,10 @@ fixes.
 
 ## Escalation path
 
-1. Reproduce locally with `qefro solution build .` — most definitions are
-   debuggable without a tenant.
+1. Reproduce locally with `qefro solution build .` — this catches assembly and
+   ADR-003 storage-target failures only. Contract violations reported at
+   publish (permissions, entity fields, widget kinds, setting types) are not
+   checked by any local command; read the `invalid manifest: …` message.
 2. Compare the requested vs granted capability set — capability gaps
    explain most "silent" UI behavior.
 3. Check the connector side: operation exists, published version

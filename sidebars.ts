@@ -108,6 +108,33 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Developer handbook',
+      collapsed: false,
+      link: {type: 'doc', id: 'solutions/handbook'},
+      items: [
+        'solutions/handbook',
+        'solutions/package-structure',
+        'solutions/attribute-inventory',
+        'solutions/settings-reference',
+        'solutions/auxiliary-reference',
+        'solutions/runtime-capabilities',
+        'solutions/permissions-and-scope',
+        'solutions/support-matrix',
+        'solutions/traceability',
+        {
+          type: 'category',
+          label: 'Evidence matrices',
+          collapsed: true,
+          items: [
+            'solutions/manifest-evidence',
+            'solutions/entity-evidence',
+            'solutions/ui-evidence',
+          ],
+        },
+      ],
+    },
+    {
+      type: 'category',
       label: 'Ship to catalog',
       collapsed: false,
       items: [
@@ -173,6 +200,7 @@ const sidebars: SidebarsConfig = {
       label: 'Examples',
       collapsed: false,
       items: [
+        'solutions/examples/project-desk-runtime',
         'solutions/examples/marketplace-apps',
         'solutions/examples/restaurant-pro-runtime',
         'solutions/examples/real-estate-runtime',

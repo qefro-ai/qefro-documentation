@@ -112,7 +112,7 @@ project-desk/
 | `ui/pages.yaml` | no | single file **or** legacy `ui/pages/*.yaml` | `pages: []` |
 | `ui/widgets.yaml` | no | single file **or** legacy `ui/widgets/*.yaml` | `widgets: []` |
 | `ui/sources.yaml` | no | single file | `sources: []` |
-| `settings/business.yaml` | no | fixed name first, else first sorted `settings/*.yaml|yml|json` | schema synthesized from `manifest.settings[]` as `{ settings: { … } }` |
+| `settings/business.yaml` | no | fixed name first, else first sorted `settings/*.{yaml,yml,json}` | schema synthesized from `manifest.settings[]` as `{ settings: { … } }` |
 | `onboarding/<id>.yaml` | for each `onboarding[]` entry (CLI only) | per-id lookup | `error: missing definition: …/onboarding/<id>.yaml` |
 | `components.json` | no | optional overrides for `settings`/`onboarding`/`policies`/`channels`/`migrations` | those components stay empty |
 | `connections/<id>.yaml` | for each `manifest.connections[]` entry | per-id lookup | empty → the `connections` key is omitted from the artifact entirely |
@@ -190,7 +190,7 @@ Multi-file rules worth memorizing:
 
 | Stage | Working directory | What it resolves |
 | --- | --- | --- |
-| local validate (`qefro app validate [dir]`) | the directory you pass | existence of `manifest.yaml`/`solution.yaml`, `workflows/`, `entities/` or `src/` — nothing else |
+| local validate (`qefro app validate [dir]`) | the directory you pass | six structural checks only (see below); it assembles the package afterwards when signing keys are present |
 | package (`qefro solution build`) | the same directory | each declared id → `<folder>/<id>.yaml`, or the explicit `file:` relative to the package root |
 | publish (`POST /v1/solutions/publish`) | server-side, none | no filesystem access at all: it receives `{manifest, components}` JSON |
 | install | catalog row | the stored version document `{manifest, components}` — files are never re-read |
@@ -199,6 +199,27 @@ Multi-file rules worth memorizing:
 `file:` overrides resolve against the package root, so
 `flows: [{id: intake, file: workflows/legacy/intake.yaml}]` is valid, and the
 `intake` id is what validation and the runtime use.
+
+### The six structural checks in `qefro app validate`
+
+`app_dev` refuses, in order, on:
+
+1. no `manifest.yaml` (or legacy `solution.yaml`) in the directory;
+2. the manifest is not parseable YAML/JSON;
+3. the parsed manifest has no `id`;
+4. `hosting` (or legacy `implementation_kind`) is `managed`;
+5. no `workflows/` directory;
+6. no `entities/` directory when `hosting: runtime`, or no `src/` directory
+   otherwise.
+
+It then prints `dev ok: {id}@{version} hosting={kind} workflows={n}`. Only
+after that line, and only when `QEFRO_SIGNING_KEY_HEX`, `QEFRO_KEYS_FILE` or
+the default key file is present, does it call the same `load_package` the
+build uses — which is where the assembly failures and the ADR-003 storage
+guard live. Nothing in this command calls the publish validator
+(`parse_and_validate`), so it accepts entity fields, permission strings,
+widget kinds and setting types that publish rejects. See
+[Validation](/docs/solutions/validation).
 
 ## What enters the artifact
 
@@ -238,7 +259,7 @@ Raw YAML documents are stored for `entities`, `workflows`, `ui`, `events`,
 runtime-only keys that have no typed field (`concurrency`, `delete.mode`,
 `import_synonyms`, `date_events`, `on_events`, `views`, `computed`) still
 reach the runtime — see
-[runtime capabilities](/docs/solutions/runtime-capabilities#runtime-only-keys).
+[Attribute inventory §3.1](/docs/solutions/attribute-inventory#31-runtime-only-entity-keys-not-on-entitydefinition).
 
 `publisher_id` defaults to the CLI's built-in UUID unless
 `QEFRO_PUBLISHER_ID` is set, and `signature_kid` is **hard-coded to `k1`** by
@@ -310,9 +331,10 @@ the single most confusing part of packaging. It is mapped per-attribute in the
 1. **Declaring an entity you never ship.** `entities: [offer]` with no
    `entities/offer.yaml` fails the build with
    `error: missing definition: …/entities/offer.yaml`.
-2. **Assuming `qefro app validate` checked your metadata.** It performs four
-   directory-level checks and prints `dev ok` *before* the package load runs,
-   so a run can print `dev ok` and then exit 1 on a missing definition.
+2. **Assuming `qefro app validate` checked your metadata.** It performs six
+   structural checks, prints `dev ok`, and only then assembles the package —
+   so a run can print `dev ok` and still exit 1 on a missing definition. It
+   never runs the publish validator.
    See [Validation](/docs/solutions/validation).
 3. **Splitting `settings/` across files.** Only one file is packaged.
 4. **Expecting `policies/`, `channels/`, `migrations/` directories to be
@@ -326,8 +348,13 @@ the single most confusing part of packaging. It is mapped per-attribute in the
 6. **Relying on `manifest.actions` execution keys that the runtime does not
    read** (`required_permission`, `target_state`, `events[]`) — see
    [Auxiliary components](/docs/solutions/auxiliary-reference#actions).
-7. **Publishing without bumping `version`.** Same-version republish does not
-   update the catalog document tenants install.
+7. **Publishing without bumping `version`.** A same-version republish is
+   refused, not merged. `repo/catalog.rs:220-227` catches the Postgres
+   unique violation `23505` and returns HTTP **409** with code
+   `solution_already_published` and message
+   `solution already published: {name}@{version}`. Nothing about the existing
+   catalog row changes, so tenants keep installing the original document.
+   Fixing a published package always means a new version.
 
 ## Related topics
 

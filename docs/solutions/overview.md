@@ -160,8 +160,12 @@ my-app/
 ```
 
 There is no `src/`, no `events/` directory, and no `automations/`
-directory. Events are declared on the manifest (`events:`). Automations
-are a portal host page (`host: automations`), not package files.
+directory. Event *names* are declared on the manifest (`events:`), which
+validates the grammar and advertises them to chat — it does not gate emission:
+Runtime emits `{entity}.created|updated|cancelled` for every runtime entity
+whether or not it is listed. Automations are a portal host page
+(`host: automations`, one of `contacts | automations | roles`), not package
+files. See [Manifest → Events](/docs/solutions/manifest#events).
 
 YAML is assembled into a canonical JSON package, checksummed and signed —
 see [Packaging](/docs/solutions/packaging).

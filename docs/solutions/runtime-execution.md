@@ -159,18 +159,55 @@ entity.<entity_name>.<operation>
 | `entity.property.get` | `storage.get` | Get a single record by code or UUID |
 | `entity.property.create` | `storage.insert` | Create a new record |
 | `entity.property.update` | `storage.update` | Update an existing record |
-| `entity.property.delete` | `storage.delete` | Soft-delete a record |
+| `entity.property.delete` | `storage.delete` | **Hard delete by default** — see [Delete policy](#delete-policy-and-concurrency) |
+
+Booking entities use dedicated storage tools when the entity is a booking
+target: `storage.insert_booking` on create and `storage.update_booking` on
+update. Everything else maps straight through.
 
 ### Execution modes
 
-| Mode | `execution:` value | Adapter | Description |
-| --- | --- | --- | --- |
-| Runtime | `runtime` | RuntimeAdapter | EntityService — metadata-only, no external calls |
-| HTTP | `http` | ConnectorBridge | Proxied to external API via connection |
+`ExecutionBackend::parse` (`flow_engine/adapter.rs`) is the whole rule:
 
-Marketplace Apps (`hosting: runtime`) always use `execution: runtime`.
-SDK connectors use `execution: http` with tool names like
-`search_products`.
+| `execution:` value | Backend selected |
+| --- | --- |
+| `runtime`, `metadata`, `http` | `ExecutionBackend::Runtime { solution }` |
+| any other value, or the key omitted | `ExecutionBackend::Sdk` |
+
+| Mode | Adapter | Description |
+| --- | --- | --- |
+| Runtime | RuntimeAdapter | EntityService and app tools — metadata-only, no external process |
+| SDK | SDKAdapter | An external `/qefro` process registered for the installation |
+
+Marketplace Apps (`hosting: runtime`) must set `execution: runtime` on every
+`tool` step. Note that `http` does **not** mean "bypass the runtime": it
+selects the same `Runtime` variant as `runtime`. Only an unrecognised value
+or a missing `execution` key routes to the SDK adapter, so leaving the key
+off a Marketplace App step sends the call down a path with no binding.
+
+### Delete policy and concurrency
+
+Two runtime behaviors are driven by entity metadata keys that the
+solution-service `EntityDefinition` struct does not declare. Serde ignores
+unknown keys on that struct, so **publish does not validate them** — but the
+raw entity JSON is what reaches the runtime, so the runtime still honours
+them.
+
+| Key | Accepted values | Default | Effect |
+| --- | --- | --- | --- |
+| `delete: {mode: …}`, `delete: <string>`, or `delete_policy: <string>` | `soft`, `restrict`, anything else → hard | `hard` | `soft` rewrites the operation as `storage.update` with a `deleted_at` patch; `hard` uses `storage.delete`; `restrict` refuses when related active rows exist (`restrict_if_related`) and otherwise hard-deletes |
+| `concurrency: optimistic` or `optimistic: true` | — | off | Enables optimistic version checking; a stale write returns `VERSION_CONFLICT` |
+
+Re-deleting an already tombstoned record under `soft` fails with
+`entity.{entity}.delete: record is already deleted.`
+
+Soft-deleted records are filtered out of reads (`filter_active`,
+`paginate_active`), and `total` counts active rows only.
+
+Because the validator does not see these keys, a typo such as
+`delete: {mode: "shft"}` publishes cleanly and silently falls back to a hard
+delete. Treat them as **partially supported**: executed by the runtime,
+unvalidated at publish.
 
 ### Reference resolution
 

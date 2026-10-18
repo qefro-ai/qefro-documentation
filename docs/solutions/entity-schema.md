@@ -37,18 +37,38 @@ status_events:                        # optional status → event map
 
 | Top-level key | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | No | Entity id; defaults to the filename without `.yaml`. Must match the id used in `manifest.yaml` → `entities:` and in flow `tool` references. |
-| `name` | string | Yes | Human-readable display name for portal and UI. |
+| `id` | string | **Yes** | Entity id. There is no filename default — omit it and publish fails in section `entities` with serde's `missing field` error naming `id`. Must match the id used in `manifest.yaml` → `entities:` and in flow `tool` references; grammar is `entity id must be kebab-case or snake_case: {id}`. |
+| `name` | string | No | Display name. Deserialized as `Option<String>`; nothing in the validator or the runtime requires it. |
 | `description` | string | No | One-line summary shown in tool-tips and entity pickers. |
+| `collection` | string | No | Logical collection name in managed storage. `collection_name()` falls back to `id` when unset or blank. |
 | `scope` | string | No | `customer` scopes records to the authenticated Person — see [Customer scoping](#customer-scoping). |
 | `allocate_code` | object | No | Auto-generates human-readable codes — see [Code allocation](#code-allocation). |
-| `fields` | list | Yes | Ordered field definitions — see [Field types](#field-types). |
+| `fields` | list | Yes | Ordered field definitions; empty fails with `entity '{id}' must declare at least one field`. See [Field types](#field-types). |
+| `status_field` | string | No | Field compared for status transitions. Defaults to `status` at emission time; when set explicitly it must name a declared field. |
 | `status_events` | map | No | Maps status values to business event names — see [Status events](#status-events). |
+| `title_field` / `display_field` | string | No | Field shown as the record title. Hosts must not infer from field names. |
+| `computed` | list | No | Deterministic computed-field specs. Passed through to hosts and the runtime. |
+| `views` | list | No | Declared list views (table/tile/kanban/calendar). |
+| `ui` | object | No | Presentation hints. The overlay may rewrite `ui`; the schema stays here. |
+| `availability` | object | No | Booking slot generation and conflict detection — see [Concurrency and booking](/docs/solutions/concurrency-and-booking). |
+| `state_machine` | object | No | Server-enforced transition graph — see [Attribute inventory](/docs/solutions/attribute-inventory). |
+| `tax` | object | No | Tax calculation configuration — see [Tax engine](/docs/solutions/tax-engine). |
+| `delete` / `delete_policy` | string or `{mode}` | No | `hard` (default), `soft`, `restrict`. **Not declared on `EntityDefinition`** — publish ignores it, the runtime honours it. See [Delete policy and concurrency](/docs/solutions/runtime-execution#delete-policy-and-concurrency). |
+| `concurrency` / `optimistic` | string / boolean | No | `optimistic` (or `optimistic: true`) turns on version checking. Also unvalidated at publish. |
+
+Per-attribute status (which keys are read at runtime versus stored only) is
+tracked in the [Attribute inventory](/docs/solutions/attribute-inventory).
 
 ## Field types
 
 Every field has a `type` that controls validation, storage, UI rendering,
-and flow behavior.
+and flow behavior. The closed list is `KNOWN_FIELD_TYPES` (16 values):
+`string`, `integer`, `float`, `boolean`, `date`, `datetime`, `email`,
+`phone`, `url`, `uuid`, `enum`, `json`, `person`, `image`, `media`,
+`relation`. Anything else fails publish with
+`entities: entity '{id}' field '{name}' has unknown type '{type}' (use Qefro field types)`.
+Detailed sections follow for the twelve most-used types; `boolean`, `json`,
+`media` and `uuid` are accepted and stored as their JSON equivalents.
 
 ### string
 
@@ -196,12 +216,26 @@ URL reference. Stored as-is. Rendered as a clickable link.
 
 | Property | Type | Applies to | Description |
 | --- | --- | --- | --- |
-| `name` | string | All | Field identifier. snake_case. Used in flow `input_map` and UI bindings. |
-| `type` | string | All | Field type — see types above. |
-| `required` | boolean | All | If `true`, the runtime rejects records missing this field. |
+| `name` | string | All | Field identifier. Grammar-checked; must be unique per entity and must not be a reserved authority name. |
+| `type` | string | All | One of the 16 `KNOWN_FIELD_TYPES` — see [Field types](#field-types). |
+| `required` | boolean | All | Enforced by the runtime's entity validator (`flow_engine/entity_validate.rs`); records missing the field are rejected. |
 | `description` | string | All | Display text for UI labels and tool-tips. |
 | `enum_values` | string[] | `enum` | Allowed values. |
-| `ref_entity` | string | `person`, `relation` | Target entity for the reference. |
+| `ref_entity` | string | `person`, `relation` | Target entity for the reference. `relation` without it fails: `entity '{id}' field '{name}' relation requires ref_entity`. |
+| `multiple` | boolean | Multi-valued fields | Read by flow steps (`flow_engine/steps.rs`), the executor and outbound media handling. |
+| `max_items` | integer | `multiple` fields | Carried to the mobile form runtime (`field_definition.dart`) as a rendering bound. No server-side write enforcement was found. |
+| `unique` | boolean | scalar types | Identifies a record within tenant/workspace/collection; generic importers use it for existing-record detection. Absence means "always create". Rejected on `person`, `relation`, `image`, `media`, `json`: `entity '{id}' field '{name}' cannot be unique (type '{type}')`. |
+| `default` | JSON scalar | All | Create default when the field is empty. `current_date` is a reserved token resolved in workspace-local time, not a formula language. |
+| `default_from_setting` | string | All | Install setting used as the create default when the field is empty (`flow_engine/entity_compute.rs`). |
+| `computed` | boolean | All | Server-computed. Hosts must render readonly and never calculate. |
+| `readonly` | boolean | All | Read by the mobile runtime (`isReadonly => readonly \|\| computed`). The Rust runtime has no reader, so it does not block server-side writes. |
+| `placeholder` / `help` / `label` / `section` | string | All | Read by the mobile form runtime for hints, grouping and labels. No validation or storage effect. |
+| `format` | string | Any | Display hint (for example `currency`). Never inferred from the field name. |
+
+Field names that the runtime owns are rejected in metadata: `workspace_id`,
+`tenant_id`, `installation_id`, `organization_id`
+(`FORBIDDEN_AUTHORITY_FIELDS`) produce
+`entities: entity '{id}' field '{name}' is reserved for trusted runtime context (metadata cannot specify workspace/tenant authority)`.
 
 ## Person fields and identity
 
@@ -352,7 +386,26 @@ The runtime also emits standard mutation events:
 | Update with status change | `{entity}.updated` + status event |
 | Delete | `{entity}.cancelled` |
 
-All events must be declared in `manifest.yaml` → `events:`.
+Keys are matched case-insensitively: the runtime trims and lowercases the
+status value before looking it up
+(`entity_status_config`, `flow_engine/runtime_adapter.rs`). The compared
+field is `status_field`, defaulting to `status`.
+
+**Declaration is not enforced.** Nothing cross-checks a `status_events`
+value against `manifest.yaml` → `events:`. Publish only checks the name's
+shape:
+
+| Rule | Failure message |
+| --- | --- |
+| Status key and event name non-empty, and the name contains a `.` | `entities: entity '{id}' status_events must map a status to a Business Event name` |
+| Event name must not embed authority keys | `entities: entity '{id}' status_events cannot encode workspace/tenant` |
+
+The manifest-level `events:` list is checked only against the packaged
+`events` component (`require_set_match("events", …, "event declaration")`),
+and the CLI builds that component from `manifest.events` itself — so the
+check passes by construction and says nothing about entity events. Emitting
+a name that is not in `events:` still works; declaring a name no entity
+produces is inert.
 
 ## Code allocation
 

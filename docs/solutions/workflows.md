@@ -56,26 +56,46 @@ steps:
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | Yes | Workflow id; must appear in the manifest's `flows` list. |
-| `name` | string | Yes | Human-readable label shown in the portal. |
-| `trigger` | object | Yes | Start condition: a business `event` name. |
-| `steps` | list | Yes | Ordered steps executed by the runtime. |
+| `id` | string | **Yes** | Workflow id; must appear in the manifest's `flows` list. There is no filename default. |
+| `name` | string | No | Display label. `Option<String>` on the parser; nothing enforces it. |
+| `description` | string | No | Summary shown in the portal flow picker. |
+| `trigger` | object | **Yes** | `{ type, event, channel, cron }`. `type` is optional and inferred from `event`/`cron` when absent; valid values are `conversation`, `event`, `schedule`, `webhook`. |
+| `surfaces` | string[] | No | Channel surfaces that may start the flow (`customer`, `staff`). Empty means every surface — the backward-compatible default. |
+| `steps` | list | Yes | Must be non-empty: `workflow {id}: at least one step is required`. |
+| `constants` | map | No | Flow-level literals referenced as `$constants.key` from `input_map`. Keys must be alphanumeric scalars. |
+| any other key | — | No | Preserved verbatim (`#[serde(flatten)]`) and passed to the runtime — for example the `whatsapp_flow` overlay. |
+
+Step ids are optional: normalization assigns `step_1`, `step_2`, … by
+position before validation runs.
 
 ## Step types
 
-Step types map onto the runtime's flow engine — the same model as
-[Business Flows](/docs/developer/concepts/flows):
+`KNOWN_STEP_TYPES` is the publish-side allow-list (15 values). The FlowRunner
+dispatch arm is smaller — the difference matters, because a step that passes
+publish and reaches the runner on a legacy type fails the execution.
 
-| Step | Purpose |
-| --- | --- |
-| `ask` | Collect input from a user on a channel |
-| `tool` | Call a Runtime entity capability (`entity.<id>.create`, `execution: runtime`) or an authorized connector / business tool |
-| `condition` | Branch on payload values |
-| `delay` | Wait a declared duration |
-| `approval` | Pause for an explicit portal approval |
-| `challenge` | Require identity verification before continuing |
-| `message` | Send a channel message |
-| `complete` | Finish the execution |
+| Step | Publish | FlowRunner dispatch | Purpose |
+| --- | --- | --- | --- |
+| `ask` | ✓ | ✓ | Collect input from a user on a channel |
+| `tool` | ✓ | ✓ | Call a Runtime entity capability (`entity.<id>.create`, `execution: runtime`) or an authorized connector / business tool |
+| `condition` | ✓ | ✓ | Branch on payload values |
+| `message` | ✓ | ✓ | Send a channel message |
+| `upload` | ✓ | ✓ | Request media from the user |
+| `approval` | ✓ | ✓ | Pause for an explicit portal approval |
+| `challenge` | ✓ | ✓ | Require identity verification before continuing |
+| `delay` | ✓ | ✓ | Wait a declared duration (`Pause` with a wake time) |
+| `tag` | ✓ | ✓ | Apply a tag to the person |
+| `assign` | ✓ | ✓ | Assign the conversation to a staff member |
+| `activity` | ✓ | ✓ | Record an activity against the person |
+| `complete` | ✓ | ✓ | Finish the execution |
+| `branch` | ✓ | ✗ | Legacy solution YAML only |
+| `notify` | ✓ | ✗ | Legacy solution YAML only |
+| `handoff` | ✓ | ✗ | Legacy solution YAML only |
+
+An un-dispatched type ends the run with
+`Unknown step type '{other}'.` (`flow_engine/steps.rs`). `branch`, `notify`
+and `handoff` are accepted at publish for backward compatibility and are
+**legacy** — do not use them in a new package.
 
 On **Marketplace Apps**, `tool` steps use Runtime capabilities
 (`entity.reservation.create`). `execution: runtime` selects the
@@ -177,13 +197,24 @@ data.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | Yes | Unique step identifier. |
+| `id` | string | No | Unique step identifier. Absent ids are assigned positionally (`step_1`, …) before validation. |
 | `type` | `tool` | Yes | Step type. |
-| `tool` | string | Yes | Operation reference: `entity.<name>.<op>` for runtime, or tool name for HTTP. |
-| `execution` | string | Yes | `runtime` (EntityService) or `http` (ConnectorBridge). |
+| `tool` | string | Yes | Operation reference: `entity.<name>.<op>` for runtime, or a tool name. `tool_ref` is accepted as an alias. Missing both fails the run: `Tool step is missing 'tool_ref' or 'tool'.` |
+| `execution` | string | Yes | Backend selector, parsed by `ExecutionBackend::parse`. `runtime`, `metadata` and `http` all select the **Runtime** backend; any other value — and omission — selects the **SDK** adapter. See the note below. |
+| `solution` | string | No | Solution name carried into the Runtime backend when the tool reference is unqualified. |
+| `workflow` | string | No | Passed to `invoke_capability` for workflow-targeted tools. |
 | `input_map` | object | No | Maps tool parameters to flow variables. See [Flow Parameters](/docs/solutions/flow-parameters). |
-| `output` | string | No | Variable name to store the tool's result for later steps. |
-| `constants` | object | No | Step-level trusted constants (e.g., `expand`). |
+| `constants` | object | No | Step-level trusted literals. `constants.expand` is the only trusted source of expand directives (C3 trust boundary). |
+| `output` | string | No | Variable name that receives the tool result. Defaults to the `tool` reference itself. |
+
+:::caution `execution: http` does not mean "call a connector over HTTP"
+`ExecutionBackend::parse` (`flow_engine/adapter.rs`) normalizes `runtime`,
+`metadata` and `http` to the same `Runtime` variant. Only an unrecognised
+value — or no `execution` key at all — falls through to
+`ExecutionBackend::Sdk`, which routes to an external `/qefro` process. A
+Marketplace App step must therefore set `execution: runtime` explicitly;
+leaving it off sends the call down the SDK path and fails to find a binding.
+:::
 
 **List with filters** (from search-properties):
 
@@ -401,8 +432,17 @@ sequenceDiagram
   `metrics` runtime sources can display them.
 - Failures are runtime failures: retries, observability and flow-run
   history behave exactly like any Business Flow.
-- Upgrading the solution replaces the workflow definition; in-flight
-  executions of the old version run to completion.
+- Upgrading a solution re-registers workflow definitions from the target
+  version. Upgrades are **forward-only**: an equal or lower semver target
+  is refused with
+  `upgrade blocked: target {target} is not newer than the installed version {current} of '{solution}'; upgrades are forward-only`.
+- Preflight refuses an upgrade whose metadata diff is graded `BREAKING`,
+  before any state changes:
+  `upgrade blocked: breaking metadata change is not supported by the current runtime: {detail}`
+  (HTTP 409, code `upgrade_blocked`). `REVIEW`-level changes proceed after
+  being surfaced by `upgrade_review`.
+- Whether an in-flight execution started under the previous version keeps
+  its definition was **not verified** in this documentation pass.
 
 ## Restaurant Pro Runtime workflows
 
