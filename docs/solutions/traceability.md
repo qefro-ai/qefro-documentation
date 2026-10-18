@@ -166,11 +166,46 @@ c22dab0
 
 $ git -C qefro-documentation rev-parse --short HEAD
 a37210d
+
+$ npm run lint:md            # in qefro-documentation
+Linting: 248 file(s)
+Summary: 0 error(s)
+
+$ npm run build              # in qefro-documentation
+[SUCCESS] Generated static files in "build".
+exit 0
+
+$ npm run check:links        # against the build produced by the command above
+Checked 263 HTML files — no broken internal hrefs found.
+
+$ cargo test -p solution-service --lib
+test result: FAILED. 258 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out
+    solution::validator::tests::restaurant_pro_runtime_example_on_disk_validates
+panicked at services/solution-service/src/solution/validator.rs:1142:37:
+missing restaurant-pro-runtime/workflows/create-takeaway-order.yaml:
+No such file or directory (os error 2)
+
+$ target/debug/qefro solution build <handbook-minimal>
+built handbook-minimal@0.1.0
+  checksum:  4a8db96808583d6ae8a8251623c4296c3882e110822ec96434b0a90d5dfaf39d
+
+$ target/debug/qefro solution build <handbook-project-desk>
+built project-desk@0.1.0
+  checksum:  bfe04730a2633fd29d17c6d09c1ef26abb07bc7cd7aa553bd08926d71e1871af
 ```
 
-Remaining commands (cargo test, qefro-cli validate/build, npm lint/check/build)
-are logged here in this session as they execute. See the final report for
-actual captured output.
+`qefro app validate` was run on the same two directories and produced the
+same checksums as `solution build` above.
+
+The single `cargo test` failure is **pre-existing and unrelated to the
+handbook**: `qefro-plugin-platform` had a clean working tree when it was
+captured, so the failure is on committed HEAD. That example ships 13
+workflow files, and `validator.rs:1142` opens a fourteenth,
+`workflows/create-takeaway-order.yaml`, which does not exist in the
+repository. Every handbook claim was traced by reading code; no runtime
+service, portal page, or publish request was executed, so nothing here is
+runtime evidence. See
+[Verification commands not executed](/docs/solutions/traceability#verification-commands-not-executed).
 
 ## Re-verifying a claim
 
