@@ -1,0 +1,22 @@
+id: handbook-minimal
+name: Handbook Minimal
+version: 0.1.0
+description: The smallest metadata-only Marketplace App worth shipping — one entity, one workflow.
+category: productivity
+tags:
+  - handbook
+  - example
+hosting: runtime
+channels:
+  - widget
+entities:
+  - note
+flows:
+  - create-note
+permissions:
+  - storage.read
+  - storage.write
+capabilities:
+  - runtime.query
+  - storage.read
+  - storage.write

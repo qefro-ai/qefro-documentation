@@ -1,0 +1,18 @@
+id: create-note
+name: Create note
+trigger:
+  type: conversation
+steps:
+  - id: ask_body
+    type: ask
+    field: body
+    message: What should the note say?
+  - id: save
+    type: tool
+    tool: entity.note.create
+    execution: runtime
+    input_map:
+      body: body
+  - id: done
+    type: complete
+    message: Note saved.

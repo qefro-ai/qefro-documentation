@@ -1,0 +1,30 @@
+id: close-task
+name: Close task
+description: Move one task to done, with a staff approval gate.
+trigger:
+  type: conversation
+surfaces:
+  - staff
+steps:
+  - id: ask_ref
+    type: ask
+    field: task_ref
+    message: Which task should I close?
+  - id: ask_note
+    type: ask
+    field: closing_note
+    message: Anything to record against it?
+  - id: approve
+    type: approval
+    message: Closing {{task_ref}}. Approve?
+  - id: update
+    type: tool
+    tool: entity.task.update
+    execution: runtime
+    input_map:
+      id: task_ref
+      status: $literal:done
+      closing_note: closing_note
+  - id: done
+    type: complete
+    message: '{{task_ref}} is closed.'

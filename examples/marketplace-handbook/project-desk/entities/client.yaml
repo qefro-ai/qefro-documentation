@@ -1,0 +1,23 @@
+id: client
+name: Client
+description: The company a project is billed to.
+fields:
+  - name: name
+    type: string
+    required: true
+    label: Client name
+  - name: contact_name
+    type: string
+    label: Primary contact
+  - name: contact_email
+    type: email
+    label: Contact email
+  - name: contact_phone
+    type: phone
+    label: Contact phone
+  - name: billing_notes
+    type: string
+    label: Billing notes
+    help: Internal only — never sent to customers.
+title_field: name
+display_field: name

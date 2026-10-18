@@ -1,0 +1,6 @@
+id: set_profile
+title: Set your business name
+action: configure
+required: false
+description: Appears on every project page and in outbound updates.
+channel: whatsapp

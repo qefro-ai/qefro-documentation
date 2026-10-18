@@ -1,0 +1,16 @@
+navigation_layout: sidebar
+primary: '#1d4ed8'
+secondary: '#0f766e'
+accent: '#b45309'
+background: '#f8fafc'
+surface: '#ffffff'
+text: '#0f172a'
+font_family: Inter
+font_size_base: 14
+radius: 12px
+spacing:
+  xs: 4px
+  sm: 8px
+  md: 16px
+  lg: 24px
+  xl: 40px

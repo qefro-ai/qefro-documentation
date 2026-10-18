@@ -1,0 +1,77 @@
+id: task
+name: Task
+description: One unit of work inside a project.
+fields:
+  - name: project_id
+    type: relation
+    ref_entity: project
+    required: true
+    label: Project
+  - name: title
+    type: string
+    required: true
+    label: Title
+  - name: details
+    type: string
+    label: Details
+  - name: assignee
+    type: string
+    label: Assignee
+  - name: due_date
+    type: date
+    label: Due date
+  - name: status
+    type: enum
+    enum_values:
+      - todo
+      - doing
+      - blocked
+      - done
+    default: todo
+    label: Status
+  - name: estimate_hours
+    type: float
+    label: Estimate (hours)
+  - name: closing_note
+    type: string
+    label: Closing note
+    required_when:
+      field: status
+      operator: eq
+      value: done
+status_field: status
+status_events:
+  done: task.completed
+  blocked: task.updated
+state_machine:
+  initial: todo
+  states:
+    - name: todo
+      label: To do
+    - name: doing
+      label: In progress
+    - name: blocked
+      label: Blocked
+      color: '#b45309'
+    - name: done
+      label: Done
+      terminal: true
+  transitions:
+    - from: todo
+      to: doing
+      name: Start
+    - from: doing
+      to: blocked
+      name: Block
+    - from: blocked
+      to: doing
+      name: Unblock
+    - from: doing
+      to: done
+      name: Complete
+    - from: todo
+      to: done
+      name: Quick close
+title_field: title
+views:
+  - type: table

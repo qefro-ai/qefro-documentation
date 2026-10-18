@@ -1,0 +1,23 @@
+id: note
+name: Note
+description: A free-form note recorded against a customer conversation.
+fields:
+  - name: body
+    type: string
+    required: true
+    label: Note
+    placeholder: What happened?
+    help: Written by the assistant or by staff.
+  - name: channel
+    type: enum
+    enum_values:
+      - widget
+      - whatsapp
+      - portal
+  - name: status
+    type: enum
+    enum_values:
+      - open
+      - archived
+    default: open
+status_field: status

@@ -1,0 +1,122 @@
+- id: intro
+  type: markdown
+  title: Project Desk
+  options:
+    content: Open a project and add tasks. WhatsApp and widget customers use the same flows.
+- id: metric_projects
+  type: metric
+  title: Projects
+  source: projects
+  options:
+    aggregate: count
+    rows_path: items
+    label: Total
+    navigate_to: projects
+- id: metric_tasks
+  type: metric
+  title: Tasks
+  source: tasks
+  options:
+    aggregate: count
+    rows_path: items
+    label: All tasks
+    navigate_to: tasks
+- id: metric_clients
+  type: metric
+  title: Clients
+  source: clients
+  options:
+    aggregate: count
+    rows_path: items
+    label: Accounts
+    navigate_to: clients
+- id: project_form
+  type: form
+  title: New project
+  options:
+    fields:
+      - name: name
+        label: Project name
+        type: text
+        required: true
+      - name: hourly_rate
+        label: Hourly rate
+        type: number
+        required: false
+        validation:
+          min: 0
+          message: Rate cannot be negative
+    submit_label: Create
+    action:
+      trigger: create-project
+- id: task_form
+  type: form
+  title: New task
+  options:
+    fields:
+      - name: project_id
+        label: Project
+        type: relation
+        required: true
+        relation:
+          target_entity: project
+          display_field: name
+          search_fields:
+            - name
+            - project_code
+      - name: title
+        label: Title
+        type: text
+        required: true
+      - name: due_date
+        label: Due date
+        type: date
+        required: false
+      - name: status
+        label: Status
+        type: select
+        required: true
+        options:
+          - todo
+          - doing
+      - name: details
+        label: Details
+        type: textarea
+        required: false
+        visible_when:
+          field: status
+          operator: eq
+          value: doing
+    submit_label: Add task
+    action:
+      trigger: create-task
+- id: tasks_status
+  type: status
+  title: Task load
+  source: tasks
+  options:
+    rows_path: items
+    status_field: status
+    label_field: title
+    empty_title: No tasks yet
+    empty_subtitle: Add your first task below.
+    navigate_to: tasks
+    action_label: View all
+- id: projects_table
+  type: table
+  title: Projects
+  source: projects
+  options:
+    rows_path: items
+    limit: 10
+    navigate_to: projects
+    empty_title: No projects yet
+    columns:
+      - key: project_code
+        header: Code
+      - key: name
+        header: Project
+      - key: open_tasks
+        header: Open tasks
+      - key: status
+        header: Status

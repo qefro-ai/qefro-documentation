@@ -1,0 +1,149 @@
+id: project-desk
+name: Project Desk
+version: 0.1.0
+description: >-
+  Metadata-only project delivery Marketplace App: clients, projects and tasks
+  managed from WhatsApp, the web widget and the portal UI — no SDK process.
+category: productivity
+tags:
+  - projects
+  - tasks
+  - handbook
+  - runtime
+hosting: runtime
+channels:
+  - widget
+  - whatsapp
+connectors:
+  - whatsapp
+entities:
+  - client
+  - project
+  - task
+flows:
+  - create-project
+  - create-task
+  - close-task
+  - list-projects
+prompts:
+  - task-intake
+events:
+  - project.created
+  - project.updated
+  - task.created
+  - task.completed
+settings:
+  - business_name
+  - timezone
+  - currency
+  - default_project_rate
+  - show_completed_tasks
+onboarding:
+  - connect_whatsapp
+  - set_profile
+ui:
+  name: Project Desk
+permissions:
+  - storage.read
+  - storage.write
+  - storage.update
+  - workflow.execute
+capabilities:
+  - theme.get
+  - user.get
+  - tenant.get
+  - runtime.query
+  - workflow.trigger
+  - storage.read
+  - storage.write
+  - storage.update
+triggers:
+  - id: create_task
+    workflow: create-task
+    input_variable: task_input
+    match:
+      intents:
+        - create a task
+        - add a task
+        - new task
+      confirmation:
+        reply_signals:
+          - task
+          - created
+        required_slots:
+          - task_title
+          - project_name
+    confirmation_message: Task '{{task_title}}' created in {{project_name}}.
+  - id: close_task
+    workflow: close-task
+    input_variable: task_close
+    match:
+      intents:
+        - close the task
+        - finish task
+        - mark task done
+      confirmation:
+        reply_signals:
+          - closed
+          - done
+        required_slots:
+          - task_ref
+    confirmation_message: Task {{task_ref}} closed.
+conversation_slots:
+  - id: task_title
+    labels:
+      - task
+      - task name
+      - title
+    kind: string
+  - id: project_name
+    labels:
+      - project
+      - project name
+    kind: string
+  - id: task_ref
+    labels:
+      - task
+      - task id
+      - task code
+    kind: string
+  - id: client_name
+    labels:
+      - client
+      - customer
+      - company
+    kind: person_name
+    identity: person_name
+agent:
+  enabled: true
+  roles:
+    customer:
+      capabilities:
+        - knowledge
+    business:
+      capabilities:
+        - crm
+        - customers
+        - analytics
+      flows:
+        - create-task
+        - close-task
+actions:
+  - id: close_task_record
+    name: Close task record
+    description: Transition one task to done from the portal record view.
+    target:
+      entity: task
+      record_bound: true
+    required_permission: storage.update
+    parameters:
+      - name: id
+        type: string
+        required: true
+        description: Task record id
+      - name: closing_note
+        type: string
+        required: false
+    execution:
+      type: state_transition
+      target_state: done

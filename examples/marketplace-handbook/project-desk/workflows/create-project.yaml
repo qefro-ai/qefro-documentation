@@ -1,0 +1,43 @@
+id: create-project
+name: Create project
+description: Capture a new project from chat and open the record.
+trigger:
+  type: conversation
+surfaces:
+  - staff
+constants:
+  default_status: planning
+steps:
+  - id: ask_name
+    type: ask
+    field: project_name
+    message: What is the project called?
+  - id: ask_rate
+    type: ask
+    field: hourly_rate
+    message: Hourly rate, or skip?
+  - id: create
+    type: tool
+    tool: entity.project.create
+    execution: runtime
+    input_map:
+      name: project_name
+      hourly_rate: hourly_rate
+      status: $constants.default_status
+      currency: $literal:INR
+    output: project_record
+  - id: check
+    type: condition
+    when: project_record exists
+    then: confirm
+    else: failed
+  - id: confirm
+    type: message
+    message: '{{project_name}} is open. Add tasks whenever you like.'
+    next: done
+  - id: failed
+    type: message
+    message: I could not open that project. Try again in a moment.
+    next: done
+  - id: done
+    type: complete

@@ -1,0 +1,33 @@
+- id: dashboard
+  title: Dashboard
+  layout: dashboard-grid
+  widgets:
+    - widget: intro
+      span: 12
+    - widget: metric_projects
+      span: 4
+    - widget: metric_tasks
+      span: 4
+    - widget: metric_clients
+      span: 4
+    - widget: project_form
+      span: 6
+    - widget: tasks_status
+      span: 6
+    - widget: projects_table
+      span: 12
+- id: projects
+  title: Projects
+  entity: project
+- id: tasks
+  title: Tasks
+  entity: task
+- id: clients
+  title: Clients
+  entity: client
+- id: contacts
+  title: Contacts
+  host: contacts
+- id: automations
+  title: Automations
+  host: automations

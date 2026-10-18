@@ -1,0 +1,33 @@
+id: create-task
+name: Create task
+description: Capture one task against a project.
+trigger:
+  type: conversation
+surfaces:
+  - customer
+  - staff
+steps:
+  - id: ask_project
+    type: ask
+    field: project_name
+    message: Which project is this for?
+  - id: ask_title
+    type: ask
+    field: task_title
+    prompt: task-intake
+    message: What should the task say?
+  - id: ask_assignee
+    type: ask
+    field: assignee
+    message: Who should own it?
+  - id: create
+    type: tool
+    tool: entity.task.create
+    execution: runtime
+    input_map:
+      title: task_title
+      assignee: assignee
+      status: $literal:todo
+  - id: done
+    type: complete
+    message: Task added.

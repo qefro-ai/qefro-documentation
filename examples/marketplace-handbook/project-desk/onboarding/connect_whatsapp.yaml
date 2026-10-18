@@ -1,0 +1,6 @@
+id: connect_whatsapp
+title: Connect WhatsApp
+action: connector.connect
+connector: whatsapp
+required: true
+description: Authorise the number that will receive project updates.

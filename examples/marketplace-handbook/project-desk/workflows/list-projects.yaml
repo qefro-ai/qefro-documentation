@@ -1,0 +1,17 @@
+id: list-projects
+name: List projects
+description: Read the open projects for this workspace.
+trigger:
+  type: conversation
+steps:
+  - id: list
+    type: tool
+    tool: entity.project.list
+    execution: runtime
+    input_map:
+      limit: $literal:20
+  - id: say
+    type: message
+    message: Here are your projects.
+  - id: done
+    type: complete

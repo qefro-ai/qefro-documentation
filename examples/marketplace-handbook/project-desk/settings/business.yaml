@@ -1,0 +1,23 @@
+settings:
+  business_name:
+    type: string
+    required: true
+    default: Project Desk
+    description: Shown in the app header and in outbound updates.
+  timezone:
+    type: string
+    default: Asia/Kolkata
+    description: >-
+      IANA name. Due dates and `current_date` defaults resolve against this zone.
+  currency:
+    type: string
+    default: INR
+    description: "Applied by entity fields that declare `default_from_setting: currency`."
+  default_project_rate:
+    type: number
+    default: 0
+    description: Starting hourly rate for a new project.
+  show_completed_tasks:
+    type: boolean
+    default: true
+    description: Whether task lists include records already in `done`.
