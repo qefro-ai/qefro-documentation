@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -44,10 +44,12 @@ jobs:
           path: build
           retention-days: 7
 
+  # Cloudflare Pages is the production host for docs.qefro.com, so publishing
+  # stays behind an explicit dispatch: `gh workflow run ci.yml --ref main`.
   deploy-cloudflare:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       deployments: write
@@ -71,10 +73,8 @@ jobs:
             || npx --yes wrangler@3 pages project create qefro-documentation --production-branch=main
 
       - name: Publish to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: qefro-documentation
-          directory: build
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy build --project-name=qefro-documentation --branch=main --commit-dirty=true
